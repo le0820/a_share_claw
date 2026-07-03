@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/
+dist/
+*.egg-info/
+!/a_share_claw/__main__.py
+.openclaw/
+tests/
