@@ -20,7 +20,10 @@ def main() -> None:
     chat = sub.add_parser("chat", help="Run one local chat turn")
     chat.add_argument("message")
     args = parser.parse_args()
-    asyncio.run(async_main(args))
+    try:
+        asyncio.run(async_main(args))
+    except KeyboardInterrupt:
+        print("Stopped.")
 
 
 async def async_main(args: argparse.Namespace) -> None:

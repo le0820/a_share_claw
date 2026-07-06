@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import socket
 from typing import Any
 
 from .agent import InvestmentAgent
@@ -42,8 +43,11 @@ class TelegramBot:
         self._running = False
 
     async def get_updates(self, offset: int) -> list[dict[str, Any]]:
-        payload = {"offset": offset, "timeout": 30, "allowed_updates": '["message"]'}
-        data = await post_json(f"{self.api_base}/getUpdates", payload, timeout=35)
+        payload = {"offset": offset, "timeout": 25, "allowed_updates": '["message"]'}
+        try:
+            data = await post_json(f"{self.api_base}/getUpdates", payload, timeout=45)
+        except (TimeoutError, socket.timeout):
+            return []
         if not data.get("ok"):
             raise RuntimeError(data)
         return list(data.get("result", []))

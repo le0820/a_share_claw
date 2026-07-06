@@ -8,4 +8,4 @@ dist/
 *.egg-info/
 !/a_share_claw/__main__.py
 .openclaw/
-tests/
+.DS_Store

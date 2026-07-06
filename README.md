@@ -58,6 +58,11 @@ ASCLAW_FAKE_AI=1 python -m a_share_claw chat "测试一下"
 python -m a_share_claw run
 ```
 
+> **macOS SSL 问题**：如遇到 `SSL: CERTIFICATE_VERIFY_FAILED` 错误，需指定证书路径：
+> ```bash
+> SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())") python -m a_share_claw run
+> ```
+
 ## 内置投研工具
 
 Agent 可调用这些工具：
