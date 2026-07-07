@@ -17,6 +17,11 @@ class AppConfig:
     telegram_bot_token: str | None
     telegram_allowed_user_ids: frozenset[str]
     openai_model: str
+    model_provider: str
+    model_base_url: str | None
+    model_api_key: str | None
+    model_name: str
+    model_trust_env: bool
     timezone: str
     scheduler_poll_seconds: int
     enable_bash: bool
@@ -66,6 +71,11 @@ class AppConfig:
             telegram_bot_token=os.environ.get("TELEGRAM_BOT_TOKEN") or None,
             telegram_allowed_user_ids=frozenset(_csv(os.environ.get("TELEGRAM_ALLOWED_USER_IDS"))),
             openai_model=os.environ.get("ASCLAW_OPENAI_MODEL", "gpt-5.5"),
+            model_provider=os.environ.get("ASCLAW_MODEL_PROVIDER", "tencent"),
+            model_base_url=os.environ.get("ASCLAW_MODEL_BASE_URL") or None,
+            model_api_key=os.environ.get("ASCLAW_MODEL_API_KEY") or None,
+            model_name=os.environ.get("ASCLAW_MODEL_NAME", ""),
+            model_trust_env=parse_bool(os.environ.get("ASCLAW_MODEL_TRUST_ENV"), False),
             timezone=os.environ.get("ASCLAW_TIMEZONE", "America/Los_Angeles"),
             scheduler_poll_seconds=int(os.environ.get("ASCLAW_SCHEDULER_POLL_SECONDS", "15")),
             enable_bash=parse_bool(os.environ.get("ASCLAW_ENABLE_BASH"), False),
@@ -93,6 +103,11 @@ class AppConfig:
             "telegram_bot_token": bool(self.telegram_bot_token),
             "telegram_allowed_user_ids": sorted(self.telegram_allowed_user_ids),
             "openai_model": self.openai_model,
+            "model_provider": self.model_provider,
+            "model_base_url": self.model_base_url,
+            "model_api_key": bool(self.model_api_key),
+            "model_name": self.model_name,
+            "model_trust_env": self.model_trust_env,
             "timezone": self.timezone,
             "scheduler_poll_seconds": self.scheduler_poll_seconds,
             "enable_bash": self.enable_bash,

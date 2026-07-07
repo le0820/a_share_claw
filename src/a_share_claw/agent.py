@@ -4,6 +4,8 @@ from contextlib import AsyncExitStack
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from openai import AsyncOpenAI
+
 from .config import AppConfig
 from .context import ConversationContext
 from .db import Storage
@@ -11,6 +13,28 @@ from .mcp import enter_mcp_servers
 from .memory import MemoryStore
 from .prompts import build_instructions
 from .tools_runtime import ToolRuntime, scan_prompt_assets
+
+
+def build_model_client(config: AppConfig) -> AsyncOpenAI | None:
+    """Build the OpenAI-compatible client for the configured domestic model.
+
+    Returns ``None`` when no domestic endpoint is configured, so the agent falls
+    back to the ``openai_model`` placeholder. The client bypasses environment
+    proxies by default, since domestic endpoints (e.g. tokenhub) should connect
+    directly; set ``ASCLAW_MODEL_TRUST_ENV=1`` to route through a proxy.
+    """
+    if not (config.model_base_url and config.model_api_key):
+        return None
+    try:
+        import httpx
+    except ImportError as exc:
+        raise RuntimeError("Install dependencies first: pip install -e .") from exc
+    http_client = httpx.AsyncClient(trust_env=config.model_trust_env)
+    return AsyncOpenAI(
+        base_url=config.model_base_url,
+        api_key=config.model_api_key,
+        http_client=http_client,
+    )
 
 
 class InvestmentAgent:
@@ -32,11 +56,42 @@ class InvestmentAgent:
         self.storage.add_message(context.conversation_id, "assistant", output)
         return output
 
+    def _effective_model(self) -> str:
+        # `model_name` is the configured domestic model; `openai_model` stays as the
+        # tutorial's placeholder/fake value when no domestic model is set.
+        return self.config.model_name or self.config.openai_model
+
+    def _configure_model_client(self) -> None:
+        client = build_model_client(self.config)
+        if client is None:
+            return
+        try:
+            from agents import set_default_openai_client, set_tracing_disabled
+        except ImportError as exc:
+            raise RuntimeError("Install dependencies first: pip install -e .") from exc
+        # Disable tracing without building the default tracing exporter. The SDK
+        # lazily builds a BackendSpanExporter backed by an httpx.Client that
+        # inherits the environment proxy; on a SOCKS proxy without socksio that
+        # crashes at construction ("Using SOCKS proxy..."). Installing a provider
+        # with no processor avoids building the exporter, and our domestic model
+        # endpoint connects directly (trust_env=False) anyway.
+        try:
+            from agents.tracing import set_trace_provider
+            from agents.tracing.provider import DefaultTraceProvider
+
+            set_trace_provider(DefaultTraceProvider())
+        except Exception:
+            pass
+        set_tracing_disabled(True)
+        set_default_openai_client(client, use_for_tracing=False)
+
     async def _run_agents_sdk(self, context: ConversationContext, message: str) -> str:
         try:
             from agents import Agent, Runner, SQLiteSession, function_tool
         except ImportError as exc:
             raise RuntimeError("Install dependencies first: pip install -e .") from exc
+
+        self._configure_model_client()
 
         runtime = ToolRuntime(self.config, self.storage, context)
 
@@ -140,7 +195,7 @@ class InvestmentAgent:
             mcp_servers = await enter_mcp_servers(self.config, stack)
             agent = Agent(
                 name="a_share_claw",
-                model=self.config.openai_model,
+                model=self._effective_model(),
                 instructions=instructions,
                 tools=tools,
                 mcp_servers=mcp_servers,
@@ -161,7 +216,7 @@ class InvestmentAgent:
                 sandbox_mode="workspace-write",
                 working_directory=str(self.config.workspace_dir),
                 default_thread_options=ThreadOptions(
-                    model=self.config.openai_model,
+                    model=self._effective_model(),
                     model_reasoning_effort="low",
                     network_access_enabled=True,
                     web_search_mode="disabled",

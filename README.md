@@ -14,7 +14,7 @@
 | 章节 | 当前实现 |
 | --- | --- |
 | 第 1 章 Telegram Bot | `src/a_share_claw/telegram.py` 使用 Telegram Bot API long polling 接收和回复消息 |
-| 第 2 章 AI 能力 | `src/a_share_claw/agent.py` 使用 OpenAI Agents SDK 的 `Agent` / `Runner` |
+| 第 2 章 AI 能力 | `src/a_share_claw/agent.py` 使用 OpenAI Agents SDK 的 `Agent` / `Runner`；通过 OpenAI 兼容端点接入国产模型（`ASCLAW_MODEL_*`），`ASCLAW_OPENAI_MODEL` 保留为示例假值 |
 | 第 3 章 MCP 工具 | `src/a_share_claw/mcp.py` 读取 `.mcp.json` 并挂载 stdio MCP server |
 | 第 4 章 Bash/搜索/资料整理 | 内置 `run_bash`、`web_search`、`fetch_url`、文件读写、行情和宏观工具 |
 | 第 5 章短期记忆 | OpenAI Agents SDK `SQLiteSession` 保存每个会话上下文 |
@@ -36,8 +36,14 @@ cp .env.example .env
 ```bash
 TELEGRAM_BOT_TOKEN=123456:...
 TELEGRAM_ALLOWED_USER_IDS=123456789
+# ASCLAW_OPENAI_MODEL is the tutorial placeholder; the real model is the domestic one below.
 OPENAI_API_KEY=sk-...
 ASCLAW_OPENAI_MODEL=gpt-5.5
+# Domestic model via OpenAI-compatible endpoint (no OpenAI network/cost needed).
+ASCLAW_MODEL_PROVIDER=tencent
+ASCLAW_MODEL_BASE_URL=https://tokenhub.tencentmaas.com/v1
+ASCLAW_MODEL_API_KEY=sk-...
+ASCLAW_MODEL_NAME=hy3
 ```
 
 初始化数据库：
@@ -52,6 +58,8 @@ python -m a_share_claw init-db
 ASCLAW_FAKE_AI=1 python -m a_share_claw chat "测试一下"
 ```
 
+真实模型走国产 OpenAI 兼容端点（`ASCLAW_MODEL_*`）：OpenAI Agents SDK 的 `Agent`/`Runner` 接口保持不变，只是把底层 client 指向 `ASCLAW_MODEL_BASE_URL`。不配置 `ASCLAW_MODEL_API_KEY` 时回退到 `ASCLAW_OPENAI_MODEL` 这个示例假值。可选供应商见 `.env.example` 中的 `tencent` / `volcengine` 预设。
+
 启动 Telegram bot 和调度器：
 
 ```bash
@@ -62,6 +70,52 @@ python -m a_share_claw run
 > ```bash
 > SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())") python -m a_share_claw run
 > ```
+
+## 第 2 章 配置模型与启动 Telegram Bot
+
+第 1 章已配好 Telegram Bot；第 2 章把 AI 能力接上国产模型并启动服务。OpenAI Agents SDK
+的接口保持不变，仅把底层 client 指向 `ASCLAW_MODEL_*` 配置的国产 OpenAI 兼容端点。
+
+1. 初始化数据库（仅首次）：
+
+   ```bash
+   python -m a_share_claw init-db
+   ```
+
+2. 先用假 AI 验证整条链路（不消耗模型额度）：
+
+   ```bash
+   ASCLAW_FAKE_AI=1 python -m a_share_claw chat "测试一下"
+   ```
+
+3. 启动 Telegram 轮询 Bot 与定时调度器：
+
+   ```bash
+   python -m a_share_claw run
+   ```
+
+   > **macOS SSL 问题**：如遇到 `SSL: CERTIFICATE_VERIFY_FAILED`，需指定证书路径：
+   > ```bash
+   > SSL_CERT_FILE=$(python -c "import certifi; print(certifi.where())") python -m a_share_claw run
+   > ```
+
+4. 想确认当前生效配置（不会打印密钥）：
+
+   ```bash
+   python -m a_share_claw show-config
+   ```
+
+说明：`.env` 中已默认配置 `tencent/hy3` 国产模型，因此无需 `OPENAI_API_KEY` 即可真实
+调用。要换供应商（如 volcengine/doubao），改 `.env` 里的 `ASCLAW_MODEL_*` 即可；不填
+`ASCLAW_MODEL_API_KEY` 时会回退到 `ASCLAW_OPENAI_MODEL` 这个示例假值。
+
+模型客户端默认**不走系统代理**（`trust_env=False`），因为 `tokenhub` 等国产端点应直连；
+若你的环境通过 SOCKS 代理访问外网且需要走代理，可设 `ASCLAW_MODEL_TRUST_ENV=1`
+（此时需先安装 `socksio`，否则会报 `Using SOCKS proxy...` 错误）。
+
+Telegram 的 `api.telegram.org` 在国内被墙，**必须走代理**。`.env` 中通过
+`HTTPS_PROXY` / `HTTP_PROXY` 指向本地 http 代理（例如 `http://127.0.0.1:<proxy-port>`），
+`http_client.py` 用的 `urllib` 会自动读取这两个变量；模型与国产端点仍走直连，互不影响。
 
 ## 内置投研工具
 
