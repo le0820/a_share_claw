@@ -1,0 +1,82 @@
+{
+  "_description": "Weight Matrix — all calibrated weights in the scoring system. Compiled from README + 三层多因子 + 评分可解释性手册. If any weight changes, update this file and note the SOP version.",
+  "_version": "compiled-2026-07-21-l3-polarity-fixed-ai-overlay",
+  "_previous_version": "compiled-2026-06-12",
+  "_noise_removal_20260612": {
+    "removed": ["US geopolitical_risk (0.18→0)", "L3 AAII Survey (0.20→0)"],
+    "rationale": "Neither fundamental nor quantitative. Geopolitical=qualitative news judgment, AAII=behavioral poll.",
+    "renormalization": {
+      "L1_US": "5 factors × 0.20 (was 6 factors: 4×0.18 + tech_capex×0.10 + geo×0.18)",
+      "L3_sentiment": "4 factors × 0.25 (was 5 factors × 0.20)"
+    }
+  },
+  "composite_weights": {
+    "_source": "评分可解释性手册 §四",
+    "_versions": {
+      "v1.1_20260509": { "L1": 0.35, "L2": 0.25, "bond": 0.10, "L3_sentiment": 0.15, "L3_risk": 0.15 },
+      "pre_ff5_disable_20260612": { "L1": 0.40, "L2": 0.30, "L3": 0.30 },
+      "current": { "L1": 0.5714285714, "L2": 0.0, "L3": 0.4285714286 },
+      "_note": "L2 is disabled. The former L1:L3 ratio 0.40:0.30 is preserved and renormalized to 4/7:3/7."
+    },
+    "L1": 0.5714285714,
+    "L2": 0.0,
+    "L3": 0.4285714286,
+    "formula": "L1 × 4/7 + L3 × 3/7 (L2 disabled)"
+  },
+  "L1_weights": {
+    "us_cn": { "us": 0.60, "cn": 0.40, "jp": 0.15, "_note": "JP not in current composite" },
+    "us_factor_weights": {
+      "employment_growth": 0.20,
+      "inflation_wages": 0.20,
+      "monetary_policy": 0.20,
+      "financial_conditions": 0.20,
+      "tech_capex": 0.20,
+      "_removed_geopolitical_risk": 0.00
+    },
+    "cn_factor_weights": {
+      "manufacturing": 0.22,
+      "consumption": 0.18,
+      "credit": 0.18,
+      "real_estate": 0.12,
+      "policy": 0.20
+    },
+    "missing_factor_method": "Omit missing factors and renormalize observed weights. Never inject a neutral score. CN raw weights intentionally preserve the compiled ratios and are normalized at runtime."
+  },
+  "L2_weights": {
+    "status": "disabled",
+    "reason": "No official reproducible FF5 or China style-factor source contract",
+    "factors": {},
+    "replacement_used": false
+  },
+  "L3_weights": {
+    "sentiment": 0.50,
+    "risk": 0.50,
+    "sentiment_factors": {
+      "vix": 0.25, "put_call": 0.25, "dxy": 0.25, "credit_spread": 0.25,
+      "_removed_aaii": 0.00
+    },
+    "missing_sentiment_method": "Omit missing factors and renormalize observed weights; require at least 50% observed sentiment weight.",
+    "risk_factors": {
+      "var_95_1d": 0.25, "cvar_95_1d": 0.25, "max_drawdown_60d": 0.25, "var_trend": 0.25
+    }
+  },
+  "cross_validation_adjustments": {
+    "crude_oil": {
+      "description": "原油交叉验证对L1的修正",
+      "range": "±0.1 ~ ±0.3",
+      "rules": {
+        "oil_above_105": "L1 US inflation must be re-evaluated, regardless of contradiction",
+        "oil_up_10y_up_gold_up": "All three rising → stagflation → L1 US MUST drop ≥0.5",
+        "oil_down_10y_down_gold_down": "All three falling → deflation/recession → increase bond allocation",
+        "gold_oil_ratio_above_25_with_low_vix": "Contradiction signal → pre-judge risk event"
+      }
+    }
+  },
+  "asset_allocation_weights": {
+    "_note": "Current state categories only. The executable scoring universe is src/pipeline/pipeline_universe.json.",
+    "159682": { "role": "attack", "label": "A股大盘科技成长(创业板50)" },
+    "518880": { "role": "defense", "label": "黄金ETF华安" },
+    "000333": { "role": "defense", "label": "美的集团" },
+    "cash": { "role": "cash", "label": "证券账户现金" }
+  }
+}

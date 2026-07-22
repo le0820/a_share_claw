@@ -1,0 +1,145 @@
+{
+  "_description": "L3 Market Sentiment & Quantitative Risk Scoring Rules — compiled from 三层多因子投研框架 v1.4 + 评分可解释性手册 v1.1. PRIMARY scoring reference for L3. Two sub-modules: Sentiment (50%) + Risk (50%).\n\n  NOISE REMOVED (2026-06-12): Removed AAII Survey factor. Rationale: retail sentiment poll — behavioral psychology data, neither fundamental economic data nor market-derived quantitative measure. Remaining 4 sentiment factors renormalized to 0.25 each.",
+  "_version": "compiled-2026-07-21-vix-polarity-fixed",
+  "_previous_version": "compiled-2026-05-24",
+  "_source_sops": [
+    "sop/三层多因子投研框架.md (v1.4 §L3)",
+    "sop/评分可解释性手册.md (v1.1 §三/四)"
+  ],
+  "sentiment": {
+    "weight_in_L3": 0.50,
+    "description": "市场情绪温度：VIX + Put/Call + DXY + Credit Spread。AAII仅保留观察，不纳入评分。",
+    "factors": [
+      {
+        "name": "vix",
+        "label": "VIX 恐慌指数",
+        "weight": 0.25,
+        "data_source": "CBOE",
+        "scoring_rules": [
+          { "score": 5, "condition": "VIX < 12", "interpretation": "过度自满/亢奋" },
+          { "score": 4, "condition": "12 ≤ VIX < 17", "interpretation": "平静偏乐观" },
+          { "score": 3, "condition": "17 ≤ VIX < 22", "interpretation": "正常波动" },
+          { "score": 2, "condition": "22 ≤ VIX < 28", "interpretation": "紧张" },
+          { "score": 1, "condition": "VIX ≥ 28", "interpretation": "恐慌" }
+        ],
+        "_qualitative_note": "评分统一映射风险偏好：1=恐慌/风险厌恶，5=亢奋/风险偏好。VIX=17约3，VIX<12约5，VIX=35为1。"
+      },
+      {
+        "name": "put_call",
+        "label": "Put/Call比率",
+        "weight": 0.25,
+        "data_source": "OptionCharts",
+        "scoring_rules": [
+          { "score": 1, "condition": "> 1.0", "interpretation": "恐慌（大量买Put保护）" },
+          { "score": 2, "condition": "0.5 ≤ ratio ≤ 1.0", "interpretation": "中性" },
+          { "score": 3, "condition": "< 0.5", "interpretation": "看涨（Call占主导）" }
+        ]
+      },
+      {
+        "name": "dxy",
+        "label": "美元指数趋势",
+        "weight": 0.25,
+        "data_source": "DXY",
+        "scoring_rules": [
+          { "score": 4, "condition": "走弱（对新兴市场有利）", "score_adjustment": "+1" },
+          { "score": 3, "condition": "走强（对新兴市场不利）", "score_adjustment": "-1" },
+          { "score": 3, "condition": "横盘", "score_adjustment": "0" }
+        ]
+      },
+      {
+        "name": "credit_spread",
+        "label": "信用利差",
+        "weight": 0.25,
+        "data_source": "投资级OAS",
+        "scoring_rules": [
+          { "score": 4, "condition": "收窄（风险偏好改善）", "score_adjustment": "+1" },
+          { "score": 3, "condition": "扩大（风险偏好恶化）", "score_adjustment": "-1" },
+          { "score": 3, "condition": "保持", "score_adjustment": "0" }
+        ]
+      }
+    ],
+    "composite_formula": "equal-weight average of observed factors; missing factors are omitted without neutral imputation; minimum observed weight 50%",
+    "interpretation": {
+      "1.0-2.0": "极度恐慌/悲观 → 逆向买入机会",
+      "2.0-3.0": "偏悲观 → 谨慎",
+      "3.0-4.0": "中性偏乐观 → 正常操作",
+      "4.0-5.0": "极度乐观/亢奋 → 过热风险信号"
+    },
+    "_removed_20260612": "aaii_survey factor removed — retail sentiment poll, behavioral not fundamental/quantitative"
+  },
+  "risk": {
+    "weight_in_L3": 0.50,
+    "description": "量化风险度量：VaR + CVaR + Max Drawdown + VaR Trend。基于60日滚动窗口。每只ETF独立计算后等权平均。",
+    "factors": [
+      {
+        "name": "var_95_1d",
+        "label": "VaR(95%,1d)",
+        "description": "95%置信度下1日最大损失。绝对值越小越好。",
+        "data_source": "easy-tdx日线 → trade_date<=as_of_date → 滚动60日历史模拟",
+        "per_etf_scoring": {
+          "method": "每只ETF的 abs(VaR) 打分后等权平均",
+          "rules": [
+            { "score": 5, "condition": "abs(VaR) < 1%" },
+            { "score": 4, "condition": "1% ≤ abs(VaR) < 2%" },
+            { "score": 3, "condition": "2% ≤ abs(VaR) < 3%" },
+            { "score": 2, "condition": "3% ≤ abs(VaR) < 4%" },
+            { "score": 1, "condition": "abs(VaR) ≥ 4%" }
+          ]
+        },
+        "_example_values": "中韩-6.12%(1分), 恒生-2.87%(3分), 创业-2.36%(3分), QQQ-1.87%(4分)"
+      },
+      {
+        "name": "cvar_95_1d",
+        "label": "CVaR(95%,1d)",
+        "description": "95%置信度下尾部条件期望损失。比VaR更保守。",
+        "data_source": "easy-tdx日线 → trade_date<=as_of_date → 滚动60日历史模拟",
+        "per_etf_scoring": {
+          "rules": [
+            { "score": 5, "condition": "abs(CVaR) < 1.5%" },
+            { "score": 4, "condition": "1.5% ≤ abs(CVaR) < 3%" },
+            { "score": 3, "condition": "3% ≤ abs(CVaR) < 4.5%" },
+            { "score": 2, "condition": "4.5% ≤ abs(CVaR) < 6%" },
+            { "score": 1, "condition": "abs(CVaR) ≥ 6%" }
+          ]
+        }
+      },
+      {
+        "name": "max_drawdown_60d",
+        "label": "60日最大回撤",
+        "description": "60日滚动窗口内峰值到谷值的最大跌幅。",
+        "data_source": "easy-tdx日线 → trade_date<=as_of_date → 滚动峰值计算",
+        "per_etf_scoring": {
+          "rules": [
+            { "score": 5, "condition": "abs(DD) < 5%" },
+            { "score": 4, "condition": "5% ≤ abs(DD) < 10%" },
+            { "score": 3, "condition": "10% ≤ abs(DD) < 15%" },
+            { "score": 2, "condition": "15% ≤ abs(DD) < 20%" },
+            { "score": 1, "condition": "abs(DD) ≥ 20%" }
+          ]
+        },
+        "_example_values": "中韩-23%(1分), 恒生-33%(1分), 创业-8%(4分), QQQ-13%(3分)"
+      },
+      {
+        "name": "var_trend",
+        "label": "VaR趋势",
+        "description": "VaR 20日均值 vs 40日均值变化。负值=改善(VaR在缩小)，正值=恶化。",
+        "data_source": "VaR时间序列 → 20d MA vs 40d MA",
+        "per_etf_scoring": {
+          "rules": [
+            { "score": 5, "condition": "缩小 > 20%（显著改善）" },
+            { "score": 4, "condition": "缩小 5-20%" },
+            { "score": 3, "condition": "±5%（稳定）" },
+            { "score": 2, "condition": "扩大 5-20%" },
+            { "score": 1, "condition": "扩大 > 20%（显著恶化）" }
+          ]
+        }
+      }
+    ],
+    "composite_formula": "equal-weight average of 4 factors",
+    "additional_metrics_computed": {
+      "ann_volatility": "日收益率标准差 × sqrt(252)",
+      "sharpe_ratio": "(年化收益 - 无风险利率) / 年化波动率"
+    }
+  },
+  "L3_composite_formula": "sentiment_composite × 0.50 + risk_composite × 0.50"
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "version": "ai-sources-2026-07-21-p1",
+  "sources": {
+    "hyperscaler_financials": {
+      "primary": "SEC companyfacts XBRL",
+      "endpoint": "https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json",
+      "historical_method": "retain only facts whose filed date is <= as_of_date",
+      "status": "active"
+    },
+    "ai_sector_market": {
+      "primary": "easy-tdx",
+      "sector_proxy": "159819.SZ",
+      "benchmark": "510300.SH",
+      "status": "active"
+    },
+    "ai_constituents": {
+      "primary": "CSI 930713 constituent workbook",
+      "endpoint": "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/file/autofile/cons/930713cons.xls",
+      "historical_method": "only archived effective-date snapshots may be used",
+      "status": "snapshot_only"
+    },
+    "a_share_margin": {
+      "primary": ["SSE queryMargin.do", "SZSE ShowReport CATALOGID=1837_xxpl"],
+      "fallback_method": "If SZSE history does not reach the expected point-in-time cutoff, use one consistent full-window SSE-only proxy, label it unverified, and never splice SSE-only rows onto an earlier combined series.",
+      "status": "active_with_partial_history_limit"
+    },
+    "a_share_option_put_call": {
+      "primary": "SSE daily option statistics COMMON_SSE_ZQPZ_YSP_QQ_SJTJ_MRTJ_CX",
+      "status": "active"
+    },
+    "us_liquidity": {
+      "primary": "FRED graph CSV",
+      "exact_dxy": "not supplied; DTWEXBGS is stored as broad_dollar and never relabelled DXY",
+      "historical_method": "archived vintage required for official output; explicit current-vintage research replay is unverified",
+      "status": "active"
+    },
+    "china_inflation": {
+      "primary": "National Bureau of Statistics series via AkShare adapter",
+      "series": ["China CPI YoY", "China PPI YoY"],
+      "availability_rule": "45-calendar-day conservative lag when exact release metadata is unavailable",
+      "historical_method": "current-vintage historical replay is unverified; official use requires an archived artifact",
+      "status": "active_with_vintage_limit"
+    },
+    "gpu_prices": {
+      "primary": ["Azure Retail Prices API"],
+      "secondary": ["AWS Price List", "GCP Cloud Billing Catalog", "Vast offers"],
+      "historical_method": "daily self-archived snapshots only",
+      "status": "snapshot_only"
+    },
+    "token_prices": {
+      "primary": "model-provider official price pages",
+      "secondary": "OpenRouter models API",
+      "historical_method": "daily self-archived fixed-basket snapshots only",
+      "status": "snapshot_only"
+    },
+    "analyst_consensus_revisions": {
+      "primary": null,
+      "status": "unavailable_free_point_in_time_source"
+    },
+    "margin_leverage_ratio": {
+      "primary": null,
+      "reason": "no automated point-in-time official free-float market-cap denominator is implemented",
+      "status": "unavailable_without_denominator"
+    }
+  }
+}

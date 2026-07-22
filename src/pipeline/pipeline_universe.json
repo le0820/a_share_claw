@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "description": "Single executable universe for the daily scoring pipeline.",
+  "scoring_assets": {
+    "159682.SZ": {
+      "name": "创业板50ETF",
+      "provider": "easy-tdx",
+      "client": "mac",
+      "provider_market": "SZ",
+      "provider_code": "159682",
+      "adjustment": "QFQ",
+      "role": "portfolio"
+    },
+    "QQQ.US": {
+      "name": "纳斯达克100ETF",
+      "provider": "easy-tdx",
+      "client": "mac_ex",
+      "provider_market": "US_STOCK",
+      "provider_code": "QQQ",
+      "adjustment": "NONE",
+      "role": "benchmark"
+    }
+  }
+}

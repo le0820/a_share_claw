@@ -12,6 +12,15 @@ class AppConfig:
     root_dir: Path
     data_dir: Path
     workspace_dir: Path
+    compiled_dir: Path
+    pipeline_dir: Path
+    raw_data_dir: Path
+    analysis_dir: Path
+    scores_dir: Path
+    reports_dir: Path
+    system_state_path: Path
+    research_operations_path: Path
+    research_output_dir: Path
     database_path: Path
     agent_session_db_path: Path
     telegram_bot_token: str | None
@@ -23,6 +32,7 @@ class AppConfig:
     model_name: str
     model_trust_env: bool
     timezone: str
+    market_timezone: str
     scheduler_poll_seconds: int
     enable_bash: bool
     enable_file_write: bool
@@ -39,33 +49,41 @@ class AppConfig:
         _load_dotenv(root / ".env")
         data_dir = _path_from_env("ASCLAW_DATA_DIR", root / "data", root)
         workspace_dir = _path_from_env("ASCLAW_WORKSPACE_DIR", root, root)
+        compiled_dir = root / "src" / "compiled"
+        pipeline_dir = root / "src" / "pipeline"
+        raw_data_dir = data_dir / "raw"
+        analysis_dir = data_dir / "analysis"
+        scores_dir = data_dir / "scores"
+        reports_dir = data_dir / "reports"
+        system_state_path = data_dir / "state" / "system_state.json"
+        research_operations_path = data_dir / "deepresearch" / "OPERATIONS.md"
+        research_output_dir = data_dir / "research" / "output"
         database_path = data_dir / "a_share_claw.sqlite3"
         agent_session_db_path = data_dir / "agent_sessions.sqlite3"
         mcp_config_path = _path_from_env("ASCLAW_MCP_CONFIG", root / ".mcp.json", root)
         skill_dirs = _paths_from_env(
             "ASCLAW_SKILL_DIRS",
-            (
-                root / ".codex" / "skills",
-                root / "skills",
-                root / ".openclaw" / "skills",
-                root / ".openclaw" / "workspace" / "skills",
-                root / ".openclaw" / "workspace" / "repo_skills",
-            ),
+            (),
             root,
         )
         plugin_dirs = _paths_from_env(
             "ASCLAW_PLUGIN_DIRS",
-            (
-                root / ".codex" / "plugins",
-                root / "plugins",
-                root / ".openclaw" / "plugins",
-            ),
+            (),
             root,
         )
         return cls(
             root_dir=root,
             data_dir=data_dir,
             workspace_dir=workspace_dir,
+            compiled_dir=compiled_dir,
+            pipeline_dir=pipeline_dir,
+            raw_data_dir=raw_data_dir,
+            analysis_dir=analysis_dir,
+            scores_dir=scores_dir,
+            reports_dir=reports_dir,
+            system_state_path=system_state_path,
+            research_operations_path=research_operations_path,
+            research_output_dir=research_output_dir,
             database_path=database_path,
             agent_session_db_path=agent_session_db_path,
             telegram_bot_token=os.environ.get("TELEGRAM_BOT_TOKEN") or None,
@@ -77,6 +95,7 @@ class AppConfig:
             model_name=os.environ.get("ASCLAW_MODEL_NAME", ""),
             model_trust_env=parse_bool(os.environ.get("ASCLAW_MODEL_TRUST_ENV"), False),
             timezone=os.environ.get("ASCLAW_TIMEZONE", "America/Los_Angeles"),
+            market_timezone=os.environ.get("ASCLAW_MARKET_TIMEZONE", "Asia/Shanghai"),
             scheduler_poll_seconds=int(os.environ.get("ASCLAW_SCHEDULER_POLL_SECONDS", "15")),
             enable_bash=parse_bool(os.environ.get("ASCLAW_ENABLE_BASH"), False),
             enable_file_write=parse_bool(os.environ.get("ASCLAW_ENABLE_FILE_WRITE"), True),
@@ -89,8 +108,17 @@ class AppConfig:
         )
 
     def ensure_dirs(self) -> None:
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        (self.data_dir / "users").mkdir(parents=True, exist_ok=True)
+        for path in (
+            self.data_dir,
+            self.data_dir / "users",
+            self.raw_data_dir,
+            self.analysis_dir,
+            self.scores_dir,
+            self.reports_dir,
+            self.system_state_path.parent,
+            self.research_output_dir,
+        ):
+            path.mkdir(parents=True, exist_ok=True)
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
 
     def safe_dict(self) -> dict[str, object]:
@@ -98,6 +126,15 @@ class AppConfig:
             "root_dir": str(self.root_dir),
             "data_dir": str(self.data_dir),
             "workspace_dir": str(self.workspace_dir),
+            "compiled_dir": str(self.compiled_dir),
+            "pipeline_dir": str(self.pipeline_dir),
+            "raw_data_dir": str(self.raw_data_dir),
+            "analysis_dir": str(self.analysis_dir),
+            "scores_dir": str(self.scores_dir),
+            "reports_dir": str(self.reports_dir),
+            "system_state_path": str(self.system_state_path),
+            "research_operations_path": str(self.research_operations_path),
+            "research_output_dir": str(self.research_output_dir),
             "database_path": str(self.database_path),
             "agent_session_db_path": str(self.agent_session_db_path),
             "telegram_bot_token": bool(self.telegram_bot_token),
@@ -109,6 +146,7 @@ class AppConfig:
             "model_name": self.model_name,
             "model_trust_env": self.model_trust_env,
             "timezone": self.timezone,
+            "market_timezone": self.market_timezone,
             "scheduler_poll_seconds": self.scheduler_poll_seconds,
             "enable_bash": self.enable_bash,
             "enable_file_write": self.enable_file_write,

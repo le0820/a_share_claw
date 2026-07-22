@@ -1,9 +1,43 @@
 {
   "mcpServers": {
-    "filesystem": {
+    "tavily": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-      "allowedTools": ["read_file", "write_file", "list_directory"]
+      "args": ["-y", "tavily-mcp@0.2.21"],
+      "env": {
+        "npm_config_cache": "${ASCLAW_NPM_CACHE:-.cache/npm}",
+        "TAVILY_API_KEY": "${TAVILY_API_KEY}",
+        "TAVILY_HUMAN_ID": "${TAVILY_HUMAN_ID}",
+        "DEFAULT_PARAMETERS": "{\"search_depth\":\"advanced\",\"max_results\":8,\"include_raw_content\":false}"
+      },
+      "workflows": ["mixed", "company", "industry"],
+      "allowedTools": [
+        "tavily_search",
+        "tavily_extract",
+        "tavily_crawl",
+        "tavily_map",
+        "tavily_research"
+      ],
+      "cacheToolsList": true,
+      "clientSessionTimeoutSeconds": 900
+    },
+    "qveris": {
+      "command": "npx",
+      "args": ["-y", "@qverisai/mcp@0.9.0"],
+      "env": {
+        "npm_config_cache": "${ASCLAW_NPM_CACHE:-.cache/npm}",
+        "QVERIS_API_KEY": "${QVERIS_API_KEY}",
+        "QVERIS_REGION": "${QVERIS_REGION}",
+        "QVERIS_MAX_RETRIES": "${QVERIS_MAX_RETRIES:-3}"
+      },
+      "workflows": ["mixed", "company", "industry"],
+      "allowedTools": [
+        "discover",
+        "inspect",
+        "usage_history",
+        "credits_ledger"
+      ],
+      "cacheToolsList": true,
+      "clientSessionTimeoutSeconds": 60
     }
   }
 }

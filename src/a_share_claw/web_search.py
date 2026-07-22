@@ -11,10 +11,46 @@ from .utils import truncate
 
 
 async def search_web(query: str, max_results: int = 5) -> str:
+    limit = max(1, min(max_results, 20))
     api_key = os.environ.get("BRAVE_SEARCH_API_KEY")
-    if api_key:
-        return await _search_brave(query, max_results, api_key)
-    return await _search_duckduckgo(query, max_results)
+    backend = "brave" if api_key else "duckduckgo_html"
+    try:
+        if api_key:
+            results = await _search_brave(query, limit, api_key)
+        else:
+            results = await _search_duckduckgo(query, limit)
+    except Exception as exc:
+        return json.dumps(
+            {
+                "ok": False,
+                "status": "backend_error",
+                "backend": backend,
+                "query": query,
+                "result_count": 0,
+                "results": [],
+                "reason": "backend_error",
+                "error_type": type(exc).__name__,
+                "error": truncate(str(exc), 500),
+            },
+            ensure_ascii=False,
+        )
+    return json.dumps(
+        {
+            "ok": bool(results),
+            "status": "ok" if results else "no_results",
+            "backend": backend,
+            "query": query,
+            "result_count": len(results),
+            "results": results,
+            "reason": None if results else "no_results",
+            "instruction": (
+                "No results from this backend is not evidence that all search backends are unconfigured."
+                if not results
+                else None
+            ),
+        },
+        ensure_ascii=False,
+    )
 
 
 async def fetch_url_summary(url: str, max_chars: int = 8000) -> str:
@@ -23,7 +59,7 @@ async def fetch_url_summary(url: str, max_chars: int = 8000) -> str:
     return truncate(text.strip(), max_chars)
 
 
-async def _search_brave(query: str, max_results: int, api_key: str) -> str:
+async def _search_brave(query: str, max_results: int, api_key: str) -> list[dict[str, object]]:
     encoded = urllib.parse.quote(query)
     url = f"https://api.search.brave.com/res/v1/web/search?q={encoded}&count={max_results}"
     data = await fetch_json(url, timeout=15)
@@ -36,10 +72,10 @@ async def _search_brave(query: str, max_results: int, api_key: str) -> str:
                 "description": item.get("description"),
             }
         )
-    return json.dumps(results, ensure_ascii=False)
+    return results
 
 
-async def _search_duckduckgo(query: str, max_results: int) -> str:
+async def _search_duckduckgo(query: str, max_results: int) -> list[dict[str, object]]:
     url = "https://duckduckgo.com/html/?" + urllib.parse.urlencode({"q": query})
     page = await fetch_text(url, timeout=20, max_bytes=1_000_000)
     pattern = re.compile(r'<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>(.*?)</a>', re.S)
@@ -54,7 +90,7 @@ async def _search_duckduckgo(query: str, max_results: int) -> str:
             href = qs.get("uddg", [href])[0]
         title = _html_to_text(raw_title)
         results.append({"title": title, "url": href})
-    return json.dumps(results, ensure_ascii=False)
+    return results
 
 
 def _html_to_text(value: str) -> str:

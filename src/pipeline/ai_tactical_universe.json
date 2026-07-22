@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "description": "Independent AI tactical universe. It does not alter the legacy daily scoring universe.",
+  "sector_proxy": {
+    "symbol": "159819.SZ",
+    "name": "人工智能ETF易方达",
+    "tracked_index": "930713",
+    "provider": "easy-tdx",
+    "client": "mac",
+    "provider_market": "SZ",
+    "provider_code": "159819",
+    "adjustment": "QFQ"
+  },
+  "benchmark": {
+    "symbol": "510300.SH",
+    "name": "沪深300ETF华泰柏瑞",
+    "provider": "easy-tdx",
+    "client": "mac",
+    "provider_market": "SH",
+    "provider_code": "510300",
+    "adjustment": "QFQ"
+  },
+  "constituents": {
+    "index_code": "930713",
+    "source": "CSI",
+    "mode": "effective_date_snapshot_only"
+  }
+}

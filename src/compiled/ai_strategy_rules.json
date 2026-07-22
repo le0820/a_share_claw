@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "version": "ai-strategy-2026-07-21-p0-p1",
+  "description": "AI sector strategy: growth determines the structural allocation band; momentum, sentiment and liquidity determine a tactical overlay; hard risk can override the normal floor.",
+  "score_conventions": {
+    "growth": "0=contraction, 1=expansion",
+    "momentum_level_percentile": "0=weak/oversold, 1=strong/overheated",
+    "momentum_turn": "negative=deteriorating, positive=improving",
+    "sentiment_percentile": "0=fear/depression, 1=euphoria/crowding",
+    "liquidity_tightening_percentile": "0=easing, 1=tightening"
+  },
+  "growth": {
+    "weights": {
+      "capex_impulse": 0.30,
+      "funding_sustainability": 0.15,
+      "monetization": 0.20,
+      "gpu_price_availability": 0.10,
+      "token_economics": 0.10,
+      "enterprise_earnings": 0.15
+    },
+    "minimum_coverage": 0.60,
+    "minimum_companies_per_core_metric": 3,
+    "required_core": ["capex_impulse", "funding_sustainability", "monetization"],
+    "regimes": {
+      "expansion": {"base_min_pct": 55.0, "base_max_pct": 60.0, "base_central_pct": 57.5, "normal_max_pct": 70.0},
+      "plateau": {"base_min_pct": 45.0, "base_max_pct": 55.0, "base_central_pct": 50.0, "normal_max_pct": 65.0},
+      "contraction": {"base_min_pct": 25.0, "base_max_pct": 40.0, "base_central_pct": 32.5, "normal_max_pct": 50.0}
+    }
+  },
+  "tactical": {
+    "momentum_weights": {
+      "return_12m_ex_latest_month": 0.25,
+      "relative_strength_3m": 0.25,
+      "slope_20d_quality": 0.25,
+      "slope_60d_quality": 0.25
+    },
+    "sentiment_weights": {
+      "vix": 0.25,
+      "margin_balance_change_5d": 0.25,
+      "margin_buy_flow": 0.25,
+      "growth_option_put_call": 0.25
+    },
+    "liquidity_weights": {
+      "real_yields": 0.30,
+      "nominal_yields": 0.15,
+      "broad_dollar": 0.20,
+      "credit_conditions": 0.15,
+      "inflation_impulse": 0.10,
+      "china_inflation_impulse": 0.10
+    },
+    "minimum_layer_coverage": 0.50,
+    "thresholds": {
+      "high_momentum": 0.80,
+      "euphoric_sentiment": 0.80,
+      "fearful_sentiment": 0.25,
+      "tight_liquidity": 0.70,
+      "turn_confirmation_closes": 2,
+      "minimum_easing_components": 2
+    },
+    "position": {
+      "step_pct": 5.0,
+      "cooldown_sessions": 2,
+      "hard_max_pct": 70.0
+    }
+  }
+}

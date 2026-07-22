@@ -1,0 +1,127 @@
+{
+  "_description": "Active data source map for the investment research OS. Mirrors DATA_CONTRACT.md.",
+  "_version": "compiled-2026-07-13",
+  "_previous_version": "compiled-2026-07-03",
+  "_contract": {
+    "as_of_date_required": true,
+    "future_data_for_historical_question": "forbidden",
+    "silent_fallback": "forbidden",
+    "static_fallback": "dry_run_only",
+    "tickflow_status": "deprecated_removed_from_active_workspace"
+  },
+  "priority_hierarchy": {
+    "market_data": {
+      "primary": "easy-tdx",
+      "verification": "qveris/caidazi when action-relevant",
+      "tolerance": "0.5%",
+      "required_metadata": ["provider", "market", "code", "trade_date", "adjustment", "retrieved_at"]
+    },
+    "macro_data": {
+      "primary": "akshare publisher adapters",
+      "verification": "official publisher label",
+      "required_metadata": ["publisher", "release_period", "release_date_or_fetch_date", "retrieved_at"]
+    },
+    "us_rates_and_web_indicators": {
+      "primary": "FRED current-vintage graph CSV for current-date runs; archived FRED/ALFRED artifact for historical runs",
+      "verification": "second source when action-relevant",
+      "required_metadata": ["provider_or_url", "observation_date", "retrieved_at"]
+    },
+    "company_and_industry_research": {
+      "primary": "official filings, earnings calls, company IR, exchange filings",
+      "verification": "industry data or credible secondary source",
+      "required_metadata": ["source", "publication_date", "reporting_period", "retrieved_at"]
+    }
+  },
+  "metrics_map": {
+    "ETF Market": {
+      "price_ohlcv": {
+        "primary": "easy-tdx MacClient/MacExClient",
+        "verification": "qveris/caidazi",
+        "tolerance": "0.5%",
+        "date_rule": "use rows with trade_date <= as_of_date"
+      },
+      "technical_indicators": {
+        "primary": "compute",
+        "source_data": "easy-tdx daily QFQ K-line",
+        "date_rule": "downstream scripts must filter to as_of_date"
+      },
+      "fund_flows": {
+        "primary": "cn_financial_pro or verified web source",
+        "backup": "manual source table",
+        "date_rule": "record flow date and publication time"
+      },
+      "premium_rate": {
+        "primary": "easy-tdx pre_iopv when available",
+        "backup": "issuer/exchange data"
+      }
+    },
+    "CN Macro": {
+      "pmi_mfg": {"primary": "akshare", "publisher": "NBS", "frequency": "monthly"},
+      "pmi_caixin_mfg": {"primary": "akshare", "publisher": "Caixin/Markit", "frequency": "monthly"},
+      "cpi_yoy": {"primary": "akshare", "publisher": "NBS", "frequency": "monthly"},
+      "ppi_yoy": {"primary": "akshare", "publisher": "NBS", "frequency": "monthly"},
+      "m1_yoy": {"primary": "akshare", "publisher": "PBOC", "frequency": "monthly"},
+      "m2_yoy": {"primary": "akshare", "publisher": "PBOC", "frequency": "monthly"},
+      "tsf_flow": {"primary": "akshare", "publisher": "PBOC", "frequency": "monthly"},
+      "retail_sales_yoy": {"primary": "akshare", "publisher": "NBS", "frequency": "monthly"},
+      "lpr_1y": {"primary": "akshare", "publisher": "PBOC", "frequency": "monthly"}
+    },
+    "US Macro": {
+      "ust_2y": {"primary": "FRED DGS2", "backup": "FMP/web", "frequency": "daily"},
+      "ust_10y": {"primary": "FRED DGS10", "backup": "FMP/web", "frequency": "daily"},
+      "ust_30y": {"primary": "FRED DGS30", "backup": "FMP/web", "frequency": "daily"},
+      "vix": {"primary": "FRED VIXCLS", "backup": "web/FMP", "frequency": "daily"},
+      "spx_level": {"primary": "FRED SP500", "backup": "web/FMP", "frequency": "daily"},
+      "brent_price": {"primary": "FRED DCOILBRENTEU", "backup": "web/FMP", "frequency": "daily"},
+      "dxy": {"primary": null, "status": "missing_by_default_no_clean_keyless_source"},
+      "put_call_ratio": {"primary": null, "status": "missing_by_default_no_clean_keyless_source"},
+      "aaii_survey": {
+        "primary": "web",
+        "status": "observed_only_deprecated_from_scoring",
+        "reason": "behavioral poll, not used in official L3 score"
+      }
+    },
+    "Quantitative Risk Diagnostics": {
+      "status": "active_not_L2_score_input",
+      "price_momentum": {
+        "primary": "compute",
+        "script": "src/pipeline/p1_upgrade.py",
+        "source_data": "easy-tdx data/raw/market daily CSV",
+        "date_rule": "filter daily CSV to trade_date <= as_of_date"
+      },
+      "var_cvar": {
+        "primary": "compute",
+        "script": "src/pipeline/p1_upgrade.py",
+        "method": "60-day rolling historical simulation"
+      }
+    },
+    "Disabled Factor Models": {
+      "status": "disabled_no_official_reproducible_source_contract",
+      "models": ["FF5", "China style-factor regression"],
+      "replacement_policy": "no silent proxy or hard-coded factor series"
+    },
+    "ETF Fundamental Evidence": {
+      "status": "optional_research_artifact_not_daily_score_input",
+      "acquisition": "agent host Tavily/QVeris evidence workflow",
+      "adapter": "src/pipeline/fetch_fundamental.py",
+      "input": "data/raw/fundamental_inputs_<as_of_date>.json",
+      "output": "data/raw/fundamental_<as_of_date>.json",
+      "minimum_holdings_coverage": 0.80,
+      "date_rule": "publication_date, filing_date and effective_date must be <= as_of_date; residual weights are never estimated"
+    },
+    "Industry Research": {
+      "filings": {"primary": "official filings/company IR/exchange/SEC"},
+      "earnings_call": {"primary": "official transcript or verified transcript"},
+      "industry_data": {"primary": "SEMI/Omdia/TrendForce/company disclosures where available"},
+      "media": {"primary": "supporting source only", "note": "cannot be sole source for core conclusion"}
+    }
+  },
+  "degradation_rules": {
+    "exact_file_missing": "stop unless --allow-stale-fallback is explicitly used",
+    "stale_fallback": "use newest dated file <= as_of_date, record in data_audit, downgrade confidence",
+    "future_file_only": "stop; never use future file for historical answer",
+    "static_fallback": "dry run only; not official report",
+    "data_diff_exceeds_tolerance": "report both values and stop before action recommendation",
+    "verification_not_possible": "label unverified and avoid trade/action conclusion"
+  }
+}

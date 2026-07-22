@@ -1,4 +1,6 @@
 .env
+.mcp.json
+.cache/
 .venv/
 __pycache__/
 *.pyc
@@ -6,6 +8,5 @@ __pycache__/
 data/
 dist/
 *.egg-info/
-!/a_share_claw/__main__.py
 .openclaw/
 .DS_Store

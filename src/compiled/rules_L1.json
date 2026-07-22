@@ -1,0 +1,622 @@
+{
+  "_description": "L1 Macro Environment Scoring Rules — compiled from 三层多因子投研框架 v1.4 + 中国宏观因子框架 v1.0 + 评分可解释性手册 v1.1 + 2026-06-05 HyperScaler CapEx Factor. This file is the PRIMARY scoring reference. Load for any L1 scoring task. Full prose SOPs only for ambiguous edge cases.\n\n  NOISE REMOVED (2026-06-12): Removed US geopolitical_risk factor (0.18→redistributed). Rationale: qualitative news judgment, neither fundamental nor quantitative. All remaining US factors renormalized to 0.20 each.",
+  "_version": "compiled-2026-06-12",
+  "_previous_version": "compiled-2026-06-05",
+  "_source_sops": [
+    "sop/三层多因子投研框架.md (v1.4)",
+    "sop/中国宏观因子框架.md (v1.0)",
+    "sop/评分可解释性手册.md (v1.1)",
+    "README.md (v1.6 L1 section)",
+    "2026-06-05: Added hyperscaler tech_capex factor (US+CN)"
+  ],
+  "_weights": {
+    "us": 0.6,
+    "cn": 0.4,
+    "jp": {
+      "weight": 0.15,
+      "note": "JP-L1 exists in 3-track model but currently simplified in composite"
+    }
+  },
+  "us": {
+    "factors": [
+      {
+        "name": "employment_growth",
+        "label": "就业/增长",
+        "weight": 0.20,
+        "data_sources": [
+          "BLS 非农就业",
+          "BLS 失业率",
+          "BEA GDP"
+        ],
+        "indicators": [
+          "nonfarm_payroll",
+          "unemployment_rate",
+          "gdp_growth"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "非农 > 预期 2x 且趋势向上"
+          },
+          {
+            "score": 4,
+            "condition": "非农 = 预期 1.5-2x 或 符合预期+趋势向上"
+          },
+          {
+            "score": 3,
+            "condition": "非农 ≈ 预期"
+          },
+          {
+            "score": 2,
+            "condition": "非农 < 预期"
+          },
+          {
+            "score": 1,
+            "condition": "非农 << 预期 且趋势恶化"
+          }
+        ],
+        "_qualitative_note": "分数有上限软约束：若近期均值偏弱（如3月均值仅48K/月），即使单月超预期也不给满分5"
+      },
+      {
+        "name": "inflation_wages",
+        "label": "通胀/工资",
+        "weight": 0.20,
+        "data_sources": [
+          "BLS CPI",
+          "BEA PCE",
+          "BLS 工资增速",
+          "EIA 布伦特油价"
+        ],
+        "indicators": [
+          "cpi_yoy",
+          "core_pce_yoy",
+          "wage_growth_yoy",
+          "brent_price"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "CPI≤2% + 工资>CPI 或 PCE趋势下降+油价<$75"
+          },
+          {
+            "score": 4,
+            "condition": "CPI 2-3% + 实际工资为正"
+          },
+          {
+            "score": 3,
+            "condition": "CPI 3-4% + 工资≈CPI"
+          },
+          {
+            "score": 2,
+            "condition": "CPI>4% + 实际工资负增长 或 油价>$90扣1"
+          },
+          {
+            "score": 1,
+            "condition": "CPI>5% + 工资<<CPI 或 油价>$105再扣"
+          }
+        ],
+        "_qualitative_note": "区分通胀类型：若油价>90但PCE来自工资/住房，油价不主导通胀，评分应更关注核心PCE而非油价"
+      },
+      {
+        "name": "monetary_policy",
+        "label": "货币政策",
+        "weight": 0.20,
+        "data_sources": [
+          "Fed FOMC声明",
+          "Fed 点阵图",
+          "Fed 资产负债表"
+        ],
+        "indicators": [
+          "fed_rate",
+          "fed_stance"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "明确降息周期中，点阵图指引2次以上降息"
+          },
+          {
+            "score": 4,
+            "condition": "降息周期结束/暂停，预计不再加息"
+          },
+          {
+            "score": 3,
+            "condition": "利率不变，点阵图中性，缩表无变化"
+          },
+          {
+            "score": 2,
+            "condition": "利率不变但有加息风险（官员警告+CPI粘性）"
+          },
+          {
+            "score": 1,
+            "condition": "明确加息中/加息信号，缩表加速"
+          }
+        ]
+      },
+      {
+        "name": "financial_conditions",
+        "label": "金融条件",
+        "weight": 0.20,
+        "data_sources": [
+          "CBOE VIX",
+          "WSJ 标普500",
+          "信用利差(OAS)",
+          "DXY",
+          "FRED 10Y-2Y利差"
+        ],
+        "indicators": [
+          "vix",
+          "spx_level",
+          "spx_ma200",
+          "credit_spread_ig",
+          "dxy",
+          "yield_curve_10y2y"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "VIX<15 + 股指新高 + 信用利差收窄 + 美元走弱 + 曲线陡峭(10Y-2Y>+50bp)"
+          },
+          {
+            "score": 4,
+            "condition": "VIX 15-18 + 股指健康 + 信用中性 + 曲线正常(10Y-2Y +20~50bp)"
+          },
+          {
+            "score": 3,
+            "condition": "VIX 18-22 + 股指震荡 + 信用中性偏宽 + 曲线平坦(10Y-2Y 0~+20bp)"
+          },
+          {
+            "score": 2,
+            "condition": "VIX 22-28 + 股指下跌 + 信用利差扩大 + 曲线倒挂(10Y-2Y <0)"
+          },
+          {
+            "score": 1,
+            "condition": "VIX>28 + 股指破MA200 + 信用冻结 + 曲线深度倒挂(10Y-2Y<-50bp)"
+          }
+        ]
+      },
+      {
+        "name": "tech_capex",
+        "label": "科技巨头资本开支",
+        "weight": 0.20,
+        "data_sources": [
+          "公司财报(MSFT/GOOGL/AMZN/META/ORCL)",
+          "公司财报(BABA/TME/BIDU/BYTE)"
+        ],
+        "indicators": [
+          "total_us_hyperscaler_capex_2026",
+          "capex_growth_yoy",
+          "capex_as_pct_of_ocf",
+          "forward_guidance_trend"
+        ],
+        "description": "跟踪全球9大科技企业（微软/谷歌/亚马逊/Meta/甲骨文/腾讯/阿里/字节/百度）的AI资本开支计划和营运现金流，评估AI产业链需求的持续性和强度。新增于2026-06-05。",
+        "rationale": "pipeline_universe 中科技成长资产的核心驱动力之一是全球AI产业链需求，而需求风向标包括这些企业的资本开支计划。若Capex持续加速且OCF支持，则景气延续；若Capex减速或OCF不足，则需求可能见顶。",
+        "us_scoring_rules": [
+          {
+            "score": 5,
+            "condition": "CapEx/OCF < 50% (可持续，有增长空间) + 各公司均上调AI指引"
+          },
+          {
+            "score": 4,
+            "condition": "CapEx/OCF 50-65% (偏高但可管理) + 多数公司指引稳定"
+          },
+          {
+            "score": 3,
+            "condition": "CapEx/OCF 65-80% (紧绷，需监控FCF) + 指引无重大变化"
+          },
+          {
+            "score": 2,
+            "condition": "CapEx/OCF > 80% (接近天花板，FCF侵蚀严重) 或 多家下调AI指引"
+          },
+          {
+            "score": 1,
+            "condition": "CapEx/OCF > 100% (不可持续，需要债务融资) 或 大规模削减CapEx"
+          }
+        ],
+        "_current_data_202606": {
+          "_note": "2026年6月快照。核心指标：CapEx/OCF比率决定评分。Q1 2026 CapEx总额$130B(4家合计)，全年预估$610-750B。CapEx天然上限=OCF，不能超过。",
+          "_scoring_verdict": "当前CapEx/OCF约66-78%(加权平均约70%) → 评分约2-3。全年CapEx $610-750B vs OCF预估$800-950B → 若CapEx执行率达到上沿则CapEx/OCF可达85%+，FCF承压加剧。",
+          "_key_insight": "CapEx不能超过OCF(除非借钱)。当前CapEx/OCF已高企、FCF快速恶化。保持高分意味着：要么OCF快速追上CapEx、要么CapEx增速放缓。——暂给3分(监控中)",
+          "us_total_capex_est": "610-750B",
+          "us_aggregate_capex_pct_ocf": "~70% (Q1 2026加权)",
+          "q1_2026_data": {
+            "note": "Q1 2026 (自然年/部分公司FY26Q2): CapEx vs OCF",
+            "amazon": {
+              "capex_q1": "$44.2B",
+              "capex_2026_annual": "~$200B",
+              "fcf_warning": "Morgan Stanley预测FCF -$17B; BofA预测-$28B",
+              "trend": "staggering_up"
+            },
+            "microsoft": {
+              "capex_q1": "$30.9B",
+              "ocf_q1": "$46.7B",
+              "capex_pct_ocf": "66%",
+              "fcf": "$5.88B (-9.3% YoY)",
+              "trend": "aggressive_up",
+              "note": "CapEx/OCF从pre-AI 25-27%升至66%"
+            },
+            "google": {
+              "capex_q1": "$35.7B",
+              "ocf_q1": "$45.8B",
+              "capex_pct_ocf": "78%",
+              "cloud_growth": "+63% YoY",
+              "trend": "doubled_up",
+              "note": "CapEx/OCF最高，但云收入增速最强(63%)有望改善"
+            },
+            "meta": {
+              "capex_q1": "$19.0B",
+              "ocf_q1": "$32.2B",
+              "capex_pct_ocf": "59%",
+              "fcf_warning": "Barclays预测FCF -90%",
+              "trend": "raised_guidance_up"
+            }
+          },
+          "cn_data": {
+            "note": "CN四大巨头2026年合计CapEx约$63B+。ByteDance自筹资金，Alibaba CapEx/OCF 69%偏高",
+            "bytedance": {
+              "capex_2026_usd": ">$30B (+25% YoY)",
+              "self_funded": true,
+              "profit_2025_est": "~$50B",
+              "trend": "aggressive_up"
+            },
+            "alibaba": {
+              "capex_2026_rmb": "¥144B (~$20B)",
+              "capex_pct_ocf_2027e": "69%",
+              "trend": "up"
+            },
+            "tencent": {
+              "capex_2026_rmb": "¥84B (~$12B)",
+              "capex_pct_ocf_2027e": "25%",
+              "trend": "moderate_up"
+            },
+            "baidu": {
+              "capex_2026_rmb": "¥8.3B (~$1.2B)",
+              "capex_pct_ocf_2027e": "21%",
+              "trend": "steady"
+            }
+          },
+          "important_distinction": "CapEx/OCF高≠CapEx无意义。CapEx买的是产能，产出的是AI云收入。MSFT Azure增速+39%/AI贡献22-26ppts, GOOGL Cloud+63%, AWS+28%。若AI收入持续高增，OCF会逐渐跟上。这个循环有没有断裂就是决定评分的关键。",
+          "fc_risk_summary": {
+            "meta": "FCF -90% (Barclays)",
+            "amazon": "FCF -$17~28B (MS/BofA)",
+            "msft": "FCF -9.3% (但OCF+60%)",
+            "google": "隐含FCF承压(OCF几乎全被CapEx吃掉)"
+          }
+        }
+      }
+    ],
+    "composite_formula": "(employment×0.20 + inflation×0.20 + monetary×0.20 + financial×0.20 + tech_capex×0.20)",
+    "cross_validation": {
+      "crude_oil": "油价突破$105 → 强制重新评估通胀评分。油价↑+10Y↑+黄金↑三者同涨 → US L1必须下调≥0.5",
+      "gold_oil_ratio": "金油比>25 + VIX<20 → 矛盾信号，预判风险",
+      "tech_capex_avgo": "AVGO财报后若AI营收指引未上调→tech_capex评分不能为5。产能堵点≠需求见顶，需区分",
+      "tech_capex_sustainability": "CapEx/OCF如果连续两个季度>80% → tech_capex评分不得>3。如果任何公司CapEx/OCF>90% → 启动紧急审查，评分降为1。",
+      "yield_curve_warning": "10Y-2Y利差收窄至0以下（倒挂）→ 强制下调金融条件评分至少1分。倒挂加深至-50bp以下→ 启动紧急审查，金融条件评分降为1。",
+      "yield_curve_fed_warsh": "沃什上台期：短端利率(2Y)波动比长端(10Y)更重要。2Y大幅上升（单日+10bp以上）→ 即使10Y-2Y利差未倒挂，也需警惕货币紧缩风险，金融条件评分上限软约束为4。",
+      "_removed_20260612": "geopolitical_risk factor removed — qualitative news judgment, neither fundamental nor quantitative"
+    }
+  },
+  "cn": {
+    "factors": [
+      {
+        "name": "manufacturing",
+        "label": "制造业",
+        "weight": 0.22,
+        "data_sources": [
+          "NBS PMI",
+          "海关总署出口",
+          "国家统计局 工业增加值"
+        ],
+        "indicators": [
+          "pmi_mfg",
+          "pmi_mfg_new_orders",
+          "exports_yoy",
+          "industrial_output_yoy"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "PMI>51 + 出口加速 + 工业增加值>8% + PMI连续数月扩张"
+          },
+          {
+            "score": 4,
+            "condition": "PMI 50-51 + 出口稳健 + 工业增加值5-8%"
+          },
+          {
+            "score": 3,
+            "condition": "PMI 49-50 + 出口持平或略降"
+          },
+          {
+            "score": 2,
+            "condition": "PMI <49 但>48 或 出口骤降（如+2.5% vs 预期8.6%）"
+          },
+          {
+            "score": 1,
+            "condition": "PMI<48 + 出口负增长 + 工业增加值连续下降"
+          }
+        ],
+        "_qualitative_note": "高技术制造PMI > 整体PMI = 结构性亮点。出口-进口分化需关注：进口激增可能反映库存重建"
+      },
+      {
+        "name": "consumption",
+        "label": "消费/内需",
+        "weight": 0.18,
+        "data_sources": [
+          "NBS 零售销售",
+          "NBS 非制造PMI",
+          "NBS CPI"
+        ],
+        "indicators": [
+          "retail_sales_yoy",
+          "pmi_non_mfg",
+          "cpi_yoy"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "零售>5% + 非制造PMI>52 + CPI温和回升(1.5-2.5%)"
+          },
+          {
+            "score": 4,
+            "condition": "零售 3-5% + 非制造在扩张区"
+          },
+          {
+            "score": 3,
+            "condition": "零售 1-3% + 非制造≈50"
+          },
+          {
+            "score": 2,
+            "condition": "零售 0-1% + 非制造<50（收缩区）"
+          },
+          {
+            "score": 1,
+            "condition": "零售<0% + 非制造持续收缩 + CPI通缩"
+          }
+        ]
+      },
+      {
+        "name": "credit",
+        "label": "信贷/流动性",
+        "weight": 0.18,
+        "data_sources": [
+          "PBOC 社融",
+          "PBOC M2/M1",
+          "PBOC LPR"
+        ],
+        "indicators": [
+          "tsf_yoy",
+          "m2_yoy",
+          "m1_yoy",
+          "lpr_1y",
+          "lpr_5y"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "TSF加速+ LPR下调 + M1-M2剪刀差收窄（资金活性恢复）"
+          },
+          {
+            "score": 4,
+            "condition": "TSF稳定+ LPR不变但定向工具加码"
+          },
+          {
+            "score": 3,
+            "condition": "TSF减速但仍正增长 + M2增速与名义GDP匹配"
+          },
+          {
+            "score": 2,
+            "condition": "TSF萎缩 + M1-M2剪刀差扩大（资金淤积）"
+          },
+          {
+            "score": 1,
+            "condition": "TSF急缩 + M1负增长 + 信贷冻结"
+          }
+        ]
+      },
+      {
+        "name": "real_estate",
+        "label": "房地产",
+        "weight": 0.12,
+        "data_sources": [
+          "CIA 100城房价",
+          "NBS 70城房价",
+          "CF40 新开工"
+        ],
+        "indicators": [
+          "new_home_price_yoy",
+          "second_hand_price_yoy"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "新房+二手房均回升，新开工转正"
+          },
+          {
+            "score": 4,
+            "condition": "新房趋稳+二手降幅收窄"
+          },
+          {
+            "score": 3,
+            "condition": "降幅收窄但未转正，底部信号"
+          },
+          {
+            "score": 2,
+            "condition": "降幅加速或二手恶化独立于新房"
+          },
+          {
+            "score": 1,
+            "condition": "加速下跌或崩盘"
+          }
+        ]
+      },
+      {
+        "name": "policy",
+        "label": "政策/外部",
+        "weight": 0.2,
+        "data_sources": [
+          "PBOC LPR",
+          "国务院政策公告",
+          "关税清单"
+        ],
+        "indicators": [
+          "lpr_change",
+          "fiscal_stance",
+          "tariff_status"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "大幅宽松（降准+降LPR+增发专项债）"
+          },
+          {
+            "score": 4,
+            "condition": "温和宽松（定向降准或结构性工具加码）"
+          },
+          {
+            "score": 3,
+            "condition": "政策不变（保持定力），保留空间"
+          },
+          {
+            "score": 2,
+            "condition": "收紧信号（如房地产三条红线回归）"
+          },
+          {
+            "score": 1,
+            "condition": "强力收紧或外部冲击（关税大幅升级）"
+          }
+        ]
+      }
+    ],
+    "composite_formula": "(manufacturing×0.22 + consumption×0.18 + credit×0.18 + real_estate×0.12 + policy×0.20)",
+    "_tech_capex_note": "CN科技巨头Capex不单独设因子（数据频率低、非季度公开披露），但在对CN-L1评分做最终判断时参考以下数据点：ByteDance $30B+自筹资金、Alibaba ~$20B(CapEx/OCF 69%偏高)、Tencent ~$12B(可持续)。若有重大上修/下修则手工调整。",
+    "_current_cn_capex_data_202606": {
+      "bytedance": {
+        "capex_2026_usd": ">$30B (+25% YoY)",
+        "self_funded": true,
+        "note": "字节自2025年$50B利润中自筹，无需融资"
+      },
+      "alibaba": {
+        "capex_2026_rmb": "¥144B",
+        "capex_2026_usd": "~$20B",
+        "ocf_pct_2027e": "69%",
+        "note": "CapEx/OCF偏高但AI云转型驱动"
+      },
+      "tencent": {
+        "capex_2026_rmb": "¥84B",
+        "capex_2026_usd": "~$12B",
+        "ocf_pct_2027e": "25%",
+        "note": "CapEx/OCF可持续"
+      },
+      "baidu": {
+        "capex_2026_rmb": "¥8.3B",
+        "capex_2026_usd": "~$1.2B",
+        "ocf_pct_2027e": "21%",
+        "note": "规模较小"
+      }
+    }
+  },
+  "jp": {
+    "_note": "JP-L1 exists for 3-track completeness but currently not in primary composite. Weight 0.15 in 3-track, but simplified to US(0.60)+CN(0.40) in current practice.",
+    "factors": [
+      {
+        "name": "monetary",
+        "label": "货币/利率",
+        "weight": 0.4,
+        "indicators": [
+          "jgb_10y",
+          "boj_stance"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "JGB 10Y<0.5% + BOJ宽松 + CPI可控"
+          },
+          {
+            "score": 3,
+            "condition": "JGB 10Y 0.5-1.0% + BOJ中性"
+          },
+          {
+            "score": 1,
+            "condition": "JGB 10Y>1.5% + BOJ紧缩 + CPI飙升"
+          }
+        ]
+      },
+      {
+        "name": "currency",
+        "label": "汇率",
+        "weight": 0.3,
+        "indicators": [
+          "usdjpy"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "USDJPY<130 → 日元强势，日资产估值支撑"
+          },
+          {
+            "score": 3,
+            "condition": "USDJPY 130-150"
+          },
+          {
+            "score": 1,
+            "condition": "USDJPY>160 → 日元崩溃，日央行被迫干预"
+          }
+        ]
+      },
+      {
+        "name": "growth",
+        "label": "增长/通胀",
+        "weight": 0.3,
+        "indicators": [
+          "japan_cpi_yoy",
+          "nikkei_level"
+        ],
+        "scoring_rules": [
+          {
+            "score": 5,
+            "condition": "CPI 1-2% + 日经健康"
+          },
+          {
+            "score": 3,
+            "condition": "CPI<0% 或 CPI>3%"
+          },
+          {
+            "score": 1,
+            "condition": "滞胀或通缩恶化"
+          }
+        ]
+      }
+    ]
+  },
+  "L1_composite_formula": "us_composite × 0.60 + cn_composite × 0.40",
+  "quadrant_analysis": {
+    "_source": "sop/三层多因子投研框架.md §四情景象限 (v1.2)",
+    "method": "QQQ月收益(US) × FXI月收益(CN) → 4象限",
+    "quadrants": {
+      "US_UP_CN_UP": {
+        "hstech_monthly_avg": "+7.15%",
+        "frequency": "44%",
+        "positive_rate": "100%",
+        "hk_position": "≤15%"
+      },
+      "US_UP_CN_DOWN": {
+        "hstech_monthly_avg": "-5.91%",
+        "frequency": "19%",
+        "positive_rate": "14%",
+        "hk_position": "≤10%, 只减不增"
+      },
+      "US_DOWN_CN_UP": {
+        "hstech_monthly_avg": "+6.98%",
+        "frequency": "8%",
+        "positive_rate": "67%",
+        "hk_position": "≤12%"
+      },
+      "US_DOWN_CN_DOWN": {
+        "hstech_monthly_avg": "-5.61%",
+        "frequency": "25%",
+        "positive_rate": "0%",
+        "hk_position": "≤5%"
+      }
+    }
+  }
+}

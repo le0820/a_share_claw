@@ -1,0 +1,16 @@
+{
+  "_description": "L2 factor scoring is disabled until official, reproducible factor sources are available.",
+  "_version": "compiled-2026-07-14-ff5-disabled",
+  "status": "disabled",
+  "effective_date": "2026-07-14",
+  "reason": "The system cannot currently obtain official FF5 monthly files, especially an official China factor series.",
+  "score": null,
+  "composite_weight": 0.0,
+  "replacement_policy": "Do not use momentum, valuation snapshots, index proxies, qveris, Tavily, or hard-coded constituents as a silent FF5 replacement.",
+  "diagnostics_retained": [
+    "easy-tdx price momentum",
+    "historical VaR and CVaR",
+    "drawdown",
+    "cross-asset correlation"
+  ]
+}
