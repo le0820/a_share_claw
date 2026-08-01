@@ -347,6 +347,96 @@ def _liquidity_components(histories: dict[str, Any], cutoff: pd.Timestamp) -> di
     }
 
 
+def _observation_at_anchor(
+    history: dict[str, Any] | None,
+    cutoff: pd.Timestamp,
+) -> tuple[pd.Timestamp, float] | None:
+    if not history:
+        return None
+    values = history_series(history)
+    if cutoff not in values.index:
+        return None
+    return cutoff, float(values.loc[cutoff])
+
+
+def _absolute_yield_validation(
+    histories: dict[str, Any],
+    current_cutoff: pd.Timestamp,
+    prior_cutoff: pd.Timestamp,
+    validation: dict[str, Any],
+) -> dict[str, Any]:
+    maximum_delta_bp = float(validation["maximum_easing_delta_bp"])
+    series_names = list(validation["yield_series"])
+    moves: dict[str, dict[str, Any]] = {}
+    all_declining_or_flat = True
+    for name in series_names:
+        current = _observation_at_anchor(histories.get(name), current_cutoff)
+        prior = _observation_at_anchor(histories.get(name), prior_cutoff)
+        if current is None or prior is None:
+            all_declining_or_flat = False
+            moves[name] = {
+                "current_observation_date": current[0].strftime("%Y-%m-%d") if current else None,
+                "current_value": round(current[1], 6) if current else None,
+                "prior_observation_date": prior[0].strftime("%Y-%m-%d") if prior else None,
+                "prior_value": round(prior[1], 6) if prior else None,
+                "delta_bp": None,
+                "easing_or_flat": False,
+            }
+            continue
+        delta_bp = (current[1] - prior[1]) * 100.0
+        easing_or_flat = delta_bp <= maximum_delta_bp
+        all_declining_or_flat = all_declining_or_flat and easing_or_flat
+        moves[name] = {
+            "current_observation_date": current[0].strftime("%Y-%m-%d"),
+            "current_value": round(current[1], 6),
+            "prior_observation_date": prior[0].strftime("%Y-%m-%d"),
+            "prior_value": round(prior[1], 6),
+            "delta_bp": round(delta_bp, 4),
+            "easing_or_flat": easing_or_flat,
+        }
+    return {
+        "lookback_sessions": int(validation["lookback_sessions"]),
+        "maximum_easing_delta_bp": maximum_delta_bp,
+        "require_all_yield_series": bool(validation["require_all_yield_series"]),
+        "passed": all_declining_or_flat,
+        "series": moves,
+    }
+
+
+def _brent_inflation_veto(
+    histories: dict[str, Any],
+    current_cutoff: pd.Timestamp,
+    prior_cutoff: pd.Timestamp,
+    validation: dict[str, Any],
+) -> dict[str, Any]:
+    current = _observation_at_anchor(histories.get(validation["brent_series"]), current_cutoff)
+    prior = _observation_at_anchor(histories.get(validation["brent_series"]), prior_cutoff)
+    if current is None or prior is None or prior[1] <= 0:
+        return {
+            "triggered": None,
+            "clear": False,
+            "reason": "Brent observations unavailable on the exact common yield anchors",
+        }
+    change_pct = current[1] / prior[1] - 1.0
+    max_change_pct = float(validation["brent_max_change_pct"])
+    high_price = float(validation["brent_high_price_usd_per_bbl"])
+    trigger_change = change_pct >= max_change_pct
+    trigger_level = current[1] >= high_price
+    return {
+        "current_observation_date": current[0].strftime("%Y-%m-%d"),
+        "current_price_usd_per_bbl": round(current[1], 6),
+        "prior_observation_date": prior[0].strftime("%Y-%m-%d"),
+        "prior_price_usd_per_bbl": round(prior[1], 6),
+        "change_pct": round(change_pct, 6),
+        "max_change_pct": max_change_pct,
+        "high_price_usd_per_bbl": high_price,
+        "triggered_by_change": trigger_change,
+        "triggered_by_level": trigger_level,
+        "triggered": trigger_change or trigger_level,
+        "clear": not (trigger_change or trigger_level),
+    }
+
+
 def liquidity_state(macro_raw: dict[str, Any], rules: dict[str, Any]) -> dict[str, Any]:
     histories = macro_raw.get("histories", {})
     anchor = history_series(histories["ust_10y"])
@@ -356,6 +446,9 @@ def liquidity_state(macro_raw: dict[str, Any], rules: dict[str, Any]) -> dict[st
     prior_cutoff = anchor.index[-6] if len(anchor) >= 6 else anchor.index[0]
     current_components = _liquidity_components(histories, current_cutoff)
     prior_components = _liquidity_components(histories, prior_cutoff)
+    validation = rules["tactical"]["liquidity_action_validation"]
+    absolute_yields = _absolute_yield_validation(histories, current_cutoff, prior_cutoff, validation)
+    brent_veto = _brent_inflation_veto(histories, current_cutoff, prior_cutoff, validation)
     score, coverage, missing = _weighted_observed(
         current_components, rules["tactical"]["liquidity_weights"]
     )
@@ -377,6 +470,9 @@ def liquidity_state(macro_raw: dict[str, Any], rules: dict[str, Any]) -> dict[st
         "delta_5_sessions": round(delta, 6) if delta is not None else None,
         "coverage": round(coverage, 6),
         "effective_us_observation_date": current_cutoff.strftime("%Y-%m-%d"),
+        "percentile_trend_note": (
+            "A falling tightening percentile is descriptive only; it does not establish absolute yield easing."
+        ),
         "components": {
             name: {
                 "current": round(value, 6) if value is not None else None,
@@ -388,6 +484,8 @@ def liquidity_state(macro_raw: dict[str, Any], rules: dict[str, Any]) -> dict[st
         },
         "easing_components": easing,
         "tightening_components": tightening,
+        "absolute_yield_validation": absolute_yields,
+        "brent_inflation_veto": brent_veto,
         "missing_components": missing,
     }
 
@@ -441,6 +539,8 @@ def position_decision(
         "sentiment_fearful": sentiment["state_percentile"] <= thresholds["fearful_sentiment"],
         "liquidity_easing": liquidity["delta_5_sessions"] < 0,
         "easing_breadth": len(liquidity["easing_components"]) >= thresholds["minimum_easing_components"],
+        "absolute_yield_easing_confirmed": liquidity.get("absolute_yield_validation", {}).get("passed") is True,
+        "brent_inflation_veto_clear": liquidity.get("brent_inflation_veto", {}).get("clear") is True,
     }
     hard_override = (
         regime == "contraction"

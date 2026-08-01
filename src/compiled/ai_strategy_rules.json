@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "ai-strategy-2026-07-21-p0-p1",
+  "version": "ai-strategy-2026-07-31-liquidity-gates",
   "description": "AI sector strategy: growth determines the structural allocation band; momentum, sentiment and liquidity determine a tactical overlay; hard risk can override the normal floor.",
   "score_conventions": {
     "growth": "0=contraction, 1=expansion",
@@ -47,6 +47,16 @@
       "credit_conditions": 0.15,
       "inflation_impulse": 0.10,
       "china_inflation_impulse": 0.10
+    },
+    "liquidity_action_validation": {
+      "lookback_sessions": 5,
+      "yield_series": ["ust_2y", "ust_10y", "ust_30y", "tips_10y"],
+      "maximum_easing_delta_bp": 0.0,
+      "require_all_yield_series": true,
+      "brent_series": "brent",
+      "brent_max_change_pct": 0.05,
+      "brent_high_price_usd_per_bbl": 105.0,
+      "note": "A lower percentile tightening score is descriptive only. ADD requires every nominal and real yield to be no higher than the same five-session anchor, and Brent must not signal an inflation shock."
     },
     "minimum_layer_coverage": 0.50,
     "thresholds": {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "version": "ai-sources-2026-07-21-p1",
+  "version": "ai-sources-2026-07-31-brent-veto",
   "sources": {
     "hyperscaler_financials": {
       "primary": "SEC companyfacts XBRL",
@@ -31,6 +31,8 @@
     },
     "us_liquidity": {
       "primary": "FRED graph CSV",
+      "supplemental": "U.S. Treasury Daily Treasury Rates XML for newer nominal and real-yield observations",
+      "brent_inflation_veto": "FRED DCOILBRENTEU; ADD is blocked by a 5-session increase of at least 5% or Brent at or above $105/bbl",
       "exact_dxy": "not supplied; DTWEXBGS is stored as broad_dollar and never relabelled DXY",
       "historical_method": "archived vintage required for official output; explicit current-vintage research replay is unverified",
       "status": "active"

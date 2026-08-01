@@ -19,8 +19,8 @@ except ImportError:  # The app runtime and pipeline intentionally use separate v
     pd = None
 
 if pd is not None:
-    from ai_strategy import growth_state, momentum_state, position_decision, sentiment_state
-    from fetch_ai_macro import CHINA_SERIES, SERIES
+    from ai_strategy import growth_state, liquidity_state, momentum_state, position_decision, sentiment_state
+    from fetch_ai_macro import CHINA_SERIES, SERIES, _append_newer_observations
     from fetch_ai_growth import _company_metrics
 
 
@@ -138,6 +138,8 @@ class AIStrategyTest(unittest.TestCase):
                 "tightening_percentile": 0.40,
                 "delta_5_sessions": -0.10,
                 "easing_components": ["real_yields", "broad_dollar"],
+                "absolute_yield_validation": {"passed": True},
+                "brent_inflation_veto": {"clear": True},
             },
         }
         add_decision = position_decision(add, self.rules, 57.5)
@@ -158,6 +160,8 @@ class AIStrategyTest(unittest.TestCase):
                 "tightening_percentile": 0.80,
                 "delta_5_sessions": 0.10,
                 "easing_components": [],
+                "absolute_yield_validation": {"passed": False},
+                "brent_inflation_veto": {"clear": True},
             },
         }
         reduce_decision = position_decision(reduce, self.rules, 60.0)
@@ -168,14 +172,88 @@ class AIStrategyTest(unittest.TestCase):
         incomplete = position_decision(reduce, self.rules, 60.0)
         self.assertEqual(incomplete["action"], "HOLD")
 
+        add["liquidity"]["absolute_yield_validation"] = {"passed": False}
+        self.assertEqual(position_decision(add, self.rules, 57.5)["action"], "HOLD")
+        add["liquidity"]["absolute_yield_validation"] = {"passed": True}
+        add["liquidity"]["brent_inflation_veto"] = {"clear": False}
+        self.assertEqual(position_decision(add, self.rules, 57.5)["action"], "HOLD")
+
     def test_macro_source_names_are_not_mislabelled(self) -> None:
         self.assertEqual(SERIES["broad_dollar"]["id"], "DTWEXBGS")
         self.assertEqual(SERIES["ppi_final_demand"]["id"], "PPIFIS")
         self.assertEqual(SERIES["pce"]["id"], "PCEPI")
         self.assertEqual(SERIES["core_pce"]["id"], "PCEPILFE")
+        self.assertEqual(SERIES["brent"]["id"], "DCOILBRENTEU")
         self.assertNotIn("dxy", SERIES)
         self.assertIn("china_cpi_yoy", CHINA_SERIES)
         self.assertIn("china_ppi_yoy", CHINA_SERIES)
+
+    def test_treasury_only_appends_observations_newer_than_fred(self) -> None:
+        base = [
+            {"observation_date": "2026-07-20", "value": 4.60},
+        ]
+        supplement = [
+            {"observation_date": "2026-07-20", "value": 4.61},
+            {"observation_date": "2026-07-21", "value": 4.63},
+        ]
+        merged, used = _append_newer_observations(base, supplement)
+        self.assertTrue(used)
+        self.assertEqual(merged[0]["value"], 4.60)
+        self.assertEqual(merged[-1], {"observation_date": "2026-07-21", "value": 4.63})
+
+    def test_absolute_yields_and_brent_gate_risk_on(self) -> None:
+        dates = pd.bdate_range("2026-01-02", periods=100)
+
+        def history(values):
+            return {
+                "observations": [
+                    {"observation_date": date.strftime("%Y-%m-%d"), "value": float(value)}
+                    for date, value in zip(dates, values)
+                ]
+            }
+
+        def macro(*, long_end_rises: bool = False, brent_shock: bool = False) -> dict:
+            values = np.linspace(4.0, 4.5, len(dates))
+            yields = {name: values.copy() for name in ("ust_2y", "ust_10y", "ust_30y", "tips_10y")}
+            for series in yields.values():
+                series[-6] = 4.50
+                series[-1] = 4.45
+            if long_end_rises:
+                yields["ust_30y"][-1] = 4.51
+            brent = np.full(len(dates), 70.0)
+            brent[-6] = 70.0
+            brent[-1] = 74.0 if brent_shock else 71.0
+            return {
+                "histories": {
+                    **{name: history(series) for name, series in yields.items()},
+                    "broad_dollar": history(np.linspace(120.0, 119.0, len(dates))),
+                    "credit_spread": history(np.linspace(1.6, 1.5, len(dates))),
+                    "nfci": history(np.linspace(-0.4, -0.5, len(dates))),
+                    "core_cpi": history(np.linspace(300.0, 320.0, len(dates))),
+                    "ppi_final_demand": history(np.linspace(120.0, 130.0, len(dates))),
+                    "core_pce": history(np.linspace(110.0, 120.0, len(dates))),
+                    "china_cpi_yoy": history(np.linspace(1.0, 1.5, len(dates))),
+                    "china_ppi_yoy": history(np.linspace(0.0, 1.0, len(dates))),
+                    "brent": history(brent),
+                }
+            }
+
+        clean = liquidity_state(macro(), self.rules)
+        self.assertTrue(clean["absolute_yield_validation"]["passed"])
+        self.assertTrue(clean["brent_inflation_veto"]["clear"])
+
+        long_end = liquidity_state(macro(long_end_rises=True), self.rules)
+        self.assertFalse(long_end["absolute_yield_validation"]["passed"])
+        self.assertEqual(long_end["absolute_yield_validation"]["series"]["ust_30y"]["delta_bp"], 1.0)
+
+        oil_shock = liquidity_state(macro(brent_shock=True), self.rules)
+        self.assertTrue(oil_shock["brent_inflation_veto"]["triggered"])
+
+        missing_brent = macro()
+        missing_brent["histories"]["brent"]["observations"].pop()
+        unavailable = liquidity_state(missing_brent, self.rules)
+        self.assertIsNone(unavailable["brent_inflation_veto"]["triggered"])
+        self.assertFalse(unavailable["brent_inflation_veto"]["clear"])
 
 
 if __name__ == "__main__":
