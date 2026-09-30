@@ -119,6 +119,9 @@ class OfficialPublication(Provider):
     def fetch(self, r: Requirement) -> Payload:
         p = parameters(r, {"url"})
         index = r.capability == "macro.release_index"
+        snapshot = r.capability == "macro.release_snapshot"
+        if snapshot and r.as_of_date != datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat():
+            raise DataError("historical_unavailable", "Current page snapshots require today's China date; never certify a historical page version")
         url = document_url(p.get("url", self.index_url) if index else p["url"], self.manifest.hosts)
         raw = self.transport.get(url)
         # Sites sometimes serve GB18030 despite modern UTF-8 pages.
@@ -154,6 +157,15 @@ class OfficialPublication(Provider):
         # A live page can be revised without changing its initial publication date.
         # Preserve prose/units and require archived vintage validation for historical scoring.
         available_at,precision=parser.publication_timestamp()
+        if snapshot:
+            if published is None:
+                raise DataError("missing_publication_date","A current snapshot still requires the printed report release date")
+            return Payload({"publication_date":published,"publisher_available_at":available_at,
+                "publication_time_precision":precision,"text":content,"format":"official_publication_snapshot",
+                "snapshot_as_of_date":r.as_of_date,"availability_basis":"observed_current_snapshot",
+                "historical_vintage_certified":False,"numeric_series":False},raw,url,"verified",
+                ["Current official page captured by this run only; availability is the archived retrieval timestamp",
+                 "Original release date is retained separately; prior page revisions and historical versions are not certified"])
         return Payload({"publication_date": published, "available_at":available_at,"publication_time_precision":precision,"text": content,
                         "format": "official_publication_text", "numeric_series": False}, raw, url, "unverified",
                        ["Publication text is evidence, not a normalized macro time series",
@@ -161,12 +173,12 @@ class OfficialPublication(Provider):
 
 
 class NBS(OfficialPublication):
-    manifest = Manifest("nbs", ("macro.release", "macro.release_index"), ("www.stats.gov.cn",),version="1.1.0")
+    manifest = Manifest("nbs", ("macro.release", "macro.release_snapshot", "macro.release_index"), ("www.stats.gov.cn",),version="1.2.0")
     index_url = "https://www.stats.gov.cn/sj/zxfb/index.html"
 
 
 class PBC(OfficialPublication):
-    manifest = Manifest("pbc", ("macro.release", "macro.release_index"), ("www.pbc.gov.cn",),version="1.1.0")
+    manifest = Manifest("pbc", ("macro.release", "macro.release_snapshot", "macro.release_index"), ("www.pbc.gov.cn",),version="1.2.0")
     index_url = "https://www.pbc.gov.cn/diaochatongjisi/116219/index.html"
 
 

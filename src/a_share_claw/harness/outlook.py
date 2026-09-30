@@ -5,7 +5,7 @@ import json
 
 from .contracts import canonical, validate_date
 from .quant import METRIC_UNITS, checked_quant_spec, timestamp
-from .research import catalog, checked_spec
+from .research import catalog, checked_spec, checked_snapshot_availability
 
 
 def checked_outlook_spec(spec):
@@ -36,9 +36,11 @@ def derived_requirements(spec):
 
 
 def outlook_facts(releases, quant, descriptor, cutoff_date):
-    if not isinstance(releases, dict) or set(releases) != {"schema_version", "facts"} or releases["schema_version"] != "macro-release-facts-v1" or not isinstance(releases["facts"], list):
+    if not isinstance(releases, dict) or set(releases) != {"schema_version", "facts"} or releases["schema_version"] not in {"macro-release-facts-v1","macro-release-facts-v2"} or not isinstance(releases["facts"], list):
         raise ValueError("invalid_outlook_facts")
     cutoff = timestamp(quant["specification"]["cutoff_timestamp"])
+    snapshots=releases["schema_version"]=="macro-release-facts-v2"
+    version="research-facts-v2" if snapshots else "research-facts-v1"
     facts = []
     for raw in releases["facts"]:
         if not isinstance(raw, dict) or "available_at" not in raw or not isinstance(raw.get("fact_id"), str) or raw["fact_id"].startswith("price."):
@@ -46,10 +48,14 @@ def outlook_facts(releases, quant, descriptor, cutoff_date):
         available = timestamp(raw["available_at"])
         if available > cutoff:
             raise ValueError("future_data")
-        if available.date().isoformat() != raw["publication_date"]:
-            raise ValueError("invalid_outlook_facts")
-        facts.append({key: value for key, value in raw.items() if key != "available_at"})
-    catalog({"schema_version": "research-facts-v1", "facts": facts}, cutoff_date)
+        if snapshots:
+            checked_snapshot_availability(raw,cutoff_date)
+            facts.append(json.loads(canonical(raw)))
+        else:
+            if available.date().isoformat() != raw["publication_date"]:
+                raise ValueError("invalid_outlook_facts")
+            facts.append({key: value for key, value in raw.items() if key != "available_at"})
+    catalog({"schema_version": version, "facts": facts}, cutoff_date)
     for contract in derived_requirements(quant["specification"]):
         symbol, metric = contract["entity"], contract["metric"]
         value = quant["metrics"][symbol][metric]
@@ -60,4 +66,4 @@ def outlook_facts(releases, quant, descriptor, cutoff_date):
                       "source": "core_quant_v1", "source_file": descriptor["path"],
                       "publication_date": quant["series_audit"][symbol]["publication_date"],
                       "observation_date": contract["observation_end"], "fallback_status": "none"})
-    return {"primary_documents": {"schema_version": "research-facts-v1", "facts": facts}}
+    return {"primary_documents": {"schema_version": version, "facts": facts}}

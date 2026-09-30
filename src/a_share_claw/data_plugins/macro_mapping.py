@@ -4,6 +4,7 @@ from __future__ import annotations
 import calendar
 import re
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from ..harness.contracts import digest
 from .core import DataError,iso_date
@@ -71,12 +72,15 @@ def publication_observation(result,*,metric,year,month,period_kind):
             or not isinstance(metric,str) or not isinstance(period_kind,str) or period_kind not in {"month","year_to_date"}):
         raise DataError("invalid_request","Use an explicit year, month and month/year_to_date period")
     provider=result.get("provenance",{}).get("provider")
-    if (provider not in {"nbs","pbc"} or result.get("capability")!="macro.release" or not result.get("ok") or
+    snapshot=result.get("capability")=="macro.release_snapshot"
+    if (provider not in {"nbs","pbc"} or result.get("capability") not in {"macro.release","macro.release_snapshot"} or not result.get("ok") or
             result.get("truncated") or result.get("status") not in {"ok","unverified"} or not isinstance(result.get("data"),dict)):
         raise DataError("source_mismatch","Use an intact planned NBS/PBC publication, never a discovery index")
-    if (result.get("status")!="unverified" or result.get("fallback_status")!="unverified"
-            or result.get("provenance",{}).get("availability")!="unverified"):
-        raise DataError("unverified_evidence","This mapping retains the official page's uncertified revision eligibility")
+    expected="verified" if snapshot else "unverified"
+    if (result.get("status")!=("ok" if snapshot else "unverified") or
+            result.get("fallback_status")!=("none" if snapshot else "unverified") or
+            result.get("provenance",{}).get("availability")!=expected):
+        raise DataError("unverified_evidence","Select only the eligibility of this explicitly planned capability; no promotion of historical pages")
     data=result["data"]
     if not isinstance(data.get("text"),str) or not data["text"].strip():
         raise DataError("invalid_schema","Publication text is absent")
@@ -89,7 +93,7 @@ def publication_observation(result,*,metric,year,month,period_kind):
     start=f"{year:04d}-{'01' if period_kind=='year_to_date' else f'{month:02d}'}-01"
     if published>cutoff or end>published or end>cutoff:
         raise DataError("future_data","Observation period/publication lies after the allowed date")
-    available=data.get("available_at")
+    available=data.get("publisher_available_at") if snapshot else data.get("available_at")
     if available is not None:
         try:
             stamp=datetime.fromisoformat(available);capture=datetime.fromisoformat(result["provenance"]["retrieved_at"])
@@ -97,6 +101,16 @@ def publication_observation(result,*,metric,year,month,period_kind):
             raise DataError("invalid_schema","Publisher/capture timestamp is malformed") from None
         if stamp.tzinfo is None or capture.tzinfo is None or stamp.date().isoformat()!=published or stamp>capture:
             raise DataError("future_data","Publisher timestamp is inconsistent or later than capture")
+    capture=None
+    if snapshot:
+        try:
+            capture=datetime.fromisoformat(result["provenance"]["retrieved_at"])
+        except (ValueError,KeyError,TypeError):
+            raise DataError("invalid_schema","Snapshot needs the archived capture clock") from None
+        if (capture.tzinfo is None or capture.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()!=cutoff or
+                data.get("snapshot_as_of_date")!=cutoff or data.get("availability_basis")!="observed_current_snapshot" or
+                data.get("historical_vintage_certified") is not False):
+            raise DataError("historical_unavailable","Current snapshot cannot certify an earlier page version or silently cross dates")
     patterns=NBS_PATTERNS if provider=="nbs" else PBC_PATTERNS
     if metric not in patterns:
         raise DataError("mapping_unavailable","Metric is not in the versioned native prose mapping")
@@ -126,4 +140,8 @@ def publication_observation(result,*,metric,year,month,period_kind):
         "eligibility":"unverified","mapping_version":MAPPING_VERSION,"source_excerpts":list(dict.fromkeys(m.group() for m in matches)),
         "source_notes":[line.strip() for line in data["text"].splitlines() if re.search(r"口径|修订|初步数据|初步统计",line)],
         "source_text_hash":digest(data["text"]),"interpretation":"Native printed value only; no score, weight, policy threshold or action"}
+    if snapshot:
+        observation.update(eligibility="verified_current_snapshot",available_at=capture.isoformat(),
+            publisher_available_at=available,snapshot_as_of_date=cutoff,availability_basis="observed_current_snapshot",
+            historical_vintage_certified=False)
     return _selection(provider,observation,[result])

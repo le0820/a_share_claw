@@ -151,3 +151,12 @@ SEC 1.1.0 新增固定 cik/accession 的 company.filing_metadata，保留 recent
 官方规范区分 acceptance 与 dissemination；source-declared acceptance 不证明公开可用时点，保留 available_at=null/public_dissemination_certified=false/core_admission_complete=false。SEC_USER_AGENT/FRED_API_KEY/TICKFLOW_API_KEY 本机仍未配置；浏览工具无法取得 SEC 原生 JSON，真实账户/原生样本及核心准入未验收。当前仅为身份元数据实现与合成检查，不是精确历史可得时点闭环；市场 case 未启动。
 
 先完成实现/接线，再验证来源相关 **80 passed**，Python 3.11/3.12 全套各 **301 passed / 41 subtests**。检查覆盖固定列形态、凭据零调用、实体/表型/日期不一致、比较期、重复与篡改；不证明所有 SEC 历史报表类型或公开传播时点。五源实际接口、vintage、核心 FactPacket 及行情主源授权继续待补。
+
+
+## B 事实接入第四步：当前快照与核心宿主交接（2026-09-30）
+
+NBS/PBC 1.2.0 新增当前 macro.release_snapshot，与旧历史候选分离。当前捕获只证明本次看到的版本，available_at=归档 retrieved_at；原文发布日期/时钟和 unknown historical vintage 分别保留。四字段 Scope、冻结规格/源绑定先于抓取，CN/原生 percent/指标/月度或累计期间严格匹配，不给插件评分/阈值/仓位权。
+
+DataRun.core_macro_evidence 接 macro-release-facts-v2；核心核对 scope、研究规格哈希、capture/cutoff、发布日期与快照元数据。研究角色及 JSON/Markdown 保留来源口径备注与版本说明。旧 v1 契约保持；旧 unverified 候选、历史 cutoff、跨 scope、篡改和声明历史版本认证均拒绝。合成短窗口源→统计→角色→评估→双报告已走通 NO_ACTION，不是用户真实季度 case，也不等于普通 chat 自动取证或恢复日评分。
+
+先完成实现，再验证相关 110 passed；Python 3.11/3.12 全套各 324 passed / 41 subtests。真实官网形态/账户样本、其他来源规范化、行情主源与完整五源仍待相应验收；独立真实源样本保存在本机 data/harness_acceptance，不上传运行数据。

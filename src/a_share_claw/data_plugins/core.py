@@ -181,7 +181,10 @@ class DataRun:
         self.run_id = run_id or uuid4().hex
         if not re.fullmatch(r"[a-f0-9]{32}", self.run_id):
             raise ValueError("Invalid run_id")
-        scope_id = hashlib.sha256(scope.encode()).hexdigest()
+        from ..harness.contracts import Scope
+        self.core_scope_key = scope.key if isinstance(scope,Scope) else None
+        scope_id = self.core_scope_key or hashlib.sha256(scope.encode()).hexdigest()
+        self._core_contract_document = None
         self.directory = artifact_root / scope_id / self.run_id
         self.requirements: dict[str, Requirement] | None = None
         self.results: dict[str, dict] = {}
@@ -305,7 +308,7 @@ class DataRun:
                 raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
             metadata=archived(metadata_requirement_id) if metadata_requirement_id is not None else None
             selection=sec_fact(result,metadata=metadata,**selector)
-        elif result["capability"]=="macro.release":
+        elif result["capability"] in {"macro.release","macro.release_snapshot"}:
             keys={"metric","year","month","period_kind"}
             if set(selector)!=keys or metadata_requirement_id is not None:
                 raise DataError("invalid_request", "Official prose selection requires an explicit metric and monthly/cumulative period")
@@ -320,6 +323,21 @@ class DataRun:
         else:
             self._save(path.name,selection)
         return selection
+
+    def plan_core_outlook(self, plan: dict, outlook_spec: dict, bindings: list[dict]):
+        """Trusted host freezes source-to-core requirements before any acquisition."""
+        from .handoff import freeze_outlook_contract
+        if self.requirements is not None or self._core_contract_document is not None:
+            raise DataError("plan_required","Bind the core contract before the first source plan/fetch")
+        contract=freeze_outlook_contract(self,plan,outlook_spec,bindings)
+        self.plan(plan)
+        self._core_contract_document=json.dumps(contract,sort_keys=True,ensure_ascii=False,allow_nan=False)
+        self._save("core-contract.json",contract)
+        return self.summary()
+
+    def core_macro_evidence(self):
+        from .handoff import macro_evidence
+        return macro_evidence(self)
 
     def summary(self) -> dict:
         gaps = [{"requirement_id": r.requirement_id, "required": r.required,

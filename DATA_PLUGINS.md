@@ -6,13 +6,13 @@
 
 | 插件 | 已实现能力 | 配置 | 时点/口径边界 |
 | --- | --- | --- | --- |
-| `nbs` 国家统计局 | `macro.release_index` 官方目录链接；`macro.release` 官方 HTML 发布正文与表格单元文本 | 无密钥 | 保留明确发布时钟/精度和原文；固定正文指标支持月度/YTD 精确选择；完整数值序列/附件未完成；页面修订历史不明，标记 unverified |
+| `nbs` 国家统计局 | `macro.release_index` 目录；`macro.release` 历史候选；`macro.release_snapshot` 当前官网版本 | 无密钥 | 保留明确发布时钟/精度和原文；固定正文指标支持月度/YTD 精确选择；完整数值序列/附件未完成；页面修订历史不明，标记 unverified |
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位与明确发布时钟；M2/M1/社融存量同比可精确选择；PDF/Excel 与完整序列未完成；不从累计量推算单月 |
 | `tickflow` | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
 | `fred` | `macro.series` 与 `macro.series_metadata`，在 FRED API 设置 ALFRED 实时区间查询指定 vintage | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts` 公司事实；`company.filing_metadata` 精确 accession 的 recent filing 元数据 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
-`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；原生插件结果尚未规范化接入，不能借取数成功自动恢复官方评分或仓位行动。
+`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照已有明确宿主交接；其他来源及日评分字段尚未自动接线，不能借取数成功恢复官方评分或仓位行动。
 
 ## 配置与命令
 
@@ -94,6 +94,18 @@ SEC 1.1.0 新增 `company.filing_metadata`，params 恰为 cik/accession，限�
 `DataRun.select` 可同时绑定公司事实与元数据归档，核对 CIK/accession/form/filed/cutoff/原始哈希；report_date 是整份报表期末，不能替换比较期事实的原生 start/end。来源被标记 verified 的范围只是接口身份/日期检查，不包括公开可得时点：acceptance 原始字符串和 source-declared offset 分别保留，**不把 acceptance 当 public dissemination，也不自行校正源时区**。available_at=null、public_dissemination_certified=false，core_admission_complete/official_output_allowed 均为 false。
 
 本轮仅有合成列式响应验证：实际 SEC 配置仍缺失，浏览工具也无法读取该 JSON；未确认账户样本及所有历史形态。公开传播/修订验证、核心字段映射与同 run 宿主接线仍待补齐，不能以元数据能力完成宣告真实接口或五源准入完成。依据 [SEC Submissions API](https://www.sec.gov/search-filings/edgar-application-programming-interfaces) 与 [PDS 技术规范](https://www.sec.gov/info/edgar/specifications/pds-dissemination-spec022315.pdf) 保留接收、发布与已抓取的区别；不暗增 PDS 订阅或其他来源。
+
+## B 接入进展：当前官网快照到核心展望
+
+NBS/PBC 1.2.0 新增 `macro.release_snapshot`（params 仍为 url），只接受抓取当天的中国日期。它证明本次 HTTPS 响应看到的版本，available_at 使用归档 retrieved_at；原始 publication_date 和明确 publisher_available_at 单独保留。历史页面修订仍不明，historical_vintage_certified=false。旧 macro.release 继续 unverified，不从旧运行或旧候选提升资格；跨日捕获/历史 cutoff 拒绝。
+
+显式可信宿主用四字段 Scope 构造 DataRun，取证前调用 `plan_core_outlook(plan, outlook_spec, bindings)` 冻结来源与核心需求。bindings 恰为 fact_id/requirement_id/selector，当前只接 NBS/PBC 快照；CN、原生指标、percent、月度/YTD 起止须匹配全部非价格必需事实。核心价格派生项不由插件填充。核心规格哈希、source/core contract 和 raw/result/selection 各自绑定，不给模型改 source/单位/日期的工具。
+
+抓取后 `core_macro_evidence()` 产生 macro_release_facts 能力的 envelope，可由宿主与独立 price_history 一并交给核心。macro-release-facts-v2 / research-facts-v2 保留 availability 元数据、来源口径备注及两个时钟；核心再次核对 scope、冻结研究规格、capture/cutoff、原始发布日期和版本边界。来源归档仍不持发布权，核心评估/双报告/事务决定交付。当前快照不证明较早日期的页面版本，也不能写入抓取前的 frozen cutoff。计划可以声明未来 cutoff，但执行必须等该时点结束，不能以未来规格通过计算。
+
+JSON/Markdown 和角色 packet 均保留当前版本口径；旧 v1 发布时钟契约保持不变。新增合成端到端检查从来源计划/原始页走到核心统计、角色、评估和双报告，保持 NO_ACTION；两版回归各 324 passed / 41 subtests。真实来源样本验收以本机 data/harness_acceptance 的原始响应/哈希/归档为准；不能用上述合成成功宣告所有官网形态、五源自动取证或真实季度市场 case 已完成。
+
+显式宿主接线已实现；普通 chat 自动取证、FRED/SEC 到核心映射、行情主源授权/身份/日历及五源实际接口验收继续待补。该范围支持当前捕获的研究事实，不恢复历史正式日评分，也未执行用户市场 case。
 
 ## Agent 数据边界与兼容变化
 

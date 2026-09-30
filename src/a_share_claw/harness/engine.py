@@ -331,6 +331,9 @@ class Harness:
                 raise ValueError("missing_provenance")
             if p["sha256"] != digest(item["data"]):
                 raise ValueError("hash_mismatch")
+            if capability=="macro_release_facts" and item["data"].get("schema_version")=="macro-release-facts-v2":
+                if p.get("research_spec_hash")!=digest(plan["parameters"].get("research_spec")):
+                    raise ValueError("research_fact_contract_mismatch")
             source_time = datetime.fromisoformat(p["source_timestamp"].replace("Z", "+00:00"))
             if source_time.tzinfo is None:
                 raise ValueError("invalid_source_timestamp")

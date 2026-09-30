@@ -84,6 +84,12 @@ def body(workflow, data, level=2):
                     [[f["fact_id"], "核心派生" if f["source"] == "core_quant_v1" else "来源事实",
                       f["entity"] + "/" + f["metric"], f["value"], f["unit"], f["data_period"],
                       f["publication_date"] + "/" + f["observation_date"], f["source_file"]] for f in data["confirmed_facts"]])
+    snapshots=[f for f in data["confirmed_facts"] if "availability" in f]
+    if snapshots:
+        result += ["", "当前快照口径：以下数值是本次抓取看到的版本；原始发布日期与快照可得时间分别保留，不证明抓取前的历史页面版本。", ""]
+        result += table(["事实", "当前快照可得时间", "原文发布时钟", "发布精度", "来源口径备注", "选择哈希"],
+            [[f["fact_id"],f["available_at"],f["availability"]["publisher_available_at"],
+              f["availability"]["publication_time_precision"],f["availability"]["source_notes"],f["availability"]["selection_hash"]] for f in snapshots])
     result += [heading + " 角色推断与事实引用", "", "以下文案已通过候选语义评估；引用存在本身不证明推断正确。", ""]
     unknowns = []
     phases = ["hong_guan:initial", "ge_yan:initial", "jia_zhi:initial", "qian_zhan:initial", "shen_du:initial", "qian_zhan:rebuttal", "shen_du:rebuttal", "ping_heng:final"]
