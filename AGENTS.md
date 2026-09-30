@@ -11,7 +11,7 @@ Load only these files at the start of a new task:
 3. `DATA_CONTRACT.md` - data source, date, and fallback rules
 4. The authorized scoped state, if present; `data/state/system_state.json` is only a personal-mode state path, not an unconditional startup load for every host/user
 5. `HARNESS_DESIGN.md` and `DATA_PLUGINS.md` for architecture, host adaptation or plugin work
-6. `src/pipeline/OPERATIONS.md` or `data/deepresearch/OPERATIONS.md` only when the task needs execution detail
+6. `src/a_share_claw/RESEARCH_OPERATIONS.md` only when the task needs core execution detail; `src/pipeline/OPERATIONS.md` is the manual compatibility runbook. `data/deepresearch/OPERATIONS.md` is an archive, not a runtime dependency
 
 Do not load `MEMORY.md`, `memory/YYYY-MM-DD.md`, `journal/`, `analysis/`, or full SOP prose during startup. Those are archives and evidence stores; open them only when a specific question requires them.
 

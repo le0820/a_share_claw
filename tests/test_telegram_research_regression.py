@@ -43,11 +43,11 @@ class TelegramResearchRegressionTest(unittest.TestCase):
             encoding="utf-8",
         )
         (root / "src" / "compiled").mkdir(parents=True)
-        (root / "data" / "deepresearch").mkdir(parents=True)
-        (root / "data" / "deepresearch" / "OPERATIONS.md").write_text(
+        (root / "src" / "a_share_claw").mkdir(parents=True)
+        (root / "src" / "a_share_claw" / "RESEARCH_OPERATIONS.md").write_text(
             "# Deep Research\n\n"
             "## Active Contract\ndeepresearch-regression-marker\n\n"
-            "## 执行协议\nPLAN -> TOOL_CALL -> EVIDENCE_GATE -> ACTION -> TEAM_SYNTHESIS\n",
+            "## 执行协议\nPLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE -> EVALUATE -> ARCHIVE -> PUBLISH\n",
             encoding="utf-8",
         )
         (root / "data" / "state").mkdir(parents=True)
@@ -80,7 +80,8 @@ class TelegramResearchRegressionTest(unittest.TestCase):
             self.assertEqual(bundle.workflow, ResearchWorkflow.MIXED)
             self.assertEqual(bundle.routing_reason, "macro_plus_deepresearch")
             self.assertIn("src/pipeline/OPERATIONS.md", bundle.loaded_files)
-            self.assertIn("data/deepresearch/OPERATIONS.md", bundle.loaded_files)
+            self.assertIn("src/a_share_claw/RESEARCH_OPERATIONS.md", bundle.loaded_files)
+            self.assertNotIn("data/deepresearch/OPERATIONS.md", bundle.loaded_files)
             self.assertIn("active_slices: macro, deepresearch", bundle.instructions)
             self.assertIn("fetch_data", tools)
             self.assertNotIn("run_macro_pipeline", tools)

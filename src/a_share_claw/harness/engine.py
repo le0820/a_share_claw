@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 from ..research_context import classify_research_route
 from .contracts import EvalResult, FailureCategory as Failure, RunRequest, RunStatus, canonical, digest, validate_date
 from .policy import PolicyBundle, PolicyContextError
+from .planning import freeze_plan
 from .runtime import RunSession
 from .trace import now
 
@@ -59,13 +60,16 @@ class Harness:
             workflow = request.workflow or route.workflow.value
             session.step("route", {"workflow": workflow, "reason": route.reason, "override": request.workflow is not None})
             policy = PolicyBundle(self.root)
-            plan = policy.plan(workflow)
+            parameters = {"current_ai_pct": current_ai_pct} if workflow == "ai" else {}
+            frozen_plan = freeze_plan(request, policy.plan(workflow), parameters)
+            plan = frozen_plan.json()
             session.step("policy_snapshot", {"version": policy.version, "files": policy.hashes})
             session.step("context", {"kind": "policy_snapshot", "loaded_files": list(policy.hashes),
                                      "missing_files": [], "state_scope": request.scope.key,
                                      "state_injected": False})
             session.step("plan", plan)
-            session.step("workflow_parameters", {"current_ai_pct": current_ai_pct} if workflow == "ai" else {})
+            session.step("workflow_parameters", parameters)
+            self._archive(session, "plan", plan)
             output["plan"] = plan
             if request.mode == "plan":
                 output["gaps"] = plan["required_capabilities"]
@@ -107,8 +111,11 @@ class Harness:
                 session.step("compute", {"data_hash": digest(data), "policy_version": policy.version})
                 if session.remaining <= 0:
                     raise TimeoutError("budget_exceeded")
+                if plan != frozen_plan.json():
+                    raise ValueError("plan_changed")
                 if not policy.unchanged():
                     raise ValueError("policy_changed")
+                session.evaluate(EvalResult("frozen_plan", True))
                 session.evaluate(EvalResult("policy_snapshot", True))
                 session.evaluate(EvalResult("required_evidence", True))
                 session.evaluate(EvalResult("scope_and_date", True))
@@ -129,13 +136,13 @@ class Harness:
             output["error_code"] = str(exc)
         except (ValueError, KeyError, TypeError) as exc:
             known = {"future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
-                     "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "workflow_execution_pending",
+                     "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history"}
             text = str(exc)
             code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
             if code in {"future_data", "scope_mismatch", "unverified_evidence"}:
                 category = Failure.STATE_CONTAMINATION_FAILURE
-            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "workflow_execution_pending"}:
+            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending"}:
                 category = Failure.PERMISSION_POLICY_FAILURE
             elif code == "missing_required_data" or code.startswith("insufficient_coverage"):
                 category = Failure.RETRIEVAL_INTERFACE_FAILURE

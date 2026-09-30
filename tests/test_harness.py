@@ -131,14 +131,14 @@ def test_complete_fact_packet_computes_without_network_and_traces_all_stages(env
     trace = TraceRepository(storage).read(outcome.run_id, scope)
     stages = {row["stage"] for row in trace["run_steps"]}
     assert stages >= {"request", "route", "context", "plan", "policy_snapshot", "evidence", "gap_report", "compute", "publish_gate", "final_output"}
-    assert len(trace["artifacts"]) == 4 and all(row["passed"] for row in trace["evaluations"])
+    assert len(trace["artifacts"]) == 5 and all(row["passed"] for row in trace["evaluations"])
     context = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
     assert context["kind"] == "policy_snapshot"
     assert set(context["loaded_files"]) == set(PolicyBundle(ROOT).hashes)
     assert context["missing_files"] == [] and context["state_injected"] is False
 
 
-@pytest.mark.parametrize("missing_file", ["IDENTITY.md", "src/compiled/weight_matrix.json"])
+@pytest.mark.parametrize("missing_file", ["IDENTITY.md", "src/compiled/weight_matrix.json", "src/a_share_claw/RESEARCH_OPERATIONS.md"])
 def test_missing_core_policy_preserves_route_and_context_without_publication(environment, missing_file):
     storage, scope, engine, tmp = environment
     checkout = tmp / "incomplete-checkout"
@@ -355,4 +355,47 @@ def test_stale_a_share_close_cannot_be_silently_used(environment):
     item["provenance"]["sha256"] = digest(item["data"])
     outcome = engine.run(request(scope, "official"), facts)
     assert outcome.status == RunStatus.BLOCKED and outcome.action == "NO_ACTION"
+    assert TraceRepository(storage).read_state(scope, "macro") is None
+
+
+def test_frozen_plan_pins_identity_and_archives_before_evidence(environment):
+    from a_share_claw.harness.planning import freeze_plan
+    storage, scope, engine, _ = environment
+    req = request(scope, "plan", "industry")
+    frozen = freeze_plan(req, PolicyBundle(ROOT).plan("industry"))
+    copy = frozen.json()
+    copy["requirements"].clear()
+    assert frozen.json()["requirements"]
+    assert frozen.json()["scope_key"] == scope.key and frozen.json()["as_of_date"] == DAY
+    assert frozen.json()["mode"] == "plan" and frozen.json()["debate_policy"] == "conditional_after_shared_evidence"
+    assert all(r["provider"] is None for r in frozen.json()["requirements"])
+    outcome = engine.run(req)
+    assert outcome.status == RunStatus.SUCCEEDED and outcome.action == "NO_ACTION"
+    trace = TraceRepository(storage).read(outcome.run_id, scope)
+    plan = json.loads(outcome.output)["plan"]
+    assert plan["plan_id"] == frozen.plan_id
+    archived = [json.loads(Path(a["detail"]["path"]).read_text()) for a in trace["artifacts"]]
+    assert archived == [plan] and not trace["tool_calls"]
+    assert "workflow_executed" in plan["completion_criteria"]
+
+
+def test_quant_plan_declares_missing_spec_instead_of_assuming_macro_universe(environment):
+    _, scope, engine, _ = environment
+    outcome = engine.run(request(scope, "plan", "quant"))
+    plan = json.loads(outcome.output)["plan"]
+    assert set(plan["unresolved_constraints"]) == {"universe", "window", "adjustment", "benchmark", "metric_definitions"}
+    assert plan["debate_policy"] == "disabled" and not outcome.official_output_allowed
+
+
+def test_mutated_frozen_plan_cannot_publish_after_valid_computation(environment):
+    storage, scope, engine, _ = environment
+    original = engine._evidence
+    def tamper(session, policy, plan, packet, cutoff):
+        result = original(session, policy, plan, packet, cutoff)
+        plan["report_sections"].clear()
+        return result
+    with patch.object(engine, "_evidence", side_effect=tamper):
+        outcome = engine.run(request(scope, "official"), packet(scope))
+    assert outcome.status == RunStatus.BLOCKED and outcome.action == "NO_ACTION"
+    assert json.loads(outcome.output)["error_code"] == "plan_changed"
     assert TraceRepository(storage).read_state(scope, "macro") is None

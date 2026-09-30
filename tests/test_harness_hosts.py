@@ -135,7 +135,8 @@ def test_cli_run_trace_replay_and_tampered_archive(host, capsys):
     trace_args = argparse.Namespace(command="trace", run_id=first["run_id"], list=False, full=False, **common)
     assert run_harness(trace_args, config, storage) == 0
     trace = json.loads(capsys.readouterr().out)
-    assert trace["status"] == "succeeded" and len(trace["artifacts"]) == 4
+    assert trace["status"] == "succeeded" and len(trace["artifacts"]) == 5
+    assert Path(trace["artifacts"][0]["detail"]["path"]).name == "plan.json"
     replay_args = argparse.Namespace(command="harness", harness_command="replay", run_id=first["run_id"], **common)
     assert run_harness(replay_args, config, storage) == 0
     repeated = json.loads(capsys.readouterr().out)
@@ -198,3 +199,34 @@ def test_ai_cli_replay_preserves_explicit_current_position(host, capsys):
     assert repeated["data"] == source["data"] and repeated["action"] == "NO_ACTION"
     trace = TraceRepository(storage).read(repeated["run_id"], Scope.from_context(ROOT, context))
     assert next(r["detail"] for r in trace["run_steps"] if r["stage"] == "workflow_parameters")["current_ai_pct"] == 63
+
+
+@pytest.mark.parametrize("message", ["宏观每日评分", "分析 HBM 产业链", "每日评分并研究半导体产业链"])
+def test_sdk_context_loads_versioned_protocol_without_deployment_archive(host, message):
+    from a_share_claw.research_context import build_research_context
+    config, _, context, _ = host
+    bundle = build_research_context(config, context, message, include_state=False)
+    assert "src/a_share_claw/RESEARCH_OPERATIONS.md" in bundle.loaded_files
+    assert "PLAN -> EVIDENCE_GATE" in bundle.instructions
+    assert "data/deepresearch/OPERATIONS.md" not in bundle.loaded_files
+    assert bundle.state_scope == "withheld_plugin_only"
+
+
+def test_sdk_missing_protocol_blocks_before_model_and_preserves_context_trace(host):
+    config, storage, context, tmp = host
+    config = dataclasses.replace(config, research_operations_path=tmp / "missing-protocol.md")
+    agent = InvestmentAgent(config, storage)
+    async def exercise():
+        with patch.object(agent, "_configure_model_client") as model_config, \
+             patch("agents.Runner.run") as runner:
+            outcome = await agent.run_result(context, "分析 HBM 产业链")
+        model_config.assert_not_called()
+        runner.assert_not_called()
+        return outcome
+    outcome = asyncio.run(exercise())
+    assert outcome.status == RunStatus.BLOCKED
+    assert "required_context_missing" in outcome.output and outcome.action == "NO_ACTION"
+    trace = TraceRepository(storage).read(outcome.run_id, Scope.from_context(config.root_dir, context))
+    detail = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
+    assert detail["missing_files"] == [str(tmp / "missing-protocol.md")]
+    assert not trace["model_calls"] and not trace["tool_calls"]

@@ -32,6 +32,7 @@ class PolicyBundle:
         paths = [*sorted((root / "src" / "compiled").glob("*.json")),
                  *sorted((root / "src/a_share_claw/harness").glob("*.py")),
                  root / "DATA_CONTRACT.md", root / "IDENTITY.md",
+                 root / "src/a_share_claw/RESEARCH_OPERATIONS.md",
                  root / "src/pipeline/rules_L1.py", root / "src/pipeline/ai_strategy.py",
                  root / "src/pipeline/p1_upgrade.py", root / "src/pipeline/run_scoring.py",
                  root / "src/pipeline/pipeline_universe.json"]

@@ -329,14 +329,15 @@ def build_research_context(
 
     if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.MACRO, ResearchWorkflow.QUANT}:
         _append_file_section(config.root_dir, config.pipeline_dir / "OPERATIONS.md", sections, loaded, missing)
-    if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if (not include_state and workflow != ResearchWorkflow.GENERAL) or workflow in {
+            ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
         content = _read_text(config.research_operations_path)
         label = _relative_label(config.root_dir, config.research_operations_path)
         if content is None:
             missing.append(label)
         else:
             loaded.append(label)
-            sections.append(_render_section(label, _industry_operations_index(content)))
+            sections.append(_render_section(label, content))
 
     if missing:
         guideline = config.root_dir / "GUIDELINE.md"
@@ -353,23 +354,20 @@ def build_research_context(
         "Use only the loaded files below as active workspace policy. "
         "Archives and unloaded manuals are not startup context."
     )
-    if include_state and workflow is ResearchWorkflow.MIXED:
+    if workflow is ResearchWorkflow.MIXED:
         header += (
-            "\nactive_slices: macro, deepresearch. Keep their evidence and outputs separate. "
-            "For the macro slice, inspect_data_audit is preflight only: obey the host market-session "
-            "gate, wait before the current A-share close, and run run_macro_pipeline(stage=\"full\") "
-            "after close when exact outputs are missing. Continue the deepresearch slice even while "
-            "the same-day official macro run is waiting for close."
+            "\nactive_slices: macro, deepresearch. Keep evidence and outputs separate. "
+            "The official macro slice waits for the host close gate. "
+            "Continue the deepresearch slice while independent evidence work is possible. "
+            "Do not announce combined completion while a required slice remains waiting or blocked."
         )
-    if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
         header += (
-            "\nBefore collecting evidence, call get_operation_manual with "
-            'workflow="industry" and section="执行协议". Follow its '
-            "PLAN -> TOOL_CALL -> ACTION -> TEAM_SYNTHESIS state machine. "
-            "Use Tavily/QVeris MCP tools when present and record any fallback explicitly. "
-            "After Tavily search and QVeris discover -> inspect, call assess_deepresearch_evidence. "
-            "Raw QVeris call is hidden; qveris_readonly_call is available only after a "
-            "NEED_QVERIS_CALL checkpoint, and every call must be followed by a new checkpoint."
+            "\nFollow the versioned research execution protocol: "
+            "PLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE -> EVALUATE -> ARCHIVE -> PUBLISH. "
+            "All roles use the same scoped packet/version and cite admitted facts; "
+            "debate only after evidence admission and only for genuine two-sided uncertainty. "
+            "Missing protocol or required evidence blocks completion; no fallback to archived SOPs."
         )
     if missing:
         sections.append("## Missing required context\n" + "\n".join(f"- {item}" for item in missing))
@@ -445,26 +443,6 @@ def _external_state_source_paths(root: Path, state_path: Path) -> tuple[str, ...
         except ValueError:
             external.append(raw_path)
     return tuple(external)
-
-
-def _industry_operations_index(content: str) -> str:
-    contract_match = re.search(
-        r"(?ms)^## Active Contract\s*$\n(.*?)(?=^## )",
-        content,
-    )
-    contract = contract_match.group(1).strip() if contract_match else ""
-    headings = [
-        match.group(0).strip()
-        for match in re.finditer(r"(?m)^#{2,4}\s+.+$", content)
-        if "每日评分解读流程" not in match.group(0)
-    ]
-    return (
-        "## Active Contract\n"
-        f"{contract}\n\n"
-        "## Operation section index\n"
-        "Load a detailed section with get_operation_manual only when the active research step requires it.\n\n"
-        + "\n".join(headings)
-    )
 
 
 def _render_section(label: str, content: str) -> str:

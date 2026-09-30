@@ -45,19 +45,26 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | --- | --- | --- |
 | FailureCategory / RunStatus / EvalResult / ToolResult | 已实现；核心、Agent 与数据 CLI 使用结构化结果 | 已有契约与失败传播检查；旧人工 ToolRuntime / MCP 全面标准化属于 E1，不能算全部已迁移 |
 | 每次 InvestmentAgent.run 生成 run_id | 已实现；run_result 先建记录，run 为兼容渲染入口 | fake、SDK 脚本、异常/取消有证据；真实模型业务完成尚未验收 |
-| route、loaded/missing context、state scope | 记录已接线；SDK 记录装配结果，核心记录实际读取的政策快照、缺失项和 scope | 正常加载/缺 IDENTITY/缺必需 compiled 文件已验；两条工作流的版本化运行协议仍需补齐 |
+| route、loaded/missing context、state scope | 记录已接线；SDK 记录装配结果，核心记录实际读取的政策快照、缺失项和 scope | 正常加载/缺 IDENTITY/缺必需 compiled 文件已验；版本化协议已接线；缺协议时在模型调用前停止，角色业务执行另列 |
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
 | CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：本轮补齐了 E0 实际上下文记录缺口，两条工作流的协议收口仍待完成；“整个系统运行逻辑、评分策略、风控策略可独立运行”的业务验收也未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：本轮补齐了 E0 实际上下文记录缺口，版本化协议与不可变规划契约已接线；“整个系统运行逻辑、评分策略、风控策略可独立运行”的业务验收也未闭环。PR #2 暂不合并，Issue #1 保持 open。**
 
 本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
+
+### 本轮协议与规划收口
+
+- `src/a_share_claw/RESEARCH_OPERATIONS.md` 取代未提交部署手册作为配置/上下文依赖，核心政策快照固定其版本。Agent 读取完整简短协议；缺协议在模型配置/调用前 blocked，不回退归档 SOP 或旧工具。
+- `harness/planning.py` 固定 question hash、scope/date/mode、policy/version、required/optional/disabled 能力、报告章节、停止/完成条件及参数；canonical document 不可变，消费者拿到独立副本。核心在证据前归档 `plan.json`，发布前检查其不变性。
+- quant 的 universe/window/adjustment/benchmark/metrics 缺失明确列为 unresolved；不把宏观评分标的静默当作用户回测标的。产业/公司辩论按共享证据后有真正双向不确定性决定，不强制每次辩论。
+- 这些交付只关闭协议可复现和核心规划记录项。逐字段需求编译、SDK 计划到核心计划绑定、角色执行/证据评估、报告发布及状态读取仍待完成，不能据此进入五源接入或市场 case。
 
 ### A. 先闭环核心，再进入插件接入
 
 按以下顺序补齐实现、接线和验收证据。可使用固定事实包验证核心行为，不提前执行用户的真实市场 case。
 
-1. **运行协议与上下文。** 两条核心工作流的必要协议进入版本控制，干净检出可加载；记录实际 loaded/missing、政策版本与 state scope，缺关键协议停止相应业务。完整 token 压缩/长期记忆不是本项完成条件。
+1. **运行协议与上下文（本轮已接线）。** 必要协议进入版本控制并被核心/SDK 加载；缺协议先阻断。记录实际 loaded/missing、政策版本与 state scope。完整 token 压缩/长期记忆不是本项完成条件。
 2. **框架与业务执行。** 请求先冻结问题、日期、mode、scope、输出模板、必需/可选/禁用证据；宏观保持既有评分与风控，产业研究消费同一版本事实包并按 IDENTITY 执行技术/价值链/必要辩论/最终风险 gate。company 复用研究契约；mixed 按独立切片记录等待和完成；quant 先冻结 universe/window/adjustment/benchmark/metrics，不凭现有市场事实包宣称回测完成。
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。

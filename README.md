@@ -83,7 +83,7 @@
 - L2 保持 `disabled/null`，Composite 使用 `L1 × 4/7 + L3 × 3/7`。
 - AI 策略中增长决定结构仓位；数据覆盖不足只能 `NO_ACTION`，不得转换成中性分数。
 
-详见 [DATA_CONTRACT.md](DATA_CONTRACT.md) 和 [宏观运行手册](src/pipeline/OPERATIONS.md)。产业研究运行手册 `data/deepresearch/OPERATIONS.md` 由部署侧提供，当前 main 未包含该文件；缺失时必须披露，不能假定已加载完整研究协议。
+详见 [DATA_CONTRACT.md](DATA_CONTRACT.md) 和 [宏观运行手册](src/pipeline/OPERATIONS.md)。核心运行协议已版本化为 [RESEARCH_OPERATIONS.md](src/a_share_claw/RESEARCH_OPERATIONS.md)，由配置、Agent 上下文和核心政策快照共同引用。`data/deepresearch/OPERATIONS.md` 为部署档案，不再作为运行依赖；缺关键协议时在模型调用前停止。协议可加载不代表业务执行器已验收。
 
 ## 系统结构
 

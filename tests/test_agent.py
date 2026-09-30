@@ -81,6 +81,8 @@ class ModelClientTest(unittest.IsolatedAsyncioTestCase):
             config = dataclasses.replace(AppConfig.from_env(root), model_base_url=None, model_api_key=None,
                                          skill_dirs=(), plugin_dirs=(), enable_bash=True, enable_codex_tool=True)
             config.ensure_dirs()
+            config.research_operations_path.parent.mkdir(parents=True, exist_ok=True)
+            config.research_operations_path.write_text("# Core Research Operations v1\n")
             config.system_state_path.parent.mkdir(parents=True, exist_ok=True)
             config.system_state_path.write_text('{"secret_marker":"LEGACY_DATA_MUST_NOT_ENTER"}')
             storage = Storage(config.database_path)

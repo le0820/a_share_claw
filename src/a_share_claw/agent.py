@@ -139,7 +139,6 @@ class InvestmentAgent:
         from .data_plugins import DataRun, default_registry, preview
         from .sdk_trace import TraceHooks
 
-        self._configure_model_client()
         research_runtime = ResearchRuntime(self.config, context)
         research_context = build_research_context(self.config, context, message, include_state=False)
         data_run = DataRun(default_registry().snapshot(), self.config.data_dir / "plugin_runs",
@@ -148,6 +147,13 @@ class InvestmentAgent:
         trace.step("route", {"workflow": research_context.workflow.value, "reason": research_context.routing_reason})
         trace.step("context", {"loaded_files": research_context.loaded_files, "missing_files": research_context.missing_files,
                                "state_scope": research_context.state_scope, "instructions_hash": digest(research_context.instructions)})
+        if research_context.missing_files:
+            trace.result_status = RunStatus.BLOCKED
+            trace.attribution = FailureCategory.CONTEXT_TRUNCATION_FAILURE
+            trace.evaluate(EvalResult("required_context", False,
+                           category=FailureCategory.CONTEXT_TRUNCATION_FAILURE, code="required_context_missing"))
+            return "NEED_EVIDENCE; NO_ACTION; required_context_missing; run_id=" + trace.run_id
+        self._configure_model_client()
 
         async def invoke(name, arguments, callback):
             return await trace.tool(name, arguments, callback, allowed)

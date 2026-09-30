@@ -56,7 +56,7 @@ class AppConfig:
         scores_dir = data_dir / "scores"
         reports_dir = data_dir / "reports"
         system_state_path = data_dir / "state" / "system_state.json"
-        research_operations_path = data_dir / "deepresearch" / "OPERATIONS.md"
+        research_operations_path = root / "src" / "a_share_claw" / "RESEARCH_OPERATIONS.md"
         research_output_dir = data_dir / "research" / "output"
         database_path = data_dir / "a_share_claw.sqlite3"
         agent_session_db_path = data_dir / "agent_sessions.sqlite3"
