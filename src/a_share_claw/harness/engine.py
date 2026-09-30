@@ -51,7 +51,7 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None):
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None):
         session = RunSession(self.storage, request)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
@@ -110,6 +110,10 @@ class Harness:
                     if data["decision"]["action"] == "NO_ACTION":
                         raise ValueError("insufficient_coverage")
                 elif workflow in {"company", "industry"}:
+                    if research_adapter is not None:
+                        if role_runner is not None or semantic_reviewer is not None:
+                            raise ValueError("conflicting_model_adapters")
+                        role_runner, semantic_reviewer = research_adapter.bind(session)
                     data = execute_research(session, plan, facts, role_runner, semantic_reviewer, self._archive)
                 else:
                     # Evidence alone is not a validated mixed execution/backtest.
@@ -162,13 +166,13 @@ class Harness:
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
-                     "invalid_semantic_review", "invalid_research_spec", "invalid_research_facts", "invalid_role_output",
+                     "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
                      "role_packet_mismatch", "invalid_evidence_reference", "missing_rebuttal", "report_contract_failure", "research_fact_contract_mismatch"}
             text = str(exc)
             code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
             if code in {"future_data", "scope_mismatch", "unverified_evidence", "role_packet_mismatch"}:
                 category = Failure.STATE_CONTAMINATION_FAILURE
-            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required"}:
+            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters"}:
                 category = Failure.PERMISSION_POLICY_FAILURE
             elif code == "semantic_review_failed":
                 category = Failure.SYNTHESIS_OR_UNKNOWN_FAILURE

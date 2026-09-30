@@ -52,7 +52,7 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
 | CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；真实模型 SDK 接线、mixed/quant 业务路径及完整需求映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；普通 chat 自动接线、真实研究质量、mixed/quant 业务路径及完整需求映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
 
 本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
 
@@ -73,6 +73,14 @@ JSON 报告固定来源、日期、fallback、政策版本和结果；宏观含�
 
 本地 Python 3.12 全套为 **156 passed / 40 subtests**；新增业务及相关基础回归在 Python 3.11/3.12 各为 **66 passed**，覆盖角色引用/缺问题/回应/超时/取消、事实口径、独立评估、报告归档失败、历史日期与迁移保留。此证据仅验证固定合成事实的核心行为，不是五源真实接入或市场 case。
 
+### 显式 SDK 研究执行入口
+
+`SDKResearchAdapter.bind(session)` 为核心提供角色与独立评估回调，每阶段新建无工具/MCP/handoff/history 的 SDK run，显式绑定端点客户端与模型，限制一个 turn 和剩余时间；不修改 SDK 全局模型/客户端，使用本地 Harness hooks 记录 operation 和逐模型请求，禁用 SDK 远程 exporter。CLI `--model-executor configured` 是连接端点的显式选项，离线 replay 不启动模型。同步受信任宿主入口为 `InvestmentAgent.run_core_result(context, message, as_of_date=..., packet=..., research_spec=..., workflow=..., mode="research")`；异步 Telegram/chat 自动桥接仍未完成。
+
+`--research-spec` 接受 checked_spec 的 JSON：subject、technical_required、debate_required、debate_reason、required_facts、questions。required_facts 每项固定 fact_id/entity/metric/unit/data_period/value_type/observation_start/observation_end；questions 每项固定 question_id/question/role/required_fact_ids。plan 可读此规格而不调用模型；模型执行的事实包必须先通过同一核心门禁。当前规格由受信任宿主提供，模型辅助框架编译及其到取证需求的自动映射尚未完成。
+
+Python 3.12 全量检查为 **164 passed / 40 subtests**，Python 3.11 相关检查为 **44 passed / 6 subtests**。本地模拟 HTTP 验证使用真正安装的 SDK 与兼容客户端：共享 run_id、七个角色阶段加一次独立评估、零取数工具、资源关闭、错误 JSON/引用/评估不发布、缺事实/端点零调用、CLI 和同步宿主一致。响应为固定合成 fixture，仍不代表真实端点可用或模型质量验收。依据 [官方模型适配](https://developers.openai.com/api/docs/guides/agents/models) 与 [观测说明](https://developers.openai.com/api/docs/guides/agents/integrations-observability)，模型和 trace 配置属于适配层，核心仍拥有验证和发布权。
+
 ### A. 先闭环核心，再进入插件接入
 
 按以下顺序补齐实现、接线和验收证据。可使用固定事实包验证核心行为，不提前执行用户的真实市场 case。
@@ -82,7 +90,7 @@ JSON 报告固定来源、日期、fallback、政策版本和结果；宏观含�
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
 
-当前 company/industry 可通过核心库的受信任回调执行；mixed/quant 执行仍返回 `workflow_execution_pending`。SDK Agent 仍停在 `core_evaluation_pending`，CLI 没有真实角色执行器，模型自由文案不能代替核心输出。宏观展望的独立研究模板也未接线，不能用既有日评分标的替代 case 指数。
+当前 company/industry 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；mixed/quant 执行仍返回 `workflow_execution_pending`。普通 chat 的取证入口仍停在 `core_evaluation_pending`，模型自由文案不能代替核心输出。宏观展望的独立研究模板也未接线，不能用既有日评分标的替代 case 指数。
 
 ### B. 然后接入初步规划的五个事实接口
 

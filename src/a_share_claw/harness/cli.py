@@ -1,4 +1,4 @@
-"""Offline core and scoped trace commands; no model or data-source connection."""
+"""Core execution and scoped trace commands; model execution is explicit opt-in."""
 from __future__ import annotations
 
 import hashlib
@@ -34,10 +34,14 @@ def add_harness_parser(sub):
         else:
             command.add_argument("--workflow", choices=["macro", "ai", "company", "industry", "mixed", "quant", "general"], default="macro")
             command.add_argument("--date", required=name == "run")
+            if name in {"plan", "run"}:
+                command.add_argument("--research-spec", type=Path)
+                command.add_argument("--question")
             if name == "run":
                 command.add_argument("packet_file", type=Path)
                 command.add_argument("--mode", choices=["replay", "research", "official"], default="replay")
                 command.add_argument("--current-ai-pct", type=float, default=57.5)
+                command.add_argument("--model-executor", choices=["configured"], help="Use configured endpoint for company/industry roles and independent review")
 
 
 def run_harness(args, config, storage):
@@ -112,11 +116,20 @@ def run_harness(args, config, storage):
     else:
         try:
             packet = json.loads(args.packet_file.read_text()) if args.harness_command == "run" else None
-            request = RunRequest(scope, "Provider-independent " + args.workflow, args.date,
+            research_spec = json.loads(args.research_spec.read_text()) if getattr(args, "research_spec", None) else None
+            request = RunRequest(scope, getattr(args, "question", None) or "Provider-independent " + args.workflow, args.date,
                                  "plan" if args.harness_command == "plan" else args.mode, args.workflow, host="cli")
         except (ValueError, OSError):
             print(json.dumps({"ok": False, "error_code": "invalid_request"}))
             return 2
-        outcome = engine.run(request, packet, current_ai_pct=getattr(args, "current_ai_pct", 57.5))
+        adapter = None
+        if getattr(args, "model_executor", None):
+            if args.workflow not in {"company", "industry"}:
+                print(json.dumps({"ok": False, "error_code": "unsupported_model_workflow"}))
+                return 2
+            from ..sdk_research import SDKResearchAdapter
+            adapter = SDKResearchAdapter(config)
+        outcome = engine.run(request, packet, current_ai_pct=getattr(args, "current_ai_pct", 57.5),
+                             research_spec=research_spec, research_adapter=adapter)
     print(outcome.output)
     return 0 if outcome.status == RunStatus.SUCCEEDED else 2

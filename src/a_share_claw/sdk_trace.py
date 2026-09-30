@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import time
+from threading import Lock
 
 from agents import RunHooks
 
@@ -10,10 +11,28 @@ from .harness.contracts import PromptCacheTrace, canonical, digest, redact
 from .harness.trace import now
 
 
+_provider_lock = Lock()
+_local_trace_provider = None
+
+
+def disable_remote_tracing():
+    """Use only local Harness hooks; avoid constructing the SDK's remote exporter."""
+    from agents import set_tracing_disabled
+    from agents.tracing import set_trace_provider
+    from agents.tracing.provider import DefaultTraceProvider
+    global _local_trace_provider
+    with _provider_lock:
+        if _local_trace_provider is None:
+            _local_trace_provider = DefaultTraceProvider()
+        set_trace_provider(_local_trace_provider)
+        set_tracing_disabled(True)
+
+
 class TraceHooks(RunHooks):
-    def __init__(self, session, provider, model, endpoint=None):
+    def __init__(self, session, provider, model, endpoint=None, *, operation=None):
         self.session, self.provider, self.model = session, provider, model
         self.endpoint = endpoint
+        self.operation = operation
         self.call_id = None
         self.call_index = 0
         self.previous_input = None
@@ -32,7 +51,7 @@ class TraceHooks(RunHooks):
                 if left != right: break
                 common += 1
         self.call_index += 1
-        self.detail = {**cache.json(), "endpoint": redact(self.endpoint), "input_hash": digest(serialized),
+        self.detail = {**cache.json(), "endpoint": redact(self.endpoint), "operation": self.operation, "input_hash": digest(serialized),
                        "input_chars": len(serialized), "call_index": self.call_index, "previous_call_id": self.call_id,
                        "serialization_version": "SDK-input-canonical-v1", "token_count_method": "SDK-total; sections unavailable",
                        "common_input_prefix_bytes": common, "pricing_snapshot_version": None,

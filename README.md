@@ -9,7 +9,7 @@
 
 `宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **开发顺序（2026-09-30）**：先按 [E0 验收与未完成边界](E0_INFRA.md#验收与未完成边界) 闭环核心基础设施与业务门禁，再接入初步规划的五个事实接口，最后执行真实市场展望 case。统一运行契约、版本化 SQLite trace、CLI 摘要/回放和宏观/AI 确定性计算已实现，见 [E0_INFRA.md](E0_INFRA.md)。公司/行业核心执行器、统一 JSON 报告与日期限制的状态读取已有合成事实验收；真实模型 SDK 接线、mixed/quant 和连续正式日更仍待验收。五源接口与入口限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)；发布文本和原生响应尚不等于评分事实。
+> **开发顺序（2026-09-30）**：先按 [E0 验收与未完成边界](E0_INFRA.md#验收与未完成边界) 闭环核心基础设施与业务门禁，再接入初步规划的五个事实接口，最后执行真实市场展望 case。统一运行契约、版本化 SQLite trace、CLI 摘要/回放和宏观/AI 确定性计算已实现，见 [E0_INFRA.md](E0_INFRA.md)。公司/行业核心执行器、统一 JSON 报告与日期限制的状态读取已有合成事实验收；显式配置端点的角色/评估 SDK 路径已有本地模拟 HTTP 验证；普通 chat 自动接线、真实研究质量、mixed/quant 和连续正式日更仍待验收。五源接口与入口限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)；发布文本和原生响应尚不等于评分事实。
 
 ## 顶层设计
 
@@ -171,7 +171,16 @@ uv run python -m a_share_claw harness run facts.json --workflow macro --date 202
 uv run python -m a_share_claw trace RUN_ID
 ```
 
-默认回放只产生 NO_ACTION。正式模式只接收经过操作人审核的规范化事实，按作用域与 workflow 原子更新 SQLite 状态；公司/行业核心库入口可注入受信任的角色执行和独立语义评估回调；CLI/SDK 自动业务接线及量化执行器待验收。插件不得修改核心规则。
+默认回放只产生 NO_ACTION。正式模式只接收经过操作人审核的规范化事实，按作用域与 workflow 原子更新 SQLite 状态；公司/行业核心库入口可注入受信任的角色执行和独立语义评估回调；CLI 显式 SDK 执行可用；普通 chat 自动业务接线及量化执行器待验收。插件不得修改核心规则。
+
+公司/行业研究需由受信任宿主提供审核事实与冻结研究规格。显式使用已配置端点执行角色和独立评估：
+
+```bash
+uv run python -m a_share_claw harness plan --workflow industry --date 2026-07-13 --research-spec spec.json
+uv run python -m a_share_claw harness run facts.json --workflow industry --date 2026-07-13 --research-spec spec.json --mode research --model-executor configured
+```
+
+`spec.json` 字段见 [E0_INFRA.md](E0_INFRA.md#显式-sdk-研究执行入口)。plan 不调用模型；未指定 executor 时不会自动连接端点。配置端点必须显式给出 provider/base URL/model name/API key，不回落到 SDK 全局默认客户端。模型无取数/文件/MCP 工具，输出仍经过核心校验与发布门禁。普通 chat 的自由文案不能构造审核事实包；插件自动映射仍待接线。
 
 以下旧命令仅供人工维护，仍包含五源以外的旧供应商。Agent 不得调用；迁移为插件输入前，不属于五源 Harness 的正式输出路径。历史计算回归保留，日期与风控约束不变：
 

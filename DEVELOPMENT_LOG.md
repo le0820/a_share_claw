@@ -60,7 +60,13 @@ GitHub Actions 工作流是 `Harness offline tests`，在 push/PR 上执行 Pyth
 
 公司/行业核心库已接冻结事实需求、角色执行、引用检查和独立语义评估；角色共享 packet/version，必要辩论包含相互回应，风险结论保持 NO_ACTION。core JSON 报告成功归档/校验后才可更新正式状态；所有磁盘中间产物保留 staged。迁移 v2 保留旧正式状态并建立按 scope/workflow/date 查询的历史，CLI state 校验报告路径与哈希。
 
-Python 3.12 全套 156 passed / 40 subtests；Python 3.11/3.12 的新增业务及相关基础回归各 66 passed。角色/评估回调均为合成 fixture，未调用真实模型或数据源。尚未闭环真实 SDK 接线、研究质量验收、mixed/quant 和宏观展望模板；五源真实映射与最终 case 均未开始，PR #2 暂不合并。
+Python 3.12 全套 156 passed / 40 subtests；Python 3.11/3.12 的新增业务及相关基础回归各 66 passed。角色/评估回调均为合成 fixture，未调用真实模型或数据源。截至该提交尚未闭环 SDK 接线、研究质量验收、mixed/quant 和宏观展望模板；五源真实映射与最终 case 均未开始，PR #2 暂不合并。
+
+## 显式 SDK 执行接线（2026-09-30）
+
+核心 company/industry 执行可绑定配置端点的 SDKResearchAdapter。CLI 显式提供审核 facts/spec 与 --model-executor configured；同步 InvestmentAgent.run_core_result 使用同一核心。每阶段新建无工具/历史/MCP 的 SDK 调用，显式客户端、单 turn、剩余时间与本地 operation trace；不回落全局默认模型。普通 chat 仍仅取证并 blocked，离线 replay 不启动模型。
+
+Python 3.12 全量检查为 164 passed / 40 subtests；Python 3.11 的 SDK/核心研究/宿主/Agent 相关检查为 44 passed / 6 subtests。新增验证通过本地 MockTransport 使用实际 SDK/client，响应仍是合成 fixture；不是实际模型或市场 case。普通 chat 规划绑定、真实端点质量、mixed/quant、宏观展望和插件需求映射仍未关闭，继续先收口 A 再进入五源接入。
 
 ## 下一步顺序（2026-09-30 校正）
 

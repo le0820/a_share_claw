@@ -87,6 +87,21 @@ class InvestmentAgent:
         self.storage.add_message(context.conversation_id, "assistant", outcome.output)
         return outcome
 
+    def run_core_result(self, context: ConversationContext, message: str, *, as_of_date: str,
+                        packet: dict, research_spec: dict, workflow: str, mode="research"):
+        """Synchronous trusted host entry; reviewed facts never come from chat prose."""
+        from .harness.engine import Harness
+        from .sdk_research import SDKResearchAdapter
+        if workflow not in {"company", "industry"}:
+            raise ValueError("Configured research execution requires company/industry")
+        request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
+                             as_of_date, mode, workflow, host=context.platform)
+        engine = Harness(self.config.root_dir, self.storage, self.config.data_dir / "harness_runs",
+                         self.config.market_timezone)
+        # The core owns the single run and all budgets, evaluation and publication.
+        return engine.run(request, packet, research_spec=research_spec,
+                          research_adapter=SDKResearchAdapter(self.config))
+
     def _effective_model(self) -> str:
         # `model_name` is the configured domestic model; `openai_model` stays as the
         # tutorial's placeholder/fake value when no domestic model is set.
