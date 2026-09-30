@@ -27,6 +27,12 @@ The report declares as_of_date/generated_at, source table with known publication
 
 A same-day official A-share close score waits for the market close. Cross-market observations retain their own dates. Do not run a legacy fetch pipeline through the Agent or inject the legacy global portfolio file as current evidence.
 
+## Macro outlook and price statistics
+
+Use a separate outlook contract for dated macro releases and explicitly named indices. Freeze the global cutoff, price window/anchor, market calendars and close times, units/adjustments, benchmark, metric definitions and forecast horizon before acquisition. Complete coverage means the frozen declared calendar is satisfied; trusted source/calendar review is still required. Never substitute daily scoring assets for requested indices or label a partial quarter complete.
+
+Core computes price statistics from admitted histories and archives their inputs/derivation. Hong Guan interprets releases and derived metrics, Jia Zhi contributes when explicitly required, and Ping Heng sets falsification/monitoring conditions. A separate semantic reviewer must evaluate the same candidate before delivery. Keep source facts, core-derived statistics and conditional forecasts distinguishable. A forecast is not a new observation, a fabricated probability, a daily score or a trade action. Unsupported strategies remain explicit gaps; local price returns omit FX, dividends and fees.
+
 ## Company and industry research
 
 Ping Heng gates and routes. Ge Yan provides a technical baseline when relevant. Jia Zhi identifies value capture, profit pools and bargaining power. Qian Zhan/Shen Du debate only genuine two-sided uncertainty after the common evidence gate; do not force debate for a factual query.

@@ -72,7 +72,7 @@ class PolicyBundle:
                     "ai": ["ai_growth", "ai_market", "ai_macro", "ai_cn"],
                     "company": ["primary_documents"], "industry": ["primary_documents"],
                     "mixed": ["cn_macro", "us_macro", "market_history", "primary_documents"],
-                    "quant": ["market_history"], "general": []}
+                    "quant": ["price_history"], "outlook": ["macro_release_facts", "price_history"], "general": []}
         if workflow not in required:
             raise ValueError("Unsupported workflow")
         return {"workflow": workflow, "policy_version": self.version, "required_capabilities": required[workflow],

@@ -50,9 +50,9 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | 每次 InvestmentAgent.run 生成 run_id | 已实现；run_result 先建记录，run 为兼容渲染入口 | fake、SDK 脚本、异常/取消有证据；真实模型业务完成尚未验收 |
 | route、loaded/missing context、state scope | 记录已接线；SDK 记录装配结果，核心记录实际读取的政策快照、缺失项和 scope | 正常加载/缺 IDENTITY/缺必需 compiled 文件已验；版本化协议已接线；缺协议时在模型调用前停止，角色业务执行另列 |
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
-| CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI 核心计算，不等于 SDK 会话或全部研究工作流回放 |
+| CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI/price_statistics 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；普通 chat 自动接线、真实研究质量、mixed/quant 业务路径及完整需求映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；普通 chat 自动接线、真实研究质量、mixed、策略回测及完整需求映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
 
 本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
 
@@ -81,6 +81,16 @@ JSON 报告固定来源、日期、fallback、政策版本和结果；宏观含�
 
 Python 3.12 全量检查为 **164 passed / 40 subtests**，Python 3.11 相关检查为 **44 passed / 6 subtests**。本地模拟 HTTP 验证使用真正安装的 SDK 与兼容客户端：共享 run_id、七个角色阶段加一次独立评估、零取数工具、资源关闭、错误 JSON/引用/评估不发布、缺事实/端点零调用、CLI 和同步宿主一致。响应为固定合成 fixture，仍不代表真实端点可用或模型质量验收。依据 [官方模型适配](https://developers.openai.com/api/docs/guides/agents/models) 与 [观测说明](https://developers.openai.com/api/docs/guides/agents/integrations-observability)，模型和 trace 配置属于适配层，核心仍拥有验证和发布权。
 
+### 独立价格统计与宏观展望
+
+`--quant-spec` / `Harness.run(..., quant_spec=...)` 接受 quant-spec-v1：operation=price_statistics、frequency=daily、window_start/end、带时区 cutoff_timestamp、assets、benchmark、metrics 和 annualization_factor。每个 asset 固定 symbol/name/unit/currency/adjustment/market_timezone/calendar_source，anchor 和 sessions 明列 trade_date/close_at。price_history 的 price-series-v1 保留每个 series 的同一身份、frequency/source/source_file/source_timestamp/publication_date；rows 明列 trade_date/close/available_at。行情必须逐日匹配声明日历，含前期收盘锚点；缺行、重复、代理、口径不符、无效收盘或盘前值均阻断。捕获、披露和可得时间不得超出截止，执行截止不得晚于宿主时钟。覆盖标签是 complete_against_declared_calendar，日历与来源真实性仍依赖受信任宿主审核及后续插件验收。
+
+支持 period_return（末值/锚点-1）、非负 max_drawdown、简单收益样本标准差 × sqrt(声明年化因子)、excess_return（相对 benchmark 的百分点差）和共同日期收盘变动相关性。相关性零方差以 null/zero_variance 披露；没有分红、费用或 FX 转换，不是策略回测。metrics 单位随输出保存，跨市场非同步收盘和日期差异保留在 series_audit/limitations。旧日评分的 market_history 固定 universe 不受此入口替代。
+
+`--outlook-spec` 包含 quant_spec、research_spec、forecast_start/end。研究规格复用原事实契约，至少固定 Hong Guan 的 base_scenario/market_comparison 和 Ping Heng 的 risk_monitoring 问题，market_comparison 必须引用所有声明价格指标。可用 derived_requirements(quant_spec) 在取证前编译派生指标身份。macro_release_facts 使用 macro-release-facts-v1，逐事实字段与 research-facts-v1 一致并增加带时区 available_at；当日截止检查精确到时间。核心从已准入价格计算指标，保存 derivation artifact/input hash，再加入同一 packet；供应商不能提交 price.* 派生事实冒充核心结果。Hong Guan → 可选 Jia Zhi → Ping Heng 后独立语义评估，报告包含预测窗口、基准情景、来源与监控条件，始终保持 NO_ACTION；不虚构 L1/L3/composite 或概率。模型无新取数权限。
+
+固定合成窗口覆盖收益/回撤/波动的解析值、代理/缺行/占位值/日期拒绝、undefined 相关性、CLI 规格回放、宏观派生事实及真正 SDK 的本地模拟 HTTP 路径。修复 NASDAQ Composite 名称被误判为 Composite 日评分关键词。该证据不是完整 Q3 数据、真实插件或四季度市场 case。尚未完成自动框架编译/普通 chat 绑定、mixed 切片、真实研究质量和人类可读 Markdown 交付。
+
 ### A. 先闭环核心，再进入插件接入
 
 按以下顺序补齐实现、接线和验收证据。可使用固定事实包验证核心行为，不提前执行用户的真实市场 case。
@@ -90,7 +100,7 @@ Python 3.12 全量检查为 **164 passed / 40 subtests**，Python 3.11 相关检
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
 
-当前 company/industry 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；mixed/quant 执行仍返回 `workflow_execution_pending`。普通 chat 的取证入口仍停在 `core_evaluation_pending`，模型自由文案不能代替核心输出。宏观展望的独立研究模板也未接线，不能用既有日评分标的替代 case 指数。
+当前 company/industry/outlook 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；quant 的 price_statistics 可离线计算/回放，其他策略回测明确返回 quant_operation_not_implemented。mixed 仍返回 workflow_execution_pending，普通 chat 取证入口仍停在 core_evaluation_pending。宏观展望使用独立事实和指标模板，不借日评分标的或缺失评分生成动作。
 
 ### B. 然后接入初步规划的五个事实接口
 

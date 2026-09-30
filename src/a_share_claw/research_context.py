@@ -15,6 +15,7 @@ class ResearchWorkflow(str, Enum):
     MIXED = "mixed"
     MACRO = "macro"
     QUANT = "quant"
+    OUTLOOK = "outlook"
     COMPANY = "company"
     INDUSTRY = "industry"
 
@@ -215,15 +216,21 @@ def classify_research_workflow(message: str) -> ResearchWorkflow:
 
 def classify_research_route(message: str) -> ResearchRouteDecision:
     normalized = message.casefold()
-    has_macro_scoring = _contains_any(normalized, _MACRO_SCORING_TERMS)
+    scoring_text = re.sub(r"nasdaq\s*composite(?:\s+index)?", "", normalized)
+    has_macro_scoring = _contains_any(scoring_text, _MACRO_SCORING_TERMS)
     has_deepresearch = _contains_any(normalized, _COMPANY_STRONG_TERMS) or _contains_any(
         normalized,
         _INDUSTRY_STRONG_TERMS,
     )
+    has_outlook = not has_deepresearch and _contains_any(normalized, ("市场展望", "宏观展望", "market outlook"))
+    if has_macro_scoring and has_outlook:
+        return ResearchRouteDecision(ResearchWorkflow.MIXED, "macro_plus_outlook")
     if has_macro_scoring and has_deepresearch:
         return ResearchRouteDecision(ResearchWorkflow.MIXED, "macro_plus_deepresearch")
     if has_macro_scoring:
         return ResearchRouteDecision(ResearchWorkflow.MACRO, "macro_scoring_or_data_audit")
+    if has_outlook:
+        return ResearchRouteDecision(ResearchWorkflow.OUTLOOK, "conditional_macro_outlook")
     if _contains_any(normalized, _QUANT_TERMS):
         return ResearchRouteDecision(ResearchWorkflow.QUANT, "quant_method_or_metric")
 
@@ -330,7 +337,7 @@ def build_research_context(
     if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.MACRO, ResearchWorkflow.QUANT}:
         _append_file_section(config.root_dir, config.pipeline_dir / "OPERATIONS.md", sections, loaded, missing)
     if (not include_state and workflow != ResearchWorkflow.GENERAL) or workflow in {
-            ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+            ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY, ResearchWorkflow.OUTLOOK}:
         content = _read_text(config.research_operations_path)
         label = _relative_label(config.root_dir, config.research_operations_path)
         if content is None:
@@ -361,7 +368,7 @@ def build_research_context(
             "Continue the deepresearch slice while independent evidence work is possible. "
             "Do not announce combined completion while a required slice remains waiting or blocked."
         )
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY, ResearchWorkflow.OUTLOOK}:
         header += (
             "\nFollow the versioned research execution protocol: "
             "PLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE -> EVALUATE -> ARCHIVE -> PUBLISH. "

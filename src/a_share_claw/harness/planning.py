@@ -13,6 +13,7 @@ REPORT_SECTIONS = {
     "company": ["classification", "source_table", "fundamentals", "value_capture", "arguments", "risk_decision", "monitoring_triggers"],
     "industry": ["classification", "source_table", "technical_baseline", "value_capture", "arguments", "risk_decision", "monitoring_triggers"],
     "mixed": ["slice_status", "macro_report", "research_report", "combined_gaps"],
+    "outlook": ["source_table", "forecast_horizon", "market_statistics", "base_scenario", "unknowns", "risk_decision", "monitoring_triggers"],
     "quant": ["frozen_specification", "source_table", "metrics", "limitations", "unknowns"],
     "general": ["framework", "gaps"],
 }
@@ -36,7 +37,9 @@ def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | Non
     missing = [] if request.as_of_date else ["as_of_date"]
     if workflow in {"company", "industry"} and not (parameters or {}).get("research_spec"):
         missing += ["research_spec"]
-    if workflow == "quant":
+    if workflow == "outlook" and not (parameters or {}).get("quant_spec"):
+        missing += ["outlook_spec"]
+    if workflow == "quant" and not (parameters or {}).get("quant_spec"):
         missing += ["universe", "window", "adjustment", "benchmark", "metric_definitions"]
     document = {
         **declared_plan, "schema_version": "research-plan-v1", "version": 1,

@@ -25,9 +25,14 @@ def build_report(request, run_id, plan, data, audit, prior, generated_at):
     elif workflow == "ai":
         report["factors"] = data["factors"]
         report["position_discipline"] = {**data["decision"], "action": data["decision"]["action"] if request.mode == "official" else "NO_ACTION"}
+    elif workflow == "quant":
+        report.update(frozen_specification=data["specification"], metrics=data["metrics"],
+                      series_audit=data["series_audit"], limitations=data["limitations"], unknowns=data["unknowns"], risk_decision="NO_ACTION")
     else:
         report["risk_decision"] = data["risk_decision"]
         report["monitoring_triggers"] = data["monitoring_triggers"]
+    if workflow == "outlook":
+        report.update(forecast_horizon=data["forecast_horizon"], market_statistics=data["market_statistics"], base_scenario=data["base_scenario"])
     return report
 
 

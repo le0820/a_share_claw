@@ -8,10 +8,10 @@ from threading import Thread
 
 from .contracts import EvalResult, canonical, digest, validate_date
 
-ROLES = {"ge_yan", "jia_zhi", "qian_zhan", "shen_du", "ping_heng"}
+ROLES = {"ge_yan", "jia_zhi", "qian_zhan", "shen_du", "ping_heng", "hong_guan"}
 
 
-def checked_spec(spec):
+def checked_spec(spec, *, workflow="industry"):
     required = {"subject", "technical_required", "debate_required", "debate_reason", "questions", "required_facts"}
     if not isinstance(spec, dict) or set(spec) != required or not isinstance(spec["subject"], str) or not spec["subject"].strip():
         raise ValueError("invalid_research_spec")
@@ -32,6 +32,12 @@ def checked_spec(spec):
             raise ValueError("invalid_research_spec")
         expected_facts[item["fact_id"]] = item
     roles = {"jia_zhi", "ping_heng"}
+    if workflow == "outlook":
+        if spec["technical_required"] or spec["debate_required"]:
+            raise ValueError("invalid_research_spec")
+        roles = {"hong_guan", "ping_heng"}
+        if any(isinstance(q, dict) and q.get("role") == "jia_zhi" for q in spec["questions"]):
+            roles.add("jia_zhi")
     if spec["technical_required"]:
         roles.add("ge_yan")
     if spec["debate_required"]:
@@ -169,8 +175,13 @@ def execute_research(session, plan, admitted, runner, reviewer, archive):
               "as_of_date": session.request.as_of_date, "version": 1, "facts": facts}
     packet_id = digest(packet)
     archive(session, "research_packet", {"packet_id": packet_id, **packet})
-    phases = [("ge_yan", "initial")] if spec["technical_required"] else []
-    phases += [("jia_zhi", "initial")]
+    if plan["workflow"] == "outlook":
+        phases = [("hong_guan", "initial")]
+        if any(q["role"] == "jia_zhi" for q in spec["questions"]):
+            phases += [("jia_zhi", "initial")]
+    else:
+        phases = [("ge_yan", "initial")] if spec["technical_required"] else []
+        phases += [("jia_zhi", "initial")]
     if spec["debate_required"]:
         phases += [("qian_zhan", "initial"), ("shen_du", "initial"), ("qian_zhan", "rebuttal"), ("shen_du", "rebuttal")]
     phases += [("ping_heng", "final")]

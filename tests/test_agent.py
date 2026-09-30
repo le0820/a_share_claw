@@ -117,7 +117,7 @@ class ModelClientTest(unittest.IsolatedAsyncioTestCase):
 
             cases = [("你好", "general"), ("每日评分和公司财报", "mixed"),
                      ("L1/L2/L3宏观评分", "macro"), ("回测最大回撤", "quant"),
-                     ("个股调研现金流", "company"), ("半导体产业链", "industry")]
+                     ("个股调研现金流", "company"), ("半导体产业链", "industry"), ("四季度市场展望", "outlook")]
             providers = default_registry().snapshot({})
             with patch.object(investment_agent, "_configure_model_client"), \
                  patch("a_share_claw.data_plugins.core.Registry.snapshot", return_value=providers), \

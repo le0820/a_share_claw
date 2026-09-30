@@ -7,6 +7,7 @@ import json
 from .harness.contracts import canonical, digest
 
 ROLE_PURPOSE = {
+    "hong_guan": "Interpret admitted macro releases and core price statistics; explain transmission, conditional baseline outlook and falsification conditions. Do not invent daily scores, valuation facts, probabilities or a trading allocation.",
     "ge_yan": "Validate technical assumptions, bottlenecks and constraints.",
     "jia_zhi": "Analyze fundamentals, value capture, profit pools and bargaining power.",
     "qian_zhan": "Develop the evidence-supported bull case and respond to the bear case when requested.",

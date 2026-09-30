@@ -66,7 +66,13 @@ Python 3.12 全套 156 passed / 40 subtests；Python 3.11/3.12 的新增业务�
 
 核心 company/industry 执行可绑定配置端点的 SDKResearchAdapter。CLI 显式提供审核 facts/spec 与 --model-executor configured；同步 InvestmentAgent.run_core_result 使用同一核心。每阶段新建无工具/历史/MCP 的 SDK 调用，显式客户端、单 turn、剩余时间与本地 operation trace；不回落全局默认模型。普通 chat 仍仅取证并 blocked，离线 replay 不启动模型。
 
-Python 3.12 全量检查为 164 passed / 40 subtests；Python 3.11 的 SDK/核心研究/宿主/Agent 相关检查为 44 passed / 6 subtests。新增验证通过本地 MockTransport 使用实际 SDK/client，响应仍是合成 fixture；不是实际模型或市场 case。普通 chat 规划绑定、真实端点质量、mixed/quant、宏观展望和插件需求映射仍未关闭，继续先收口 A 再进入五源接入。
+Python 3.12 全量检查为 164 passed / 40 subtests；Python 3.11 的 SDK/核心研究/宿主/Agent 相关检查为 44 passed / 6 subtests。新增验证通过本地 MockTransport 使用实际 SDK/client，响应仍是合成 fixture；不是实际模型或市场 case。截至该 SDK 提交，普通 chat 规划绑定、真实端点质量、mixed/quant、宏观展望和插件需求映射仍未关闭，继续先收口 A 再进入五源接入。
+
+## 独立价格统计与宏观展望（2026-09-30）
+
+quant-spec-v1 冻结独立标的、频率、锚点、声明交易日/收盘时刻、截止、benchmark 与指标。只支持价格统计，不把它写成策略回测；行情身份/覆盖/可得时点门禁先于计算。新增 outlook 模板消费精确可得时点的宏观事实和核心派生指标，Hong Guan/可选 Jia Zhi/Ping Heng 共用 packet，独立评估与报告后交付 NO_ACTION，不生成缺输入的日评分。CLI 和显式 SDK 接线已覆盖固定合成窗口；NASDAQ Composite 路由误识别也已修复。
+
+Python 3.11/3.12 的相关统计、路由与 Agent 检查各为 28 passed / 32 subtests；固定短窗口与脚本化评估不等于真实 case。普通 chat 自动编译/绑定、mixed 切片、真实质量、Markdown 和五源事实映射仍未完成。实际季度日历、真实指数/数据字段尚未验收；当前合成短窗口不是用户市场 case。先完成 A，再推进 B/C。
 
 ## 下一步顺序（2026-09-30 校正）
 

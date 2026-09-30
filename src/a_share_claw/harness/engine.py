@@ -15,6 +15,8 @@ from .policy import PolicyBundle, PolicyContextError
 from .planning import freeze_plan, trace_parameters, trace_plan
 from .research import checked_spec, execute_research
 from .reports import build_report, validate_report
+from .quant import checked_quant_spec, compute_quant, timestamp
+from .outlook import checked_outlook_spec, outlook_facts
 from .runtime import RunSession
 from .trace import now
 
@@ -51,7 +53,7 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None):
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None):
         session = RunSession(self.storage, request)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
@@ -70,6 +72,10 @@ class Harness:
             parameters = {"current_ai_pct": current_ai_pct} if workflow == "ai" else {}
             if workflow in {"company", "industry"}:
                 parameters = {"research_spec": checked_spec(research_spec) if research_spec is not None else None}
+            if workflow == "quant":
+                parameters = {"quant_spec": checked_quant_spec(quant_spec) if quant_spec is not None else None}
+            if workflow == "outlook":
+                parameters = checked_outlook_spec(outlook_spec) if outlook_spec is not None else {}
             frozen_plan = freeze_plan(request, policy.plan(workflow), parameters)
             plan = frozen_plan.json()
             session.step("plan", trace_plan(plan))
@@ -109,12 +115,23 @@ class Harness:
                     data = policy.score_ai(facts, current_ai_pct)
                     if data["decision"]["action"] == "NO_ACTION":
                         raise ValueError("insufficient_coverage")
-                elif workflow in {"company", "industry"}:
+                elif workflow == "quant":
+                    data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                elif workflow in {"company", "industry", "outlook"}:
+                    if workflow == "outlook":
+                        if not parameters:
+                            raise ValueError("outlook_spec_required")
+                        quant = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                        quant_archive = self._archive(session, "quant_metrics", quant)
+                        facts = outlook_facts(facts["macro_release_facts"], quant, quant_archive, cutoff)
                     if research_adapter is not None:
                         if role_runner is not None or semantic_reviewer is not None:
                             raise ValueError("conflicting_model_adapters")
                         role_runner, semantic_reviewer = research_adapter.bind(session)
                     data = execute_research(session, plan, facts, role_runner, semantic_reviewer, self._archive)
+                    if workflow == "outlook":
+                        data.update(market_statistics=quant, forecast_horizon=parameters["forecast_horizon"],
+                                    base_scenario=next(a["inference"] for a in data["role_outputs"]["hong_guan:initial"]["answers"] if a["question_id"] == "base_scenario"))
                 else:
                     # Evidence alone is not a validated mixed execution/backtest.
                     raise ValueError("workflow_execution_pending")
@@ -167,12 +184,14 @@ class Harness:
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
                      "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
+                     "quant_spec_required", "outlook_spec_required", "invalid_quant_spec", "invalid_outlook_spec", "invalid_outlook_facts",
+                     "quant_operation_not_implemented", "window_not_closed", "price_contract_mismatch", "price_before_close", "non_comparable_anchor",
                      "role_packet_mismatch", "invalid_evidence_reference", "missing_rebuttal", "report_contract_failure", "research_fact_contract_mismatch"}
             text = str(exc)
             code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
             if code in {"future_data", "scope_mismatch", "unverified_evidence", "role_packet_mismatch"}:
                 category = Failure.STATE_CONTAMINATION_FAILURE
-            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters"}:
+            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
                 category = Failure.PERMISSION_POLICY_FAILURE
             elif code == "semantic_review_failed":
                 category = Failure.SYNTHESIS_OR_UNKNOWN_FAILURE
@@ -233,11 +252,14 @@ class Harness:
                 raise ValueError("missing_provenance")
             if p["sha256"] != digest(item["data"]):
                 raise ValueError("hash_mismatch")
-            timestamp = datetime.fromisoformat(p["source_timestamp"].replace("Z", "+00:00"))
-            if timestamp.tzinfo is None:
+            source_time = datetime.fromisoformat(p["source_timestamp"].replace("Z", "+00:00"))
+            if source_time.tzinfo is None:
                 raise ValueError("invalid_source_timestamp")
-            if timestamp.astimezone(ZoneInfo(self.market_timezone)).date().isoformat() > cutoff:
+            if source_time.astimezone(ZoneInfo(self.market_timezone)).date().isoformat() > cutoff:
                 raise ValueError("future_data")
+            if plan["workflow"] in {"quant", "outlook"} and plan["parameters"].get("quant_spec"):
+                if source_time > timestamp(plan["parameters"]["quant_spec"]["cutoff_timestamp"]):
+                    raise ValueError("future_data")
             validate_values(item["data"], cutoff)
             if capability in MACRO_UNITS:
                 expected = MACRO_UNITS[capability]
