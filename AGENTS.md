@@ -47,4 +47,4 @@ The system has one team model:
 
 Keep this workspace small. New docs should be short, indexed, and connected to the two active workflows. Put dated pipeline outputs under `data/`, research reports under `data/research/output/`, and one-off archives under existing archive folders without adding them to startup context.
 
-Clearly label proposed interfaces and missing implementations. The plugin runtime and file evidence archives are implemented; they do not establish the complete evaluator or SQLite trace required by Issue #1. Do not mark unverified publication/native financial payloads as official scoring inputs.
+Clearly label proposed interfaces and missing implementations. E0 contracts, SQLite trace and macro/AI policy execution are implemented; see E0_INFRA.md for acceptance and pending industry execution. The full Issue #1 evaluation/proposal framework remains unfinished. Do not mark unverified publication/native financial payloads as official scoring inputs. Complete core policy and business gates before expanding data-source integrations.

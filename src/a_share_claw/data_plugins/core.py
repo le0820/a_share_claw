@@ -176,9 +176,11 @@ class Registry:
 
 class DataRun:
     """A plan-gated, scope-isolated, pinned provider run with immutable evidence files."""
-    def __init__(self, providers: Mapping[str, Provider], artifact_root: Path, scope: str):
+    def __init__(self, providers: Mapping[str, Provider], artifact_root: Path, scope: str, *, run_id: str | None = None):
         self.providers = MappingProxyType(dict(providers))
-        self.run_id = uuid4().hex
+        self.run_id = run_id or uuid4().hex
+        if not re.fullmatch(r"[a-f0-9]{32}", self.run_id):
+            raise ValueError("Invalid run_id")
         scope_id = hashlib.sha256(scope.encode()).hexdigest()
         self.directory = artifact_root / scope_id / self.run_id
         self.requirements: dict[str, Requirement] | None = None
@@ -203,6 +205,7 @@ class DataRun:
         if self.requirements is not None and any(new_requirements.get(key) != value for key, value in self.requirements.items()):
             raise ValueError("Existing requirements cannot be removed or changed; start a new run")
         self.directory.mkdir(parents=True, exist_ok=True)
+        (self.directory / "results").mkdir(exist_ok=True)
         revision = len(list(self.directory.glob("plan-*.json"))) + 1
         self._save(f"plan-{revision}.json", {"run_id": self.run_id, "framework": plan["framework"],
                                 "requirements": [r.json() for r in requirements],
@@ -256,19 +259,21 @@ class DataRun:
             # Do not leak credential-bearing request URLs from client exceptions.
             result.update(error_code="provider_error", message="Provider failed; no fallback was attempted")
         result["usage"] = {"elapsed_ms": round((time.monotonic() - started) * 1000)}
-        self._save(f"{requirement_id}.json", result)
+        self._save(f"results/{requirement_id}.json", result)
         self.results[requirement_id] = result
         return result
 
     def summary(self) -> dict:
         gaps = [{"requirement_id": r.requirement_id, "required": r.required,
-                 "status": self.results.get(r.requirement_id, {}).get("status", "missing")}
+                 "status": self.results.get(r.requirement_id, {}).get("status", "missing"),
+                 "error_code": self.results.get(r.requirement_id, {}).get("error_code"),
+                 "retryable": self.results.get(r.requirement_id, {}).get("retryable", False)}
                 for r in (self.requirements or {}).values()
                 if self.results.get(r.requirement_id, {}).get("status") != "ok"]
         return {"run_id": self.run_id, "planned": self.requirements is not None, "gaps": gaps,
                 "required_data_complete": self.requirements is not None and not any(g["required"] for g in gaps),
                 "official_output_allowed": False,
-                "note": "Research evidence only; legacy scoring migration and full evaluator remain pending"}
+                "note": "Research evidence only; normalized facts require core scoring and evaluation"}
 
 
 def preview(result: dict, max_chars: int = 12000) -> str:

@@ -1,6 +1,6 @@
 # a_share_claw Harness 顶层设计
 
-修订日期：2026-09-30。本文保留目标架构；已落地的五源插件、计划/缺口、运行快照、文件归档和 Agent 来源限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。下文未标为已实现的统一请求、evaluator、SQLite trace 与宿主专用集成仍是目标。与 [README.md](README.md)、[研究角色与模板](IDENTITY.md)、[数据契约](DATA_CONTRACT.md) 配合使用；评估建设继续由 [Issue #1](https://github.com/le0820/a_share_claw/issues/1) 跟踪。
+修订日期：2026-09-30。本文保留目标架构。E0 统一请求、SQLite trace、核心评分/风控与离线回放的实际范围见 [E0_INFRA.md](E0_INFRA.md)；五源边界见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。宿主专用集成和完整评估建设继续由 [Issue #1](https://github.com/le0820/a_share_claw/issues/1) 跟踪。
 
 ## 1. 产品主体与分层
 
@@ -15,7 +15,7 @@ a_share_claw 是可移植的投研 Harness。研究框架由问题、分析模�
 
 依赖方向是适配器/插件实现核心接口，核心按协议调用。数据获取与评分计算分离；插件返回数据，核心控制规则。外部 Agent 的 prompt、角色演绎或成功回复均不能代替可执行的校验与门禁。
 
-已有基础：`DATA_CONTRACT.md`、研究角色/输出模板、compiled 规则、确定性路由、评分管线、部分市场时点/状态/MCP 门禁及 L0 回归测试。已实现：显式 JSON 研究计划/缺口、五源插件注册/热插拔与运行快照、文件证据归档。未完成：模板自动编译、统一宿主接口、全链路 run trace、跨运行固定回放和统一 evaluator。评估与风控是主体职责，但完整评估框架仍需建设。
+已有基础：数据契约、研究模板、compiled 规则与旧评分管线。已实现：统一请求/scope、E0 trace、宏观/AI 核心计算与硬门禁、受校验的归档回放，以及五源注册/快照/文件归档。未完成：公司/行业执行器、模板自动编译、专用宿主集成、完整 ContextManifest、固定评测报告和提案控制面。
 
 ## 2. 运行模式
 
@@ -31,7 +31,7 @@ a_share_claw 是可移植的投研 Harness。研究框架由问题、分析模�
 
 ## 3. 统一请求与权限作用域
 
-拟定义 `RunRequest`：请求/输入摘要、`as_of_date`、输出模式（规划/研究/正式/回放）、核心作用域、预算、宿主信息和模型能力引用。run_id 在核心入口生成，不依赖消息平台的 message_id，也不复用 conversation/session ID。
+已定义 `RunRequest`：请求/输入摘要、`as_of_date`、输出模式（规划/研究/正式/回放）、核心作用域、预算和宿主信息；模型配置由适配层记录。run_id 在核心入口生成，不依赖消息平台的 message_id，也不复用 conversation/session ID。
 
 核心作用域为 `workspace + principal + session + agent_key`。宿主适配器将 platform/user/chat 映射到这些字段并保留来源标识；`principal` 必须区分不同宿主的身份，除非有显式账户绑定。CLI 个人模式也必须显式建立授权身份。迁移保留历史数据，不能仅更名字段就扩大共享范围。
 
@@ -94,7 +94,7 @@ RunRequest + run_id
 
 正式产物只有在必要输入与硬门禁通过后才可提升；保存计算/研究产物与更新 official state 是不同动作。模型或插件均不得自动修改生产规则、DATA_CONTRACT、evaluator 或执行交易；改进形成版本化 proposal，固定集/held-out 回放与人工批准继续按 Issue #1 实施。
 
-E0 trace 从入口到结束统一记录请求与 scope、host/model adapter、路由、loaded/missing context、状态和预算；预留计划/需求版本和缺口摘要，在下一步规划模块实现后填入。E1 再补插件选择/权限、工具完整 envelope、耗时与 artifact；E2–E5 补上下文、固定回放、归因和 proposal。凭据、敏感 URL query 和私有文件内容不得未经脱敏写入 trace；配置仅保存凭据引用。
+E0 trace 已从入口到结束记录请求/scope、host/model adapter、路由、loaded/missing context、状态、预算、计划和缺口；活动工具记录完整脱敏 envelope、权限、耗时和 artifact 引用。E1 继续覆盖保留的旧工具门面与供应商实际输入；E2–E5 补完整上下文管理、固定评测、归因报告和 proposal。凭据、敏感 URL query 和私有文件内容不得未经脱敏写入 trace。
 
 ## 7. 实施顺序与验收
 
@@ -110,4 +110,4 @@ E0 trace 从入口到结束统一记录请求与 scope、host/model adapter、�
 
 ## 本轮实施覆盖
 
-本轮优先落地五个来源及数据入口约束，不宣称完成上述全部阶段。Agent 已移除旧 fetch/MCP/自由执行工具，并暂时停用旧 SDK 会话/记忆/状态的数据注入。旧流水线保留人工入口，但不能作为 Agent 的绕过路径；正式评分和自动状态提升需等待插件输入迁移。实现、限制、可复现命令与下一步均以 [DATA_PLUGINS.md](DATA_PLUGINS.md) 为准。
+开发优先级已改为 E0 核心与业务门禁先行。Agent 已移除旧 fetch/MCP/自由执行工具，停用旧 SDK 会话/记忆/状态注入，将交付限制为缺口摘要与 NO_ACTION。核心可独立处理规范化事实；插件到事实包的自动映射仍待验收，旧管线保留人工入口。范围以 [E0_INFRA.md](E0_INFRA.md) 和 [DATA_PLUGINS.md](DATA_PLUGINS.md) 为准。

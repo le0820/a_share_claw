@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import asyncio
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -17,6 +19,8 @@ from .research_context import (
 )
 from .research_tools import ResearchRuntime
 from .utils import json_dumps
+from .harness.contracts import RunRequest, RunStatus, Scope, FailureCategory, EvalResult, canonical, digest
+from .harness.runtime import RunSession
 
 
 def build_model_client(config: AppConfig) -> AsyncOpenAI | None:
@@ -48,17 +52,40 @@ class InvestmentAgent:
         self.memory = MemoryStore(storage, config.data_dir)
 
     async def run(self, context: ConversationContext, message: str, role: str = "user") -> str:
-        self.storage.add_message(context.conversation_id, role, message)
-        if self.config.fake_ai:
-            output = f"[fake-ai] received: {message}"
-            self.storage.add_message(context.conversation_id, "assistant", output)
-            return output
+        return (await self.run_result(context, message, role)).output
+
+    async def run_result(self, context: ConversationContext, message: str, role: str = "user"):
+        dates = set(re.findall(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)", message))
+        for value in re.findall(r"(?<!\d)20\d{6}(?!\d)", message):
+            dates.add(f"{value[:4]}-{value[4:6]}-{value[6:]}")
+        # Date validity belongs to the run gate, so malformed dates still have a trace.
         try:
-            output = await self._run_agents_sdk(context, message)
+            as_of = next(iter(dates)) if len(dates) == 1 else None
+            request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
+                                 as_of_date=as_of, host=context.platform)
+        except ValueError:
+            request = RunRequest(Scope.from_context(self.config.root_dir, context), message, host=context.platform)
+        trace = RunSession(self.storage, request)
+        try:
+            self.storage.add_message(context.conversation_id, role, message)
+            if self.config.fake_ai:
+                trace.step("model_adapter", {"mode": "fake", "network": False})
+                outcome = trace.finish(f"[fake-ai] received: {message}\nrun_id={trace.run_id}")
+            else:
+                output = await asyncio.wait_for(self._run_agents_sdk(context, message, trace=trace), timeout=trace.remaining)
+                outcome = trace.finish(output, getattr(trace, "result_status", RunStatus.BLOCKED))
+        except asyncio.CancelledError:
+            trace.finish(f"Run cancelled; run_id={trace.run_id}", RunStatus.CANCELLED)
+            raise
+        except TimeoutError:
+            trace.failure = FailureCategory.TIMEOUT_OR_BUDGET_FAILURE
+            outcome = trace.finish(f"Run timed out; NO_ACTION; run_id={trace.run_id}", RunStatus.FAILED)
         except Exception as exc:
-            output = f"Agent run failed: {exc}"
-        self.storage.add_message(context.conversation_id, "assistant", output)
-        return output
+            trace.failure = FailureCategory.SYNTHESIS_OR_UNKNOWN_FAILURE
+            trace.step("exception", {"type": type(exc).__name__}, "error")
+            outcome = trace.finish(f"Agent run failed; NO_ACTION; run_id={trace.run_id}", RunStatus.FAILED)
+        self.storage.add_message(context.conversation_id, "assistant", outcome.output)
+        return outcome
 
     def _effective_model(self) -> str:
         # `model_name` is the configured domestic model; `openai_model` stays as the
@@ -89,24 +116,48 @@ class InvestmentAgent:
         set_tracing_disabled(True)
         set_default_openai_client(client, use_for_tracing=False)
 
-    async def _run_agents_sdk(self, context: ConversationContext, message: str) -> str:
+    async def _run_agents_sdk(self, context: ConversationContext, message: str, *, trace=None) -> str:
+        owned = trace is None
+        if owned:
+            trace = RunSession(self.storage, RunRequest(Scope.from_context(self.config.root_dir, context), message, host=context.platform))
+        try:
+            output = await self._execute_sdk(context, message, trace)
+            if owned:
+                trace.finish(output, trace.result_status)
+            return output
+        except BaseException as exc:
+            if owned:
+                trace.failure = None if isinstance(exc, asyncio.CancelledError) else FailureCategory.SYNTHESIS_OR_UNKNOWN_FAILURE
+                trace.finish("SDK run did not complete", RunStatus.CANCELLED if isinstance(exc, asyncio.CancelledError) else RunStatus.FAILED)
+            raise
+
+    async def _execute_sdk(self, context, message, trace):
         try:
             from agents import Agent, Runner, function_tool
         except ImportError as exc:
             raise RuntimeError("Install dependencies first: pip install -e .") from exc
         from .data_plugins import DataRun, default_registry, preview
+        from .sdk_trace import TraceHooks
 
         self._configure_model_client()
         research_runtime = ResearchRuntime(self.config, context)
         research_context = build_research_context(self.config, context, message, include_state=False)
         data_run = DataRun(default_registry().snapshot(), self.config.data_dir / "plugin_runs",
-                           json.dumps([str(self.config.root_dir.resolve()), context.platform,
-                                       context.user_id, context.session_id, context.agent_key]))
+                           canonical(trace.request.scope.__dict__), run_id=trace.run_id)
+        allowed = tool_names_for_workflow(research_context.workflow)
+        trace.step("route", {"workflow": research_context.workflow.value, "reason": research_context.routing_reason})
+        trace.step("context", {"loaded_files": research_context.loaded_files, "missing_files": research_context.missing_files,
+                               "state_scope": research_context.state_scope, "instructions_hash": digest(research_context.instructions)})
+
+        async def invoke(name, arguments, callback):
+            return await trace.tool(name, arguments, callback, allowed)
 
         @function_tool
         async def list_data_plugins() -> str:
             """List pinned source plugins, supported capabilities and credential readiness; no network."""
-            return json_dumps(data_run.list_providers())
+            async def call():
+                return {"ok": True, "data": data_run.list_providers()}
+            return json_dumps(await invoke("list_data_plugins", {}, call))
 
         @function_tool
         async def plan_data(plan_json: str) -> str:
@@ -119,31 +170,54 @@ class InvestmentAgent:
             tickflow market.quote: symbol; market.daily_bars: symbol/start_date/end_date/adjust;
             tickflow financial.income/financial.balance_sheet/financial.cash_flow: symbols/start_date/end_date.
             """
-            try:
-                return json_dumps(data_run.plan(json.loads(plan_json)))
-            except (ValueError, TypeError):
-                return json_dumps({"ok": False, "error_code": "invalid_plan",
-                                   "message": "Use the declared plan schema and unique requirement IDs"})
+            async def call():
+                try:
+                    plan = json.loads(plan_json)
+                    if trace.request.as_of_date and any(r.get("as_of_date", "") > trace.request.as_of_date for r in plan.get("requirements", [])):
+                        return {"ok": False, "error_code": "future_data"}
+                    result = data_run.plan(plan)
+                    trace.step("data_plan", {"requirements": [r.json() for r in data_run.requirements.values()], "framework_hash": digest(plan["framework"])})
+                    return {"ok": True, "data": result}
+                except (ValueError, TypeError, AttributeError):
+                    return {"ok": False, "error_code": "invalid_plan"}
+            return json_dumps(await invoke("plan_data", {"plan_hash": digest(plan_json)}, call))
 
         @function_tool
         async def fetch_data(requirement_id: str) -> str:
             """Fetch a declared gap through its pinned plugin; never accepts arbitrary tools or commands."""
-            return preview(await data_run.fetch(requirement_id), self.config.max_tool_output_chars)
+            async def call():
+                result = await data_run.fetch(requirement_id)
+                p = result.get("provenance", {})
+                if p:
+                    from .harness.trace import now
+                    trace.repository.append("artifacts", trace.run_id, trace.request.scope,
+                        detail_json=canonical({**p, "directory": str(data_run.directory), "mode": "research"}), recorded_at=now())
+                return result
+            full = await invoke("fetch_data", {"requirement_id": requirement_id}, call)
+            rendered = preview(full, self.config.max_tool_output_chars)
+            trace.step("tool_preview", {"tool": "fetch_data", "truncated": json.loads(rendered)["truncated"], "output_chars": len(rendered)})
+            return rendered
 
         @function_tool
         async def data_gap_report() -> str:
             """Show missing/unverified requirements and the research-only output gate."""
-            return json_dumps(data_run.summary())
+            async def call():
+                return {"ok": True, "data": data_run.summary()}
+            return json_dumps(await invoke("data_gap_report", {}, call))
 
         @function_tool
         async def get_compiled_rule(layer: str, section: str | None = None) -> str:
             """Read immutable local scoring policy, not observations or external data."""
-            return await research_runtime.get_compiled_rule(layer, section)
+            async def call():
+                return json.loads(await research_runtime.get_compiled_rule(layer, section))
+            return json_dumps(await invoke("get_compiled_rule", {"layer": layer, "section": section}, call))
 
         @function_tool
         async def get_market_session_status(as_of_date: str) -> str:
             """Compute the A-share market-time gate from the host clock; does not fetch market data."""
-            return await research_runtime.get_market_session_status(as_of_date)
+            async def call():
+                return json.loads(await research_runtime.get_market_session_status(as_of_date))
+            return json_dumps(await invoke("get_market_session_status", {"as_of_date": as_of_date}, call))
 
         available_tools = {tool.name: tool for tool in (
             list_data_plugins, plan_data, fetch_data, data_gap_report,
@@ -163,12 +237,20 @@ class InvestmentAgent:
                       tools=tools, mcp_servers=[])
         # Old SDK sessions can contain arbitrary web/file/MCP tool results. They are
         # intentionally not replayed into the plugin-only evidence boundary.
-        result = await Runner.run(agent, message)
+        trace.step("model_adapter", {"provider": self.config.model_provider, "model": self._effective_model()})
+        result = await Runner.run(agent, message, hooks=TraceHooks(trace, self.config.model_provider, self._effective_model(), self.config.model_base_url))
         summary = data_run.summary()
-        output = str(result.final_output)
-        if data_run.requirements is not None:
-            data_run._save("summary.json", summary)
-        return output + "\n\n[数据边界] 研究草稿，未经正式评分与事实评估。run_id=" + data_run.run_id + "; " + json_dumps(summary)
+        trace.step("model_final", {"output_hash": digest(str(result.final_output)), "output_chars": len(str(result.final_output))})
+        data_run.directory.mkdir(parents=True, exist_ok=True)
+        data_run._save("summary.json", summary)
+        # Completing a model-declared acquisition plan does not complete the
+        # user's workflow. Core normalization and business evaluation are pending.
+        trace.result_status = RunStatus.BLOCKED
+        trace.step("business_gate", {"status": "core_evaluation_pending"})
+        trace.evaluate(EvalResult("agent_official_output", True, code="research_only_no_action"))
+        trace.step("gap_report", summary)
+        # The model's final prose is not an evaluated action. The host owns delivery.
+        return "[数据边界] 研究取证；正式评分与行动须由核心门禁执行。NO_ACTION; run_id=" + trace.run_id + "; " + json_dumps(summary)
 
     def _optional_codex_tools(self) -> list[object]:
         """Legacy configuration cannot reopen unrestricted network/file execution."""

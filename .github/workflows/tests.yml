@@ -26,6 +26,8 @@ jobs:
         run: |
           uv run --locked python -m a_share_claw data plugins
           uv run --locked python -m a_share_claw data plan examples/data-plan.json
+          uv run --locked python -m a_share_claw harness plan --workflow macro --date 2026-07-13
+          uv run --locked python -m a_share_claw trace --list
       - uses: actions/upload-artifact@v4
         if: always()
         with:

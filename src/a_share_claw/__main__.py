@@ -7,6 +7,7 @@ import json
 from .config import AppConfig
 from .db import Storage
 from .data_plugins.cli import add_data_parser, run_data
+from .harness.cli import add_harness_parser, run_harness
 
 
 def main() -> None:
@@ -16,6 +17,7 @@ def main() -> None:
     sub.add_parser("init-db", help="Initialize SQLite database")
     sub.add_parser("show-config", help="Print resolved non-secret config")
     add_data_parser(sub)
+    add_harness_parser(sub)
     chat = sub.add_parser("chat", help="Run one local chat turn")
     chat.add_argument("message")
     args = parser.parse_args()
@@ -35,6 +37,12 @@ async def async_main(args: argparse.Namespace) -> None:
     config.ensure_dirs()
     storage = Storage(config.database_path)
     storage.init()
+
+    if args.command in {"harness", "trace"}:
+        try:
+            raise SystemExit(run_harness(args, config, storage))
+        finally:
+            storage.close()
 
     command = args.command or "run"
     if command == "init-db":

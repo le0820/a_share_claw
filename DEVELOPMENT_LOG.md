@@ -1,5 +1,13 @@
 # 跨设备开发交接：五源插件
 
+## E0 核心续开发（2026-09-30）
+
+继续使用 `docs/portable-harness-data-plugins`。先补核心运行/策略/门禁，再接事实插件。统一契约、事务迁移、作用域 trace、逐模型请求观测、宏观/AI 计算、CLI 摘要/回放与失败通知已落地，详见 [E0_INFRA.md](E0_INFRA.md)。原 main 的本地未提交文件未改动。
+
+本地完整套件按锁文件分别验证 Python 3.11/3.12：均为 **127 passed, 40 subtests passed**。包括宏观与旧流水线结果比对、AI 输入与覆盖门禁、迁移失败回滚、归档失败撤销发布、作用域及正式状态隔离。下文的 90 项及旧 CI 结果属于先前提交，不能代表本次提交。
+
+尚未完成公司/行业/mixed/quant 业务执行器、供应商事实映射与连续正式日更。暂不合并 main、不关闭 Issue #1。后续按 README 先验收核心业务门禁，再接插件。
+
 日期：2026-09-30。相关 Issue：[#1](https://github.com/le0820/a_share_claw/issues/1)。代码分支：`docs/portable-harness-data-plugins`，PR：[#2](https://github.com/le0820/a_share_claw/pull/2)。
 
 ## 本轮提交

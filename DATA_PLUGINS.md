@@ -79,7 +79,7 @@ CLI 是本机个人模式；服务端集成必须由可信宿主构造 scope，�
 1. 用户配置 TickFlow 后取得去敏的真实响应样本，明确三表披露时间、修订版本、字段单位和证券覆盖，再增加逐字段归一化与 PIT 测试；未完成前不改 unverified。
 2. 按 compiled 规则列出 CN 宏观必需指标，分别实现 NBS/PBC 发布文本/附件到数值序列的有版本映射，保存单位、统计期和修订历史；不能从网页随意猜数。
 3. 将旧 pipeline 拆成只读取已验证插件 artifact 的计算入口，再恢复官方评分工具与受控 state promotion。
-4. Issue #1 的 FailureCategory/RunStatus/EvalResult/统一 ToolResult、SQLite 迁移和全链路 trace 继续单独完成。本次 JSON 结果、run_id 和文件归档不等于 E0 全部实现。
+4. E0 的运行契约、SQLite 迁移、trace 与核心评分门禁已实现，见 [E0_INFRA.md](E0_INFRA.md)。下一步先验收业务执行器，再把插件响应归一化为核心事实包；文件归档和原生响应不能直接晋级为正式评分输入。
 
 ## 接口依据
 

@@ -71,6 +71,9 @@ class ResearchRuntime:
         if data is None:
             return json_dumps({"error": "rule file missing or invalid", "path": str(path)})
 
+        from .harness.policy import policy_only
+        data = policy_only(data)
+
         selected: Any = data
         if section:
             selected, found = _select_json_section(data, section)

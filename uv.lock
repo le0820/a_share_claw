@@ -17,14 +17,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "openai-agents" },
+    { name = "pandas" },
 ]
 
 [package.optional-dependencies]
 dev = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "2.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "pandas" },
     { name = "pytest" },
     { name = "requests" },
 ]
@@ -32,9 +32,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "numpy", marker = "extra == 'dev'", specifier = ">=2.0" },
+    { name = "numpy", specifier = ">=2.0" },
     { name = "openai-agents", specifier = ">=0.5.0" },
-    { name = "pandas", marker = "extra == 'dev'", specifier = ">=2.0" },
+    { name = "pandas", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "requests", marker = "extra == 'dev'", specifier = ">=2.32" },
 ]

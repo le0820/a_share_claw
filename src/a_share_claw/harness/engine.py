@@ -1,0 +1,222 @@
+"""Provider-free workflow: plan -> evidence -> deterministic policy -> gate -> publish."""
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+from datetime import datetime, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from ..research_context import classify_research_route
+from .contracts import EvalResult, FailureCategory as Failure, RunRequest, RunStatus, canonical, digest, validate_date
+from .policy import PolicyBundle
+from .runtime import RunSession
+from .trace import now
+
+
+DATE_FIELDS = {"date", "as_of_date", "trade_date", "observation_date", "publication_date", "release_date", "filed", "end", "period_end", "effective_trade_date"}
+MACRO_UNITS = {
+    "us_macro": {"vix": "index_points", "spx": "index_points", "ust_2y": "percent", "ust_10y": "percent", "ust_30y": "percent",
+                 "brent": "USD_per_barrel", "cpi_us_yoy": "percent", "core_cpi_yoy": "percent", "ppi_us_yoy": "percent",
+                 "fed_rate": "percent", "nfp_actual": "thousand_persons", "unemployment": "percent", "credit_spread": "percentage_points",
+                 "credit_spread_change_20d": "percentage_points", "jp_jgb_10y": "percent", "usdjpy": "JPY_per_USD", "put_call_ratio": "ratio"},
+    "cn_macro": {"pmi_mfg": "index_points", "pmi_non_mfg": "index_points", "retail_sales_yoy": "percent", "m2_yoy": "percent", "m1_yoy": "percent"},
+    "tech_capex": {"capex_pct_ocf": "ratio"},
+}
+
+
+def validate_values(value, cutoff):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if key == "fallback_status" and item != "none":
+                raise ValueError("unverified_evidence")
+            if key in DATE_FIELDS and item is not None:
+                if validate_date(item) > cutoff:
+                    raise ValueError("future_data")
+            validate_values(item, cutoff)
+    elif isinstance(value, list):
+        for item in value:
+            validate_values(item, cutoff)
+    elif isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("non_finite_value")
+
+
+class Harness:
+    def __init__(self, root: Path, storage, artifact_root: Path, market_timezone="Asia/Shanghai"):
+        self.root, self.storage, self.artifact_root = root, storage, artifact_root
+        self.market_timezone = market_timezone
+
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None):
+        session = RunSession(self.storage, request)
+        if replay_of:
+            session.step("replay_source", {"run_id": replay_of})
+        output = {"run_id": session.run_id, "scope_key": request.scope.key, "as_of_date": request.as_of_date, "mode": request.mode,
+                  "action": "NO_ACTION", "official_output_allowed": False, "gaps": [], "data": None}
+        status, state = RunStatus.BLOCKED, None
+        try:
+            policy = PolicyBundle(self.root)
+            route = classify_research_route(request.message)
+            workflow = request.workflow or route.workflow.value
+            plan = policy.plan(workflow)
+            session.step("route", {"workflow": workflow, "reason": route.reason, "override": request.workflow is not None})
+            session.step("policy_snapshot", {"version": policy.version, "files": policy.hashes})
+            session.step("context", {"loaded_files": ["DATA_CONTRACT.md", "IDENTITY.md"],
+                                     "missing_files": [], "state_scope": request.scope.key,
+                                     "state_injected": False})
+            session.step("plan", plan)
+            session.step("workflow_parameters", {"current_ai_pct": current_ai_pct} if workflow == "ai" else {})
+            output["plan"] = plan
+            if request.mode == "plan":
+                output["gaps"] = plan["required_capabilities"]
+                status = RunStatus.SUCCEEDED
+            else:
+                reference = clock or datetime.now(timezone.utc)
+                if reference.tzinfo is None:
+                    raise ValueError("Clock must include timezone")
+                market_now = reference.astimezone(ZoneInfo(self.market_timezone))
+                cutoff = request.as_of_date
+                if cutoff is None:
+                    raise ValueError("explicit_date_required")
+                if cutoff > market_now.date().isoformat():
+                    raise ValueError("future_data")
+                if request.mode == "official" and datetime.fromisoformat(cutoff).weekday() >= 5:
+                    raise ValueError("WAIT_FOR_TRADING_DAY")
+                if request.mode == "official" and cutoff == market_now.date().isoformat() and market_now.hour < 15:
+                    raise ValueError("WAIT_FOR_CLOSE")
+                facts, provenance = self._evidence(session, policy, plan, packet, cutoff)
+                output["data_audit"] = {"as_of_date": cutoff, "source_files": provenance,
+                                        "fallback_status": "none", "policy_version": policy.version}
+                missing = [key for key in plan["required_capabilities"] if key not in facts]
+                output["gaps"] = missing
+                session.step("gap_report", {"missing": missing, "disabled_layers": ["L2"]})
+                if missing:
+                    raise ValueError("missing_required_data")
+                if workflow == "macro":
+                    data = policy.score_macro(facts)
+                elif workflow == "ai":
+                    if not isinstance(current_ai_pct, (int, float)) or isinstance(current_ai_pct, bool) or not 0 <= current_ai_pct <= 100:
+                        raise ValueError("invalid_current_position")
+                    data = policy.score_ai(facts, current_ai_pct)
+                    if data["decision"]["action"] == "NO_ACTION":
+                        raise ValueError("insufficient_coverage")
+                else:
+                    # Evidence alone is not a validated industry synthesis/backtest.
+                    raise ValueError("workflow_execution_pending")
+                canonical(data)  # rejects NaN/Infinity before any artifact or state write
+                session.step("compute", {"data_hash": digest(data), "policy_version": policy.version})
+                if session.remaining <= 0:
+                    raise TimeoutError("budget_exceeded")
+                if not policy.unchanged():
+                    raise ValueError("policy_changed")
+                session.evaluate(EvalResult("policy_snapshot", True))
+                session.evaluate(EvalResult("required_evidence", True))
+                session.evaluate(EvalResult("scope_and_date", True))
+                output["data"] = data
+                output["official_output_allowed"] = request.mode == "official"
+                output["action"] = (data["decision"]["action"] if workflow == "ai" else "POSITION_BAND") if request.mode == "official" else "NO_ACTION"
+                status = RunStatus.SUCCEEDED
+                if request.mode == "official":
+                    state = {"workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"]}
+                self._archive(session, "computed_output", output)
+        except (ValueError, KeyError, TypeError) as exc:
+            known = {"future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
+                     "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "workflow_execution_pending",
+                     "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history"}
+            text = str(exc)
+            code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
+            if code in {"future_data", "scope_mismatch", "unverified_evidence"}:
+                category = Failure.STATE_CONTAMINATION_FAILURE
+            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "workflow_execution_pending"}:
+                category = Failure.PERMISSION_POLICY_FAILURE
+            elif code == "missing_required_data" or code.startswith("insufficient_coverage"):
+                category = Failure.RETRIEVAL_INTERFACE_FAILURE
+            else:
+                category = Failure.TOOL_RETURN_FAILURE
+            session.attribution = category
+            session.evaluate(EvalResult("execution_gate", False, category=category, code=code))
+            output["error_code"] = code
+        except TimeoutError:
+            session.failure = Failure.TIMEOUT_OR_BUDGET_FAILURE
+            output["error_code"] = "budget_exceeded"
+        except Exception as exc:
+            session.failure = Failure.SYNTHESIS_OR_UNKNOWN_FAILURE
+            output["error_code"] = "execution_error"
+            session.step("exception", {"type": type(exc).__name__}, "error")
+        if status != RunStatus.SUCCEEDED or session.failure is not None:
+            output.update(action="NO_ACTION", official_output_allowed=False, data=None)
+            state = None
+        session.step("publish_gate", {"allowed": output["official_output_allowed"], "action": output["action"]})
+        try:
+            return session.finish(canonical(output), status, action=output["action"], official=output["official_output_allowed"], state=state)
+        except ValueError:
+            output.update(action="NO_ACTION", official_output_allowed=False, data=None, error_code="promotion_denied")
+            session.evaluate(EvalResult("official_promotion", False, category=Failure.STATE_CONTAMINATION_FAILURE, code="promotion_denied"))
+            return session.finish(canonical(output), RunStatus.BLOCKED)
+
+    def _evidence(self, session, policy, plan, packet, cutoff):
+        if packet is None:
+            return {}, []
+        if not isinstance(packet, dict) or set(packet) != {"as_of_date", "facts"} or packet["as_of_date"] != cutoff or not isinstance(packet["facts"], list):
+            raise ValueError("invalid_evidence")
+        facts, sources = {}, []
+        allowed = set(plan["required_capabilities"] + plan["optional_capabilities"])
+        for item in packet["facts"]:
+            if not isinstance(item, dict) or set(item) != {"capability", "scope_key", "data", "provenance", "fallback_status"}:
+                raise ValueError("invalid_evidence")
+            capability = item["capability"]
+            if capability not in allowed or capability in facts or not isinstance(item["data"], dict):
+                raise ValueError("invalid_evidence")
+            if item["scope_key"] != session.request.scope.key:
+                raise ValueError("scope_mismatch")
+            if item["fallback_status"] != "none":
+                raise ValueError("unverified_evidence")
+            p = item["provenance"]
+            required = {"source", "source_file", "source_timestamp", "publication_date", "observation_date", "data_period", "sha256"}
+            if not isinstance(p, dict) or not required <= set(p) or any(not p[k] for k in required):
+                raise ValueError("missing_provenance")
+            if p["sha256"] != digest(item["data"]):
+                raise ValueError("hash_mismatch")
+            timestamp = datetime.fromisoformat(p["source_timestamp"].replace("Z", "+00:00"))
+            if timestamp.tzinfo is None:
+                raise ValueError("invalid_source_timestamp")
+            if timestamp.astimezone(ZoneInfo(self.market_timezone)).date().isoformat() > cutoff:
+                raise ValueError("future_data")
+            validate_values(item["data"], cutoff)
+            if capability in MACRO_UNITS:
+                expected = MACRO_UNITS[capability]
+                if set(item["data"]) - set(expected) or any(p.get("units", {}).get(k) != expected[k] for k, v in item["data"].items() if v is not None):
+                    raise ValueError("unit_or_metric_mismatch")
+            if capability == "market_history":
+                if (set(item["data"]) != set(policy.universe) or p.get("frequency") != "daily" or
+                        p.get("adjustments") != {k: v["adjustment"] for k, v in policy.universe.items()} or
+                        p.get("currencies") != {k: "USD" if k.endswith(".US") else "CNY" for k in policy.universe}):
+                    raise ValueError("market_contract_mismatch")
+                if max(row["trade_date"] for rows in item["data"].values() for row in rows) != p["observation_date"]:
+                    raise ValueError("market_observation_mismatch")
+                # Dated scores require the requested A-share close; holidays must
+                # explicitly request the last completed trade date.
+                if any(max(row["trade_date"] for row in rows) != cutoff for symbol, rows in item["data"].items() if not symbol.endswith(".US")):
+                    raise ValueError("missing_required_field:market_history.requested_close")
+            if capability.startswith("ai_") and p.get("schema_version") != "ai-inputs-v1":
+                raise ValueError("ai_schema_mismatch")
+            for field in ("publication_date", "observation_date"):
+                if validate_date(p[field]) > cutoff:
+                    raise ValueError("future_data")
+            facts[capability] = json.loads(canonical(item["data"]))
+            sources.append({"capability": capability, **p})
+            self._archive(session, capability, item)
+            session.step("evidence", {"capability": capability, "sha256": p["sha256"], "fallback_status": "none"})
+        return facts, sources
+
+    def _archive(self, session, name, obj):
+        directory = self.artifact_root / session.request.scope.key / session.run_id
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / (name + ".json")
+        raw = canonical(obj).encode()
+        with path.open("xb") as stream:
+            stream.write(raw)
+        session.repository.append("artifacts", session.run_id, session.request.scope,
+            detail_json=canonical({"path": str(path), "sha256": hashlib.sha256(raw).hexdigest(),
+                                   "as_of_date": session.request.as_of_date, "mode": "research",
+                                   "scope_key": session.request.scope.key}), recorded_at=now())

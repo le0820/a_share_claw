@@ -40,7 +40,16 @@ class Scheduler:
             context = self.storage.get_context_by_conversation_id(str(task["conversation_id"]))
             if context is None:
                 raise RuntimeError(f"missing conversation {task['conversation_id']}")
-            result = await self.agent.run(context, str(task["prompt"]), role="task")
+            if hasattr(self.agent, "run_result"):
+                from .harness.contracts import RunStatus
+                outcome = await self.agent.run_result(context, str(task["prompt"]), role="task")
+                result = outcome.output
+                if outcome.status != RunStatus.SUCCEEDED:
+                    self.storage.fail_task(task_id, f"{outcome.status.value}; run_id={outcome.run_id}")
+                    await self.notify(str(task["chat_id"]), f"定时任务未完成：{task['name']}\n\n{result}")
+                    return
+            else:
+                result = await self.agent.run(context, str(task["prompt"]), role="task")
             await self.notify(str(task["chat_id"]), f"定时任务完成：{task['name']}\n\n{result}")
             interval = task.get("interval_seconds")
             if interval:
