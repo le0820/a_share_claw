@@ -192,15 +192,21 @@ def test_cli_mixed_plan_executes_no_models_and_replay_is_explicitly_unavailable(
         assert len(endpoint.requests)==count
 
 
-def test_late_timed_out_slice_cannot_publish_parent_or_child(environment):
+def test_late_timed_out_slice_cannot_publish_parent_or_child(environment,monkeypatch):
     from threading import Event
     from a_share_claw.harness.contracts import FailureCategory
     storage,scope,engine,_=environment
     started,release,finished=Event(),Event(),Event()
+    from types import SimpleNamespace
+    import a_share_claw.harness.runtime as runtime
+    import a_share_claw.harness.research as research
+    # Expire only after the role has started, independent of CI filesystem speed.
+    clock=SimpleNamespace(monotonic=lambda:121.0 if started.is_set() else 0.0)
+    monkeypatch.setattr(runtime,"time",clock);monkeypatch.setattr(research,"time",clock)
     def slow(payload):
-        started.set();release.wait(timeout=2)
+        started.set();release.wait(timeout=10)
         reply=role_reply(payload);finished.set();return reply
-    req=RunRequest(scope,"Synthetic mixed timeout",DAY,"official","mixed",wall_clock_seconds=.3)
+    req=RunRequest(scope,"Synthetic mixed timeout",DAY,"official","mixed",wall_clock_seconds=120)
     out=engine.run(req,mixed_packet(scope),mixed_spec=mixed_spec(),role_runner=slow,semantic_reviewer=fixture_review)
     assert out.status==RunStatus.FAILED and out.category==FailureCategory.TIMEOUT_OR_BUDGET_FAILURE
     assert started.is_set()
