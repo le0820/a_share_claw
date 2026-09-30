@@ -132,6 +132,35 @@ def test_complete_fact_packet_computes_without_network_and_traces_all_stages(env
     stages = {row["stage"] for row in trace["run_steps"]}
     assert stages >= {"request", "route", "context", "plan", "policy_snapshot", "evidence", "gap_report", "compute", "publish_gate", "final_output"}
     assert len(trace["artifacts"]) == 4 and all(row["passed"] for row in trace["evaluations"])
+    context = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
+    assert context["kind"] == "policy_snapshot"
+    assert set(context["loaded_files"]) == set(PolicyBundle(ROOT).hashes)
+    assert context["missing_files"] == [] and context["state_injected"] is False
+
+
+@pytest.mark.parametrize("missing_file", ["IDENTITY.md", "src/compiled/weight_matrix.json"])
+def test_missing_core_policy_preserves_route_and_context_without_publication(environment, missing_file):
+    storage, scope, engine, tmp = environment
+    checkout = tmp / "incomplete-checkout"
+    for name in PolicyBundle(ROOT).hashes:
+        destination = checkout / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes((ROOT / name).read_bytes())
+    (checkout / missing_file).unlink()
+    engine.root = checkout
+    outcome = engine.run(request(scope, "official"), packet(scope))
+    assert outcome.status == RunStatus.BLOCKED
+    assert outcome.category == FailureCategory.CONTEXT_TRUNCATION_FAILURE
+    assert outcome.action == "NO_ACTION" and not outcome.official_output_allowed
+    assert json.loads(outcome.output)["error_code"] == "policy_context_missing"
+    repository = TraceRepository(storage)
+    trace = repository.read(outcome.run_id, scope)
+    assert any(row["stage"] == "route" for row in trace["run_steps"])
+    context = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
+    assert context["missing_files"] == [missing_file]
+    assert missing_file not in context["loaded_files"]
+    assert context["state_scope"] == scope.key and context["state_injected"] is False
+    assert not trace["artifacts"] and repository.read_state(scope, "macro") is None
 
 
 @pytest.mark.parametrize("mutation,code", [

@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 
 from ..research_context import classify_research_route
 from .contracts import EvalResult, FailureCategory as Failure, RunRequest, RunStatus, canonical, digest, validate_date
-from .policy import PolicyBundle
+from .policy import PolicyBundle, PolicyContextError
 from .runtime import RunSession
 from .trace import now
 
@@ -55,13 +55,13 @@ class Harness:
                   "action": "NO_ACTION", "official_output_allowed": False, "gaps": [], "data": None}
         status, state = RunStatus.BLOCKED, None
         try:
-            policy = PolicyBundle(self.root)
             route = classify_research_route(request.message)
             workflow = request.workflow or route.workflow.value
-            plan = policy.plan(workflow)
             session.step("route", {"workflow": workflow, "reason": route.reason, "override": request.workflow is not None})
+            policy = PolicyBundle(self.root)
+            plan = policy.plan(workflow)
             session.step("policy_snapshot", {"version": policy.version, "files": policy.hashes})
-            session.step("context", {"loaded_files": ["DATA_CONTRACT.md", "IDENTITY.md"],
+            session.step("context", {"kind": "policy_snapshot", "loaded_files": list(policy.hashes),
                                      "missing_files": [], "state_scope": request.scope.key,
                                      "state_injected": False})
             session.step("plan", plan)
@@ -119,6 +119,14 @@ class Harness:
                 if request.mode == "official":
                     state = {"workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"]}
                 self._archive(session, "computed_output", output)
+        except PolicyContextError as exc:
+            session.step("context", {"kind": "policy_snapshot", "loaded_files": exc.loaded_files,
+                                     "missing_files": exc.missing_files, "state_scope": request.scope.key,
+                                     "state_injected": False}, "error")
+            session.attribution = Failure.CONTEXT_TRUNCATION_FAILURE
+            session.evaluate(EvalResult("required_policy_context", False,
+                             category=Failure.CONTEXT_TRUNCATION_FAILURE, code=str(exc)))
+            output["error_code"] = str(exc)
         except (ValueError, KeyError, TypeError) as exc:
             known = {"future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "workflow_execution_pending",

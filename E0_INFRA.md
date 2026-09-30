@@ -45,11 +45,13 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | --- | --- | --- |
 | FailureCategory / RunStatus / EvalResult / ToolResult | 已实现；核心、Agent 与数据 CLI 使用结构化结果 | 已有契约与失败传播检查；旧人工 ToolRuntime / MCP 全面标准化属于 E1，不能算全部已迁移 |
 | 每次 InvestmentAgent.run 生成 run_id | 已实现；run_result 先建记录，run 为兼容渲染入口 | fake、SDK 脚本、异常/取消有证据；真实模型业务完成尚未验收 |
-| route、loaded/missing context、state scope | 部分实现；SDK 记录装配结果，核心记录 scope 和政策哈希 | 核心 context 清单仍是固定值；政策读取失败时的缺失文件记录、两条工作流的版本化运行协议需补齐 |
+| route、loaded/missing context、state scope | 记录已接线；SDK 记录装配结果，核心记录实际读取的政策快照、缺失项和 scope | 正常加载/缺 IDENTITY/缺必需 compiled 文件已验；两条工作流的版本化运行协议仍需补齐 |
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
 | CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：E0 技术清单仍有上下文验收缺口；“整个系统运行逻辑、评分策略、风控策略可独立运行”的业务验收也未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：本轮补齐了 E0 实际上下文记录缺口，两条工作流的协议收口仍待完成；“整个系统运行逻辑、评分策略、风控策略可独立运行”的业务验收也未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+
+本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
 
 ### A. 先闭环核心，再进入插件接入
 

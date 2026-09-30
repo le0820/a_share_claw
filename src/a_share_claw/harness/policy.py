@@ -18,6 +18,14 @@ def policy_only(obj):
     return obj
 
 
+class PolicyContextError(ValueError):
+    """Policy loading failed; retain only file names actually read or missing."""
+    def __init__(self, code, loaded_files, missing_files):
+        super().__init__(code)
+        self.loaded_files = loaded_files
+        self.missing_files = missing_files
+
+
 class PolicyBundle:
     def __init__(self, root: Path):
         self.root = root
@@ -27,7 +35,18 @@ class PolicyBundle:
                  root / "src/pipeline/rules_L1.py", root / "src/pipeline/ai_strategy.py",
                  root / "src/pipeline/p1_upgrade.py", root / "src/pipeline/run_scoring.py",
                  root / "src/pipeline/pipeline_universe.json"]
-        self.hashes = {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in paths}
+        # A glob must not hide required compiled files in an incomplete checkout.
+        paths = list(dict.fromkeys([*paths, root / "src/compiled/weight_matrix.json",
+                                   root / "src/compiled/ai_strategy_rules.json"]))
+        self.hashes = {}
+        for path in paths:
+            label = str(path.relative_to(root))
+            try:
+                raw = path.read_bytes()
+            except OSError as exc:
+                code = "policy_context_missing" if isinstance(exc, FileNotFoundError) else "policy_context_unreadable"
+                raise PolicyContextError(code, list(self.hashes), [label]) from exc
+            self.hashes[label] = hashlib.sha256(raw).hexdigest()
         self.version = digest(self.hashes)
         self.weights = json.loads((root / "src/compiled/weight_matrix.json").read_text())
         self.ai_rules = json.loads((root / "src/compiled/ai_strategy_rules.json").read_text())

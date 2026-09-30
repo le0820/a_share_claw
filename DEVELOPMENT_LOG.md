@@ -10,6 +10,10 @@
 
 日期：2026-09-30。相关 Issue：[#1](https://github.com/le0820/a_share_claw/issues/1)。代码分支：`docs/portable-harness-data-plugins`，PR：[#2](https://github.com/le0820/a_share_claw/pull/2)。
 
+### 验收顺序与上下文缺口收口
+
+`754db41` 统一核心验收 → 五源接线 → 市场 case 的顺序。随后修复核心 trace 的固定 context 清单：记录实际政策读取项，缺 IDENTITY/必需 compiled 文件时保留路由与缺失项并明确归因；Python 3.11/3.12 的相关核心回归各为 31 passed。运行协议、业务执行、报告/发布与状态读取仍待闭环，尚未进入真实插件接入或市场 case。
+
 ## 本轮提交
 
 - 顶层设计：`f0d94d3b49eb5eee02563dc23be4c8f300a28316`。
