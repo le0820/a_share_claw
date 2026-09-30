@@ -43,7 +43,7 @@ def test_host_cancellation_finishes_core_before_return_and_late_callback_cannot_
     started,release,late=Event(),Event(),Event()
     original=engine._archive
     def pause(value):
-        started.set();release.wait(timeout=2);late.set();return value
+        started.set();release.wait(timeout=60);late.set();return value
     def runner(payload):return pause(role_reply(payload)) if stage=="role" else role_reply(payload)
     def proposer(payload):return pause(proposal()) if stage=="framework" else proposal()
     def archive(session,name,value):
@@ -54,7 +54,8 @@ def test_host_cancellation_finishes_core_before_return_and_late_callback_cannot_
             task=asyncio.create_task(engine.run_async(RunRequest(scope,"Synthetic cancellation",DAY,"official","industry"),
                 research_packet(scope),framework_proposer=proposer,framework_reviewer=review,
                 role_runner=runner,semantic_reviewer=fixture_review))
-            assert await asyncio.to_thread(started.wait,1)
+            # Wait for the tested stage, independent of CI SQLite/archive startup speed.
+            assert await asyncio.to_thread(started.wait,30)
             task.cancel()
             if stage=="report_archive":
                 # Local archive I/O is not preempted; drain it before finishing the trace.
@@ -63,7 +64,7 @@ def test_host_cancellation_finishes_core_before_return_and_late_callback_cannot_
         trace=TraceRepository(storage).list_runs(scope)[0]
         assert trace["status"]=="cancelled"
         assert TraceRepository(storage).read_state(scope,"industry") is None
-        release.set();assert await asyncio.to_thread(late.wait,1)
+        release.set();assert await asyncio.to_thread(late.wait,30)
         await asyncio.sleep(.06)
         assert TraceRepository(storage).read(trace["run_id"],scope)["status"]=="cancelled"
         assert TraceRepository(storage).read_state(scope,"industry") is None
@@ -96,14 +97,26 @@ def test_async_mixed_cancellation_propagates_to_current_child(environment):
     assert all(TraceRepository(storage).read_state(scope,w) is None for w in ("mixed","industry","macro"))
 
 
-def test_async_budget_exhaustion_cannot_publish_late_role(environment):
-    storage,scope,engine,_=environment;release,finished=Event(),Event()
-    def runner(payload):release.wait(timeout=2);finished.set();return role_reply(payload)
+def test_async_budget_exhaustion_cannot_publish_late_role(environment,monkeypatch):
+    from types import SimpleNamespace
+    import a_share_claw.harness.runtime as runtime
+    import a_share_claw.harness.research as research
+    storage,scope,engine,_=environment;started,release,finished=Event(),Event(),Event()
+    # Expire in the role stage, never while CI is still persisting the input/plan.
+    # Module-local time doubles leave asyncio/thread Event deadlines on the real clock.
+    clock=SimpleNamespace(monotonic=lambda:121.0 if started.is_set() else 0.0)
+    monkeypatch.setattr(runtime,"time",clock);monkeypatch.setattr(research,"time",clock)
+    def runner(payload):
+        started.set();release.wait(timeout=60);finished.set();return role_reply(payload)
     async def exercise():
-        out=await engine.run_async(RunRequest(scope,"Synthetic async deadline",DAY,"official","industry",wall_clock_seconds=.3),
-            research_packet(scope),research_spec=spec(),role_runner=runner,semantic_reviewer=fixture_review)
-        assert out.status==RunStatus.FAILED and json.loads(out.output)["error_code"]=="budget_exceeded"
-        release.set();assert await asyncio.to_thread(finished.wait,1)
+        try:
+            out=await engine.run_async(RunRequest(scope,"Synthetic async deadline",DAY,"official","industry",wall_clock_seconds=120),
+                research_packet(scope),research_spec=spec(),role_runner=runner,semantic_reviewer=fixture_review)
+            assert started.is_set()
+            assert out.status==RunStatus.FAILED and json.loads(out.output)["error_code"]=="budget_exceeded"
+        finally:
+            release.set()
+        assert await asyncio.to_thread(finished.wait,30)
         return out
     out=asyncio.run(exercise())
     assert TraceRepository(storage).read_state(scope,"industry") is None
