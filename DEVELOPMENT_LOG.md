@@ -142,3 +142,12 @@ NBS/PBC 1.1.0 保留原生明确发布时钟及精度，不从日期制造午夜
 
 
 `04bed70` 的 CI run 36777414668：Python 3.12 为 282 passed / 41 subtests；3.11 两项旧异步检查失败，280 passed。取消检查的 1 秒阶段等待在角色开始前结束；超时检查的 0.3 秒预算在角色回调前耗尽，故未观察到预期晚到回调。保留失败，不归因于来源映射通过。随后仅调整检查：取消等待目标事件，异步预算用模块局部时钟在角色开始后确定耗尽；生产取消/时间预算/发布门禁未改。
+
+
+## B 事实接入第三步：SEC 披露身份绑定（2026-09-30）
+
+SEC 1.1.0 新增固定 cik/accession 的 company.filing_metadata，保留 recent 原生日期/类型/报表期/文档及 acceptance 字段。已接同 run 归档选择，双输入核对哈希、实体/accession/form/filed/cutoff；比较期事实保留其原生 start/end。未知/重复 accession、缺列、未来/无时区字段拒绝，不自动下载早期文件或切最新披露。
+
+官方规范区分 acceptance 与 dissemination；source-declared acceptance 不证明公开可用时点，保留 available_at=null/public_dissemination_certified=false/core_admission_complete=false。SEC_USER_AGENT/FRED_API_KEY/TICKFLOW_API_KEY 本机仍未配置；浏览工具无法取得 SEC 原生 JSON，真实账户/原生样本及核心准入未验收。当前仅为身份元数据实现与合成检查，不是精确历史可得时点闭环；市场 case 未启动。
+
+先完成实现/接线，再验证来源相关 **80 passed**，Python 3.11/3.12 全套各 **301 passed / 41 subtests**。检查覆盖固定列形态、凭据零调用、实体/表型/日期不一致、比较期、重复与篡改；不证明所有 SEC 历史报表类型或公开传播时点。五源实际接口、vintage、核心 FactPacket 及行情主源授权继续待补。

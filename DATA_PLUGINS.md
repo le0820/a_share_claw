@@ -10,7 +10,7 @@
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位与明确发布时钟；M2/M1/社融存量同比可精确选择；PDF/Excel 与完整序列未完成；不从累计量推算单月 |
 | `tickflow` | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
 | `fred` | `macro.series` 与 `macro.series_metadata`，在 FRED API 设置 ALFRED 实时区间查询指定 vintage | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
-| `sec` | `company.facts`，按 CIK 和 taxonomy:concept 请求公司事实 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
+| `sec` | `company.facts` 公司事实；`company.filing_metadata` 精确 accession 的 recent filing 元数据 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
 `status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；原生插件结果尚未规范化接入，不能借取数成功自动恢复官方评分或仓位行动。
 
@@ -69,7 +69,7 @@ CLI 是本机个人模式；服务端集成必须由可信宿主构造 scope，�
 受信任宿主 `DataRun.select(requirement_id, selector, metadata_requirement_id=...)` 只读取本 run 已计划、已抓取的归档，分别核对结果与原始响应哈希，保存 `selection-<hash>.json`：
 
 - FRED selector 恰为 series_id/observation_date/units/frequency/seasonal_adjustment；metadata_requirement_id 必填。精确选一天，不按“最新值”回退，不重标单位、不补 null。
-- SEC selector 恰为 cik/concept/unit/period_start/period_end/filed/accession；period_start=null 表示时点项。保留原生 duration 和 accession，拒绝单季代替 YTD、单位缩放猜测与重复披露冲突。
+- SEC selector 恰为 cik/concept/unit/period_start/period_end/filed/accession；period_start=null 表示时点项。保留原生 duration 和 accession，拒绝单季代替 YTD、单位缩放猜测与重复披露冲突。可选 metadata_requirement_id 只绑定本 run 独立计划的 company.filing_metadata，不能提供任意元数据对象。
 
 选择产物为 `source-selection-v1`，不是核心 FactPacket。`available_at=null` 并明确 vintage/filed 日期级精度，`core_admission_complete=false`、`official_output_allowed=false`。仍须完成精确发布时点、核心字段/单位映射及同 run 宿主接线；不能把来源选择通过写成已恢复评分。FRED/SEC 的 unverified 来源不通过该入口；NBS/PBC 下述正文候选选择保持 unverified，附件映射与行情身份/日历仍未完成，不暗用网页或其他供应商补数。
 
@@ -86,6 +86,14 @@ NBS/PBC 1.1.0 保留明确的发布时钟和精度：官网无时区的时钟按
 - 原生 percent、统计起止、固定报告标题/表头、精确指标表达必须匹配；缺指标、单位不同、重复数值冲突直接返回缺口，不选“最近值”。发布晚于截止或时钟晚于抓取也拒绝。
 
 选择产物的 observation.eligibility **仍为 unverified**，缺口保留，core_admission_complete/official_output_allowed 均为 false。正文提取不证明页面修订 vintage，也不生成核心评分、阈值或风险行动。此范围是来源候选映射，不是完整五源接线或真实接口验收；PDF/Excel、完整序列、更多指标、核心 FactPacket 与来源 vintage 验证尚未完成。本轮仍只用合成发布页验证实现，真实市场 case 未启动。
+
+## B 接入进展：SEC 披露身份元数据
+
+SEC 1.1.0 新增 `company.filing_metadata`，params 恰为 cik/accession，限定同一 SEC provider 的 `/submissions/CIK##########.json`。只从 recent 原生列中选一次确切 accession，保留 filed/report_date/form/primary_document 和原始 acceptanceDateTime；未知、重复、缺列、无时区或未来时钟明确报缺口。filing-agent accession 前缀不要求等于公司 CIK。早期文件不自动下载，缺 accession 不换最新披露。
+
+`DataRun.select` 可同时绑定公司事实与元数据归档，核对 CIK/accession/form/filed/cutoff/原始哈希；report_date 是整份报表期末，不能替换比较期事实的原生 start/end。来源被标记 verified 的范围只是接口身份/日期检查，不包括公开可得时点：acceptance 原始字符串和 source-declared offset 分别保留，**不把 acceptance 当 public dissemination，也不自行校正源时区**。available_at=null、public_dissemination_certified=false，core_admission_complete/official_output_allowed 均为 false。
+
+本轮仅有合成列式响应验证：实际 SEC 配置仍缺失，浏览工具也无法读取该 JSON；未确认账户样本及所有历史形态。公开传播/修订验证、核心字段映射与同 run 宿主接线仍待补齐，不能以元数据能力完成宣告真实接口或五源准入完成。依据 [SEC Submissions API](https://www.sec.gov/search-filings/edgar-application-programming-interfaces) 与 [PDS 技术规范](https://www.sec.gov/info/edgar/specifications/pds-dissemination-spec022315.pdf) 保留接收、发布与已抓取的区别；不暗增 PDS 订阅或其他来源。
 
 ## Agent 数据边界与兼容变化
 

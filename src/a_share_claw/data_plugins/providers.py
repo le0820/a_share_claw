@@ -225,9 +225,11 @@ class FRED(Provider):
 
 
 class SEC(Provider):
-    manifest = Manifest("sec", ("company.facts",), ("data.sec.gov",), "SEC_USER_AGENT")
+    manifest = Manifest("sec", ("company.facts", "company.filing_metadata"), ("data.sec.gov",), "SEC_USER_AGENT",version="1.1.0")
 
     def fetch(self, r: Requirement) -> Payload:
+        if r.capability=="company.filing_metadata":
+            return self._filing_metadata(r)
         p = parameters(r, {"cik", "concepts", "start_date"}, {"cik", "concepts"})
         cik = identifier(p["cik"], r"\d{1,10}").zfill(10)
         concepts = p["concepts"]
@@ -236,9 +238,7 @@ class SEC(Provider):
         for concept in concepts:
             identifier(concept, r"(?:us-gaap|ifrs-full|dei):[A-Za-z0-9_]+")
         start = iso_date(p.get("start_date", "1900-01-01"))
-        contact = self.credential()
-        if "@" not in contact or "\n" in contact or "\r" in contact:
-            raise DataError("not_configured", "SEC_USER_AGENT must identify the application and contact email")
+        contact = self._contact()
         url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json"
         raw = self.transport.get(url, headers={"User-Agent": contact, "Accept": "application/json"})
         obj = json.loads(raw)
@@ -271,6 +271,56 @@ class SEC(Provider):
                        ["Facts preserve duration, units and all eligible filings; do not sum duplicate vintages",
                         "Standard entity-wide XBRL facts only; custom tags/segments and complete statement layouts are not reconstructed",
                         "SEC filed date is a date-level cutoff, not intraday acceptance timing"])
+
+
+    def _contact(self):
+        contact=self.credential()
+        if "@" not in contact or "\n" in contact or "\r" in contact:
+            raise DataError("not_configured", "SEC_USER_AGENT must identify the application and contact email")
+        return contact
+
+    def _filing_metadata(self, r: Requirement) -> Payload:
+        p=parameters(r,{"cik","accession"},{"cik","accession"})
+        cik=identifier(p["cik"],r"\d{1,10}").zfill(10)
+        accession=identifier(p["accession"],r"\d{10}-\d{2}-\d{6}")
+        contact=self._contact()
+        url=f"https://data.sec.gov/submissions/CIK{cik}.json"
+        raw=self.transport.get(url,headers={"User-Agent":contact,"Accept":"application/json"})
+        obj=json.loads(raw)
+        if str(obj["cik"]).zfill(10)!=cik:
+            raise DataError("source_mismatch","Submission CIK differs from the requested company")
+        columns=obj["filings"]["recent"]
+        keys=("accessionNumber","filingDate","reportDate","acceptanceDateTime","form","primaryDocument")
+        if any(not isinstance(columns.get(key),list) for key in keys):
+            raise DataError("invalid_schema","SEC recent filings must contain the expected native columns")
+        size=len(columns["accessionNumber"])
+        if any(len(columns[key])!=size for key in keys):
+            raise DataError("invalid_schema","SEC recent filing columns have unequal lengths")
+        indices=[i for i,value in enumerate(columns["accessionNumber"]) if value==accession]
+        if len(indices)!=1:
+            raise DataError("insufficient_coverage","Exact accession must appear once in the recent filings; no older-file or latest-filing fallback")
+        i=indices[0];row={key:columns[key][i] for key in keys}
+        if any(not isinstance(value,str) or not value.strip() for value in row.values()):
+            raise DataError("invalid_schema","Selected periodic filing metadata is incomplete")
+        filed,report=iso_date(row["filingDate"]),iso_date(row["reportDate"])
+        accepted=datetime.fromisoformat(row["acceptanceDateTime"].replace("Z","+00:00"))
+        if accepted.tzinfo is None:
+            raise DataError("invalid_schema","Keep only a source-declared timezone; do not guess the acceptance offset")
+        if (filed>r.as_of_date or report>filed or
+                accepted.astimezone(ZoneInfo("America/New_York")).date().isoformat()>r.as_of_date or
+                accepted>datetime.now(timezone.utc)):
+            raise DataError("future_data","Selected filing/report/declared acceptance exceeds the allowed date or capture clock")
+        if row["form"] not in {"10-K","10-Q","10-K/A","10-Q/A","20-F","20-F/A","40-F","40-F/A"}:
+            raise DataError("unsupported_filing_form","This mapping binds periodic company facts only")
+        document=identifier(row["primaryDocument"],r"[A-Za-z0-9._-]{1,256}")
+        return Payload({"cik":cik,"accession":accession,"filed":filed,"report_date":report,"form":row["form"],
+            "primary_document":document,"acceptance_timestamp_raw":row["acceptanceDateTime"],
+            "acceptance_timestamp_declared":accepted.isoformat(),"available_at":None,
+            "availability_precision":"filing_identity_with_declared_acceptance_only",
+            "public_dissemination_certified":False},raw,url,"verified",
+            ["Verified filing identity/date fields only; the declared API acceptance clock is not independently certified",
+             "Acceptance is distinct from public dissemination; never use it as intraday available_at",
+             "Recent filings only; older files require a separate explicit capability, not automatic fallback"])
 
 
 class TickFlow(Provider):

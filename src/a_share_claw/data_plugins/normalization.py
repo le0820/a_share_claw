@@ -52,7 +52,7 @@ def fred_observation(result,metadata,*,series_id,observation_date,units,frequenc
         "series_last_updated":identity["last_updated"]},[result,metadata])
 
 
-def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession):
+def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession,metadata=None):
     if any(not isinstance(v,str) or not v.strip() for v in (cik,concept,unit,accession)):
         raise DataError("invalid_request", "Company, concept, unit and accession must be explicit nonempty identifiers")
     data=checked_result(result,"sec","company.facts")
@@ -70,9 +70,24 @@ def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession):
     values={canonical(numeric(row["value"])) for row in rows}
     if len(values)!=1:
         raise DataError("source_disagreement", "The selected accession contains conflicting values")
-    return _selection("sec",{"cik":cik,"concept":concept,"unit":unit,"period_start":start,"period_end":end,
+    observation={"cik":cik,"concept":concept,"unit":unit,"period_start":start,"period_end":end,
         "filed":filing,"accession":accession,"form":rows[0].get("form"),"value":json.loads(next(iter(values))),
-        "available_at":None,"availability_precision":"filed_date_only"},[result])
+        "available_at":None,"availability_precision":"filed_date_only"}
+    inputs=[result]
+    if metadata is not None:
+        identity=checked_result(metadata,"sec","company.filing_metadata")
+        if (identity.get("cik")!=cik or identity.get("accession")!=accession or identity.get("filed")!=filing or
+                any(row.get("form")!=identity.get("form") for row in rows) or
+                metadata["provenance"].get("as_of_date")!=cutoff or end>iso_date(identity["report_date"])):
+            raise DataError("source_mismatch","Company fact and filing metadata must bind the same entity/accession/form/filed cutoff")
+        if identity.get("available_at") is not None or identity.get("public_dissemination_certified") is not False:
+            raise DataError("unverified_evidence","Filing identity metadata cannot certify public availability")
+        observation.update(report_date=identity["report_date"],primary_document=identity["primary_document"],
+            acceptance_timestamp_raw=identity["acceptance_timestamp_raw"],
+            acceptance_timestamp_declared=identity["acceptance_timestamp_declared"],
+            availability_precision=identity["availability_precision"],public_dissemination_certified=False)
+        inputs.append(metadata)
+    return _selection("sec",observation,inputs)
 
 
 def _selection(provider,observation,results):

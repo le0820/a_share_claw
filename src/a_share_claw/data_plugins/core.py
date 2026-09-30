@@ -301,9 +301,10 @@ class DataRun:
             selection=fred_observation(result,archived(metadata_requirement_id),**selector)
         elif result["capability"]=="company.facts":
             keys={"cik","concept","unit","period_start","period_end","filed","accession"}
-            if set(selector)!=keys or metadata_requirement_id is not None:
+            if set(selector)!=keys:
                 raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
-            selection=sec_fact(result,**selector)
+            metadata=archived(metadata_requirement_id) if metadata_requirement_id is not None else None
+            selection=sec_fact(result,metadata=metadata,**selector)
         elif result["capability"]=="macro.release":
             keys={"metric","year","month","period_kind"}
             if set(selector)!=keys or metadata_requirement_id is not None:
