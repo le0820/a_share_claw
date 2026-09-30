@@ -37,63 +37,11 @@ class ResearchContextBundle:
 
 BASE_CONTEXT_FILES = ("AGENTS.md", "README.md", "IDENTITY.md", "DATA_CONTRACT.md")
 
-COMMON_TOOL_NAMES = frozenset(
-    {
-        "get_a_share_quote",
-        "get_macro_series",
-        "web_search",
-        "fetch_url",
-        "read_text_file",
-        "remember",
-        "recall_memories",
-        "schedule_task",
-        "list_tasks",
-        "cancel_task",
-    }
-)
-_RESEARCH_READ_TOOLS = {
-    "get_system_state",
-    "get_compiled_rule",
-    "get_operation_manual",
-    "get_market_session_status",
-    "inspect_data_audit",
-}
+# Fail-closed Agent allowlist. Legacy web/MCP/bash/pipeline/file tools are not exposed.
+COMMON_TOOL_NAMES = frozenset({"list_data_plugins", "plan_data", "fetch_data", "data_gap_report"})
 WORKFLOW_TOOL_NAMES = {
-    ResearchWorkflow.GENERAL: COMMON_TOOL_NAMES | {"write_text_file", "run_bash"},
-    ResearchWorkflow.MIXED: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {
-        "run_macro_pipeline",
-        "run_ai_strategy",
-        "generate_daily_report",
-        "search_industry_research",
-        "write_text_file",
-        "assess_deepresearch_evidence",
-        "qveris_readonly_call",
-    },
-    ResearchWorkflow.MACRO: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {"run_macro_pipeline", "run_ai_strategy", "generate_daily_report"},
-    ResearchWorkflow.QUANT: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {"run_macro_pipeline", "run_ai_strategy", "write_text_file"},
-    ResearchWorkflow.COMPANY: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {
-        "search_industry_research",
-        "write_text_file",
-        "assess_deepresearch_evidence",
-        "qveris_readonly_call",
-    },
-    ResearchWorkflow.INDUSTRY: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {
-        "run_ai_strategy",
-        "search_industry_research",
-        "write_text_file",
-        "assess_deepresearch_evidence",
-        "qveris_readonly_call",
-    },
+    workflow: COMMON_TOOL_NAMES | {"get_compiled_rule", "get_market_session_status"}
+    for workflow in ResearchWorkflow
 }
 
 _MACRO_SCORING_TERMS = (
@@ -334,6 +282,8 @@ def build_research_context(
     config: AppConfig,
     context: ConversationContext,
     message: str,
+    *,
+    include_state: bool = True,
 ) -> ResearchContextBundle:
     route = classify_research_route(message)
     workflow = route.workflow
@@ -351,7 +301,10 @@ def build_research_context(
         sections.append(_render_section(relative, content))
 
     state_path, state_scope = resolve_system_state_path(config, context)
-    if state_path is None:
+    if not include_state:
+        state_scope = "withheld_plugin_only"
+        sections.append("## Data boundary\nLegacy portfolio state is withheld: it has no plugin provenance.")
+    elif state_path is None:
         sections.append(
             "## system_state\n"
             "Global portfolio state was withheld because this runtime is not configured as a single-user context."
@@ -374,9 +327,9 @@ def build_research_context(
                     + "\n".join(f"- {path}" for path in external_sources)
                 )
 
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.MACRO, ResearchWorkflow.QUANT}:
+    if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.MACRO, ResearchWorkflow.QUANT}:
         _append_file_section(config.root_dir, config.pipeline_dir / "OPERATIONS.md", sections, loaded, missing)
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
         content = _read_text(config.research_operations_path)
         label = _relative_label(config.root_dir, config.research_operations_path)
         if content is None:
@@ -400,7 +353,7 @@ def build_research_context(
         "Use only the loaded files below as active workspace policy. "
         "Archives and unloaded manuals are not startup context."
     )
-    if workflow is ResearchWorkflow.MIXED:
+    if include_state and workflow is ResearchWorkflow.MIXED:
         header += (
             "\nactive_slices: macro, deepresearch. Keep their evidence and outputs separate. "
             "For the macro slice, inspect_data_audit is preflight only: obey the host market-session "
@@ -408,7 +361,7 @@ def build_research_context(
             "after close when exact outputs are missing. Continue the deepresearch slice even while "
             "the same-day official macro run is waiting for close."
         )
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
         header += (
             "\nBefore collecting evidence, call get_operation_manual with "
             'workflow="industry" and section="执行协议". Follow its '

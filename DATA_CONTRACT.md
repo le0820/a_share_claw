@@ -15,7 +15,7 @@ If a user asks for July 1 market summary, data dated July 2 or later is forbidde
 
 ## Data Capability and Plugin Boundary
 
-Research requirements own data meaning; providers supply evidence. First form the research framework and its dated data requirements, inspect authorized existing artifacts, and then attach only the plugins needed for the remaining gaps. The plugin runtime is a design target in [HARNESS_DESIGN.md](HARNESS_DESIGN.md); current fetch scripts remain the compatibility path.
+Research requirements own data meaning; providers supply evidence. First form the research framework and its dated data requirements, inspect authorized existing artifacts, and then attach only the plugins needed for the remaining gaps. The five-source runtime is implemented in [DATA_PLUGINS.md](DATA_PLUGINS.md). Legacy fetch scripts remain manual maintenance tools and are not available to the Agent.
 
 - Each requirement identifies the capability/metric, universe, period/window, frequency, unit, adjustment method, availability cutoff, coverage threshold and required/optional status. Policy-disabled fields are not data gaps.
 - A plugin declares its capabilities, schema/version, supported dates/vintages, permissions, credential references and limits. Core code chooses by capability and contract compatibility, not a fixed provider import.
@@ -27,27 +27,16 @@ Research requirements own data meaning; providers supply evidence. First form th
 
 Model access alone is sufficient to develop the research framework, but it does not establish market or macro evidence. Local files and archived datasets may implement the same capability contract without an external network source.
 
-## Current Provider Mappings (Compatibility Defaults)
+## Current Agent Sources
 
-The table describes existing implementations and reference sources, not mandatory dependencies of the Harness core. Future plugins must preserve the semantic and date constraints in the Notes column; alternatives require an explicit eligible source mapping. Existing scoring keeps its current provider behavior until the plugin migration is implemented.
+| Capability | Selected source | Current eligibility |
+| --- | --- | --- |
+| China macro publications | NBS official website; PBC official website | Publication text/index; unverified until metric mapping and vintage validation |
+| Market quote/daily bars; corporate three statements | TickFlow | Native financial fields and explicit-adjustment bars; unverified pending account schema, units, disclosure/vintage and calendar validation |
+| US macro observations | FRED with explicit realtime vintage | Date/window/vintage validated; date-level rather than intraday availability |
+| US corporate facts | SEC Company Facts | Filed/end cutoff validated; preserve units, durations and accession IDs; missing concepts remain gaps |
 
-| Data Type | Primary Source | Backup / Verification | Notes |
-|:---|:---|:---|:---|
-| A-share/ETF daily K-line and quotes | `easy-tdx==1.20.4` | /caidazi | Current official-scoring adapter. Preserve QFQ semantics; this adapter uses context-managed `MacClient`/`MacExClient`. Other plugins must validate equivalent adjustment and date coverage. |
-| HK/US market K-line used by scoring | `easy-tdx MacExClient` | web/FMP/ | Must record last trade date used. |
-| CN macro monthly data | `akshare` script output or /cn_financial_pro | official publisher label | Record release period, not just fetch date. |
-| US Treasury yields | FRED | FMP/web source cross-check | Current-date runs may use current-vintage FRED graph CSV. Historical runs require an archived FRED/ALFRED artifact; current revisions cannot backfill history. |
-| VIX/SPX/Brent | FRED | web/FMP second source when action-relevant | Do not use embedded values for official reports. |
-| Dollar / put-call | FRED `DTWEXBGS` broad dollar; SSE official daily option statistics | exact DXY from a separately archived verified source | `DTWEXBGS` is broader than DXY and is never relabelled DXY. SSE growth-option PCR is calculated only from products whose code begins `588`. |
-| Hyperscaler capex / OCF / revenue / operating income | SEC Company Facts XBRL | company 10-Q/10-K | Only facts filed on or before `as_of_date` are eligible; company-wide revenue/profit are AI monetization proxies, not pure AI segment disclosure. |
-| A-share financing sentiment | SSE + SZSE official margin reports | SSE-only official proxy when SZSE history is incomplete | Same-day close signals use the latest margin report already published by that close; no same-day unpublished balance is used. An SSE-only replay is `unverified`, uses one consistent full-window scope, and must never be spliced onto earlier SSE+SZSE rows. |
-| AI tactical US macro | FRED (`DGS2/10/30`, `DFII5/10`, `VIXCLS`, `DTWEXBGS`, `BAA10Y`, `DCOILBRENTEU`, `NFCI`, CPI/PPI/PCE) | U.S. Treasury Daily Rates XML for newer nominal/TIPS observations; archived FRED/ALFRED vintage for history | ADD requires all 2Y/10Y/30Y/10Y TIPS moves over the same five-session window to be no higher; Brent >=5% over that window or >=$105/bbl vetoes ADD. Treasury rows may only append dates newer than the eligible FRED row and retain their own provenance. Historical current-vintage replay is allowed only by explicit flag and is always `unverified`. |
-| China CPI/PPI for AI macro | National Bureau of Statistics series via AkShare | NBS release page/archive | Use a conservative 45-day availability lag when an exact release timestamp is unavailable. Historical current-vintage replay remains `unverified`. |
-| GPU instance and token list price | Azure Retail Prices API; OpenRouter model catalog | provider official price pages | Snapshot-only. Do not score until a fixed GPU-quality/availability map or fixed token basket plus usage-volume series exists. |
-| ETF fundamentals / constituents | issuer/index provider filings acquired by the Agent host | Tavily/QVeris evidence | Optional research artifact, not an L2 scoring prerequisite. The deterministic adapter requires at least 80% observed holdings weight and never estimates residual constituents. |
-| Industry/company research | company filings, earnings calls, official docs | industry data/web search | Media and broker reports support, but do not replace primary documents. |
-
-TickFlow is deprecated in this workspace. Do not load `skills/tickflow` or use TickFlow examples as current operating guidance.
+The previous TickFlow deprecation is superseded by the owner's explicit source selection. No easy-tdx, AkShare, Tavily, QVeris or generic web fallback is available to the Agent. Legacy scripts below describe the retained manual pipeline, not the plugin-only Agent path. All five-source runs are research-only until validated inputs are integrated into the deterministic scoring/evaluation gate.
 
 ## Date Alignment
 
@@ -109,4 +98,4 @@ Structured outputs should include a `data_audit` block with source file paths an
 
 ## Optional Fundamental Evidence Contract
 
-The Agent host may materialize `data/raw/fundamental_inputs_<as_of_date>.json` after Tavily/QVeris evidence collection. Each holding requires `symbol`, 0..1 `weight`, `effective_date`, `publication_date`, `source`, and `source_url`. Each fundamental row requires `symbol`, `period_end`, `filing_date`, `publication_date`, `source`, `source_url`, plus at least one supported metric. `fetch_fundamental.py` validates and aggregates this into `fundamental_<as_of_date>.json`; neither file participates in the currently disabled L2 layer.
+The legacy manually supervised fundamental workflow may materialize `data/raw/fundamental_inputs_<as_of_date>.json` after Tavily/QVeris evidence collection. Each holding requires `symbol`, 0..1 `weight`, `effective_date`, `publication_date`, `source`, and `source_url`. Each fundamental row requires `symbol`, `period_end`, `filing_date`, `publication_date`, `source`, `source_url`, plus at least one supported metric. `fetch_fundamental.py` validates and aggregates this into `fundamental_<as_of_date>.json`; neither file participates in the currently disabled L2 layer.

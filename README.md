@@ -9,7 +9,7 @@
 
 `宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **架构修订（2026-09-30）**：本次确定环境无关与数据插件化的顶层设计。现有代码仍使用 OpenAI Agents SDK runner、直接绑定的数据脚本和可选 Telegram 入口；通用宿主接口、插件注册/热插拔与 Issue #1 的评估 trace 尚待实现。已有契约、研究角色/报告模板、评分与部分门禁可复用，不能因此宣称完整评估框架已经运行。
+> **已实现（2026-09-30）**：NBS、PBC、TickFlow、FRED、SEC 五个来源插件，计划先行、运行快照、来源限制和证据归档；Agent 所有外部取数只经插件。使用与限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。NBS/PBC 当前提供发布文本，TickFlow 尚待真实账户样本验收；旧评分流水线未迁移，Agent 暂只输出研究草稿与缺口。Issue #1 的完整评估/SQLite trace 仍未完成。
 
 ## 顶层设计
 
@@ -28,7 +28,7 @@
 - Telegram long polling 入口与白名单配置。
 - OpenAI Agents SDK runner，以及国产 OpenAI 兼容端点配置。
 - 宏观、量化、公司、行业和混合请求的确定性路由与工具 allowlist。
-- 宏观日度评分管线、产业研究取证 gate、可选 Tavily/QVeris MCP 适配。
+- 宏观日度评分管线、产业研究取证 gate 和旧 MCP 模块保留用于人工维护；均不再作为 Agent 取数入口。
 - AI 行业仓位叠加层的增长状态 + 战术信号原型（独立于 L2）。
 
 ### 不能因此宣称完成
@@ -47,7 +47,7 @@
 | 1. 宿主适配 | 本地 CLI/Telegram 基础已具备；通用适配未完成 | 所有入口提交统一请求，使用同一核心门禁 | 无 Telegram 配置也能运行；外部宿主与 CLI 对同一输入产生一致的契约检查和 trace；身份/权限显式映射 |
 | 2. 模型接入 | 独立 OpenAI 兼容端点基础已具备；宿主模型适配未完成 | 支持宿主提供模型或独立模型 URL 两种模式 | 核心不绑定模型 SDK；模型名、凭据引用、超时与预算明确；模型不可替代硬门禁 |
 | 3. 投研执行平面 | **进行中** | 将策略、数据契约、研究路由和受约束工具闭环 | 宏观与产业研究均按日期、来源、fallback 输出；正式宏观日更恢复；AI P0/P1 只有在正式数据可用时写入状态 |
-| 4. 数据插件与证据工作台 | 未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
+| 4. 数据插件与证据工作台 | 五源接口与入口限制已实现；数值归一化/评分迁移未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
 | 5. 短期上下文管理 | 未完成 | 管理每个会话的上下文生命周期和 token 预算 | 有保留窗口、摘要/压缩、恢复策略、上下文预算和回归测试；不会因历史无限增长而失控 |
 | 6. 长期记忆与隔离 | 未完成 | 只在允许的主体边界内检索、写入和注入记忆 | 采用 `workspace + principal + session + agent_key` 核心作用域，入口映射原 platform/user/chat；隔离、保留/删除和注入均有端到端测试 |
 | 7. 任务与 Cron 调度 | 未完成 | 可靠地创建、执行、重试、观测和取消一次性/周期性投研任务 | 支持明确时区与 cron/固定周期语义，具备幂等、失败重试、并发/错过执行策略、状态查询与通知验收 |
@@ -56,7 +56,7 @@
 
 ### 第 3 章当前工作
 
-第 3 章包含此前所有策略相关开发：L1/L3 评分、L2 禁用与权重重归一、数据日期/来源契约、宏观/研究路由、MCP evidence gate，以及 AI 行业仓位叠加层。新的开发顺序先收口可复用投研框架与数据需求，再补数据插件；已有固定管线作为迁移期间的兼容路径。
+第 3 章包含此前所有策略相关开发：L1/L3 评分、L2 禁用与权重重归一、数据日期/来源契约、宏观/研究路由、MCP evidence gate，以及 AI 行业仓位叠加层。新的开发顺序先收口可复用投研框架与数据需求，再补数据插件；已有固定管线仅保留人工兼容入口，不能绕过 Agent 的插件限制。
 
 最近已提交的 AI 战术加仓门禁除了流动性分位数，还要求 2Y、10Y、30Y 与 10Y TIPS 在同一五日窗口内均未上行，并且 Brent 不触发通胀冲击。其目的是避免“分位数看似宽松、绝对利率或油价实际恶化”时错误触发 `ADD`。新架构继续保留这些风险约束。
 
@@ -156,13 +156,13 @@ TELEGRAM_ALLOWED_USER_IDS=123456789
 python -m a_share_claw run
 ```
 
-当前 `run` 默认启动 Telegram，这是后续入口拆分需要调整的兼容行为；通用宿主命令与热插拔命令尚未提供。
+显式 `run` 启动可选 Telegram 适配；不带子命令只显示帮助。`data plugins/plan/fetch` 是模型无关宿主入口，注册表支持库级热插拔。
 
 > Telegram 在需要代理的网络环境中使用 `HTTPS_PROXY` / `HTTP_PROXY`；模型客户端默认 `trust_env=False` 并直连国产端点。若确实需要让模型走系统代理，设置 `ASCLAW_MODEL_TRUST_ENV=1`，并确认已安装 `socksio`。
 
 ## 第 3 章运行入口
 
-以下是现有固定管线的兼容入口。目标插件路径先生成研究框架和数据需求，只对未满足的必需输入执行获取；评分、报告与数据获取分开。正式宏观评分必须显式传入日期，并在收盘门禁通过后运行：
+以下旧命令仅供人工维护，仍包含五源以外的旧供应商。Agent 不得调用；迁移为插件输入前，不属于五源 Harness 的正式输出路径。历史计算回归保留，日期与风控约束不变：
 
 ```bash
 AS_OF_DATE=YYYYMMDD
@@ -191,30 +191,27 @@ uv run python run_ai_position.py --date "$AS_OF_DATE" --current-ai-pct 57.5
 
 历史 AI 回放需要显式使用每个脚本的 research-only/unverified 开关；这类产物不能更新 `system_state.json`。完整参数和失败处理以 [OPERATIONS.md](src/pipeline/OPERATIONS.md) 为准。
 
-## MCP 与工具边界
+## 插件与工具边界
 
-Tavily 和 QVeris 是当前可选外部取证适配，不承载内部评分规则或运行状态。MCP 是一种插件传输方式；当前 MCP 配置不等于统一数据插件注册表，也尚未按数据缺口延迟加载。配置示例在 `.mcp.example.json`，真实密钥只放在已忽略的 `.env`：
+参阅 [DATA_PLUGINS.md](DATA_PLUGINS.md) 配置五源和查看 JSON 计划例子：
 
 ```bash
-TAVILY_API_KEY=
-TAVILY_HUMAN_ID=
-QVERIS_API_KEY=
-QVERIS_REGION=
-QVERIS_MAX_RETRIES=3
+uv sync --locked --extra dev
+uv run --locked python -m a_share_claw data plugins
+uv run --locked python -m a_share_claw data plan examples/data-plan.json
+uv run --locked python -m a_share_claw data fetch examples/data-plan.json
 ```
 
-- 纯宏观、ETF 仓位和量化请求不会加载 deep-research MCP。
-- `mixed`、公司和产业链请求可使用 Tavily/QVeris；QVeris 读取须经 `discover -> inspect -> evidence gate -> 一次 readonly call -> 再评估`。
-- `run_bash` 默认关闭；正式投研评分只通过固定领域工具和 pipeline，不允许由模型自由拼接命令。
+Agent 只暴露计划、清单、插件取数、缺口报告和本地规则/时钟工具。通用网页、MCP、Bash、Codex 扩展、文件读写与旧 pipeline 均不暴露；旧开关不能绕过。`.mcp.example.json` 只作为旧接口参考。无来源/凭据时交付缺口，不能用模型知识补数。外部宿主还需限制自己的其他取数工具；CLI 不会替宿主建立系统级沙箱。
 
 ## 当前已知技术债务
 
-- 现有 `SQLiteSession` 只保存会话历史，并不解决短期上下文生命周期管理。
+- 旧 `SQLiteSession` 历史保留，但不再注入新 Agent 运行，避免携入未验证网页/工具证据；可验证跨轮上下文尚待实现。
 - 现有长期记忆是按 `user_id` 的文件追加和 SQLite 查询；它尚未满足按 `platform + user + chat + agent_key` 的严格隔离要求。
 - 新的环境无关作用域需要从现有 platform/user/chat 映射，并保留历史会话数据；当前隔离机制仍需迁移与验证。
 - 现有 `Scheduler` 是 host 进程内的 SQLite polling loop，只支持一次性或秒级周期；它不是完成态的 cron 服务。
 - `loop-engineer`、离线评测、变更审批和策略自提升控制面尚未开始建设。
-- 数据供应商仍直接绑定在 runtime 与 fetch 脚本中；能力注册、缺口驱动加载、插件快照和热插拔尚未实现。
+- 插件取数入口已实现；旧 fetch/compute/report 的输入迁移、跨运行缓存/回放和正式状态提升仍未完成。
 
 ## 参考
 

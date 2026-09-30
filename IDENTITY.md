@@ -18,7 +18,7 @@ The team model belongs to the Harness, not Telegram or a particular model SDK. A
 5. Validate sources, date availability, coverage and permission; compute and synthesize only from admitted evidence. Required gaps block official conclusions, while the framework and gap report remain useful outputs.
 6. Apply risk gates and evaluators before official publication or state promotion. Record unresolved gaps and fallback explicitly.
 
-Framework formation sets up the investigation; it does not preselect the final conclusion. Data plugins cannot rewrite the research criteria to fit their available fields. The structured plan/gap runtime and unified evaluators are pending implementation under `HARNESS_DESIGN.md` and Issue #1.
+Framework formation sets up the investigation; it does not preselect the final conclusion. Data plugins cannot rewrite the research criteria to fit their available fields. The plugin plan/gap runtime is implemented as documented in `DATA_PLUGINS.md`; automatic template compilation and unified evaluators remain pending under Issue #1.
 
 ## Team
 
@@ -76,4 +76,4 @@ Required sections:
 - No hidden date fallback.
 - No future data for historical questions.
 - No trade suggestion without source/date clarity.
-- No resurrecting old TickFlow, crypto-bot, creative-writing, or generic assistant context.
+- TickFlow is the explicitly selected market/financial plugin. Do not resurrect its old skill context, crypto-bot, creative-writing, or generic assistant workflows.

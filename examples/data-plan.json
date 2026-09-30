@@ -1,0 +1,13 @@
+{
+  "framework": "研究2026年8月初利率与企业财务证据。先确认宏观利率，再核对三表与官网发布；未验证来源维持缺口，不输出正式仓位结论。",
+  "requirements": [
+    {"requirement_id":"us-rates","provider":"fred","capability":"macro.series","as_of_date":"2026-08-01","params":{"series_id":"DGS10","start_date":"2026-07-01","end_date":"2026-07-31"}},
+    {"requirement_id":"us-assets","provider":"sec","capability":"company.facts","as_of_date":"2026-08-01","params":{"cik":"320193","concepts":["us-gaap:Assets","us-gaap:NetIncomeLoss","us-gaap:NetCashProvidedByUsedInOperatingActivities"],"start_date":"2025-01-01"}},
+    {"requirement_id":"cn-income","provider":"tickflow","capability":"financial.income","as_of_date":"2026-08-01","params":{"symbols":["600519.SH"],"start_date":"2025-01-01","end_date":"2026-06-30"}},
+    {"requirement_id":"cn-balance","provider":"tickflow","capability":"financial.balance_sheet","as_of_date":"2026-08-01","params":{"symbols":["600519.SH"],"start_date":"2025-01-01","end_date":"2026-06-30"}},
+    {"requirement_id":"cn-cashflow","provider":"tickflow","capability":"financial.cash_flow","as_of_date":"2026-08-01","params":{"symbols":["600519.SH"],"start_date":"2025-01-01","end_date":"2026-06-30"}},
+    {"requirement_id":"cn-bars","provider":"tickflow","capability":"market.daily_bars","as_of_date":"2026-08-01","params":{"symbol":"600519.SH","start_date":"2026-07-01","end_date":"2026-07-31","adjust":"none"}},
+    {"requirement_id":"nbs-discovery","provider":"nbs","capability":"macro.release_index","as_of_date":"2026-08-01","params":{},"required":false},
+    {"requirement_id":"pbc-discovery","provider":"pbc","capability":"macro.release_index","as_of_date":"2026-08-01","params":{},"required":false}
+  ]
+}

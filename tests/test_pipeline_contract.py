@@ -169,7 +169,7 @@ class PipelineContractTest(unittest.TestCase):
     def test_synthetic_pipeline_is_date_safe_and_does_not_rewind_state(self) -> None:
         pipeline_python = ROOT / "src" / "pipeline" / ".venv" / "bin" / "python"
         if not pipeline_python.is_file():
-            self.skipTest("pipeline environment is not synchronized")
+            pipeline_python = Path(sys.executable)  # dev extra includes offline compute dependencies
         with TemporaryDirectory() as raw:
             data_root = Path(raw)
             market_dir = data_root / "raw" / "market"

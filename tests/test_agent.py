@@ -70,166 +70,67 @@ class ModelClientTest(unittest.IsolatedAsyncioTestCase):
             # not installed" from the tracing exporter's httpx.Client.
             agent._configure_model_client()
 
-    async def test_macro_request_receives_routed_domain_tools(self) -> None:
+    async def test_all_routes_only_expose_plugins_even_with_legacy_flags(self) -> None:
+        import json
+        from a_share_claw.research_context import tool_names_for_workflow, ResearchWorkflow
+        from a_share_claw.data_plugins import default_registry
         with TemporaryDirectory() as raw_dir:
             root = Path(raw_dir)
             for name in ("AGENTS.md", "README.md", "IDENTITY.md", "DATA_CONTRACT.md"):
                 (root / name).write_text(f"# {name}\n", encoding="utf-8")
-            (root / "src" / "pipeline").mkdir(parents=True)
-            (root / "src" / "pipeline" / "OPERATIONS.md").write_text("# Macro Operations\n", encoding="utf-8")
-            (root / "src" / "compiled").mkdir(parents=True)
-            (root / "data" / "state").mkdir(parents=True)
-            (root / "data" / "state" / "system_state.json").write_text("{}", encoding="utf-8")
-
-            config = dataclasses.replace(
-                AppConfig.from_env(root),
-                model_base_url=None,
-                model_api_key=None,
-                model_name="test-model",
-                skill_dirs=(),
-                plugin_dirs=(),
-            )
+            config = dataclasses.replace(AppConfig.from_env(root), model_base_url=None, model_api_key=None,
+                                         skill_dirs=(), plugin_dirs=(), enable_bash=True, enable_codex_tool=True)
             config.ensure_dirs()
+            config.system_state_path.parent.mkdir(parents=True, exist_ok=True)
+            config.system_state_path.write_text('{"secret_marker":"LEGACY_DATA_MUST_NOT_ENTER"}')
             storage = Storage(config.database_path)
             storage.init()
             context = storage.get_or_create_context("local", "local", "local", "Local")
             investment_agent = InvestmentAgent(config, storage)
-            captured: dict[str, object] = {}
+            investment_agent.memory.remember(context.user_id, "old", "MEMORY_MUST_NOT_ENTER", [])
+            captured = {}
 
-            async def fake_runner(agent, message, session=None):
-                captured["tools"] = {tool.name for tool in agent.tools}
+            async def invoke(tool, arguments):
+                from agents.tool_context import ToolContext
+                ctx = ToolContext(context=None, tool_name=tool.name, tool_call_id="test-call", tool_arguments=arguments)
+                return await tool.on_invoke_tool(ctx, arguments)
+
+            async def fake_runner(agent, message, **kwargs):
+                self.assertNotIn("session", kwargs)  # old SDK tool evidence must not be replayed
+                captured["tools"] = {tool.name: tool for tool in agent.tools}
                 captured["instructions"] = agent.instructions
-                return SimpleNamespace(final_output="ok")
+                self.assertEqual(agent.mcp_servers, [])
+                self.assertNotIn("LEGACY_DATA_MUST_NOT_ENTER", agent.instructions)
+                self.assertNotIn("MEMORY_MUST_NOT_ENTER", agent.instructions)
+                fetch = captured["tools"]["fetch_data"]
+                denied = json.loads(await invoke(fetch, '{"requirement_id":"rates"}'))
+                self.assertEqual(denied["error_code"], "plan_required")
+                plan = {"framework": "Study rates before drawing a conclusion", "requirements": [{
+                    "requirement_id": "rates", "provider": "fred", "capability": "macro.series",
+                    "as_of_date": "2026-08-01", "params": {"series_id": "DGS10", "start_date": "2026-07-01"}}]}
+                await invoke(captured["tools"]["plan_data"], json.dumps({"plan_json": json.dumps(plan)}))
+                result = json.loads(await invoke(fetch, '{"requirement_id":"rates"}'))
+                self.assertEqual(result["error_code"], "not_configured")
+                return SimpleNamespace(final_output="Research framework with an explicit data gap")
 
-            with patch.object(investment_agent, "_configure_model_client"), patch("agents.Runner.run", new=fake_runner):
-                output = await investment_agent._run_agents_sdk(context, "请生成 L1/L2/L3 宏观评分")
-
-            self.assertEqual(output, "ok")
-            tools = captured["tools"]
-            self.assertIn("run_macro_pipeline", tools)
-            self.assertIn("inspect_data_audit", tools)
-            self.assertNotIn("run_bash", tools)
-            self.assertNotIn("write_text_file", tools)
-            self.assertIn("workflow: macro", captured["instructions"])
+            cases = [("你好", "general"), ("每日评分和公司财报", "mixed"),
+                     ("L1/L2/L3宏观评分", "macro"), ("回测最大回撤", "quant"),
+                     ("个股调研现金流", "company"), ("半导体产业链", "industry")]
+            providers = default_registry().snapshot({})
+            with patch.object(investment_agent, "_configure_model_client"), \
+                 patch("a_share_claw.data_plugins.core.Registry.snapshot", return_value=providers), \
+                 patch("agents.Runner.run", new=fake_runner), \
+                 patch("a_share_claw.mcp.enter_mcp_servers", side_effect=AssertionError("No MCP")), \
+                 patch("urllib.request.build_opener", side_effect=AssertionError("No network without credentials")):
+                for message, workflow in cases:
+                    with self.subTest(workflow=workflow):
+                        output = await investment_agent._run_agents_sdk(context, message)
+                        self.assertIn('"official_output_allowed": false', output)
+                        self.assertIn("workflow: " + workflow, captured["instructions"])
+                        self.assertEqual(set(captured["tools"]), set(tool_names_for_workflow(ResearchWorkflow(workflow))))
+                        self.assertEqual(len(captured["tools"]), 6)
+            self.assertEqual(investment_agent._optional_codex_tools(), [])
             storage.close()
-
-    async def test_real_requests_receive_only_workflow_tools_without_calling_model(self) -> None:
-        with TemporaryDirectory() as raw_dir:
-            root = Path(raw_dir)
-            for name in ("AGENTS.md", "README.md", "IDENTITY.md", "DATA_CONTRACT.md"):
-                (root / name).write_text(f"# {name}\n", encoding="utf-8")
-            (root / "src" / "pipeline").mkdir(parents=True)
-            (root / "src" / "pipeline" / "OPERATIONS.md").write_text(
-                "# Macro Operations\n",
-                encoding="utf-8",
-            )
-            (root / "src" / "compiled").mkdir(parents=True)
-            (root / "data" / "deepresearch").mkdir(parents=True)
-            (root / "data" / "deepresearch" / "OPERATIONS.md").write_text(
-                "# Industry Operations\n\n## Active Contract\nUse dated primary evidence.\n",
-                encoding="utf-8",
-            )
-            (root / "data" / "state").mkdir(parents=True)
-            (root / "data" / "state" / "system_state.json").write_text("{}", encoding="utf-8")
-
-            config = dataclasses.replace(
-                AppConfig.from_env(root),
-                model_base_url=None,
-                model_api_key=None,
-                model_name="test-model",
-                timezone="America/Los_Angeles",
-                market_timezone="Asia/Shanghai",
-                skill_dirs=(),
-                plugin_dirs=(),
-                enable_codex_tool=False,
-            )
-            config.ensure_dirs()
-            storage = Storage(config.database_path)
-            storage.init()
-            context = storage.get_or_create_context("local", "local", "local", "Local")
-            investment_agent = InvestmentAgent(config, storage)
-            captured: dict[str, object] = {}
-
-            async def fake_runner(agent, message, session=None):
-                captured["tools"] = {tool.name for tool in agent.tools}
-                captured["instructions"] = agent.instructions
-                return SimpleNamespace(final_output="ok")
-
-            cases = (
-                (
-                    "针对北京时间7月13日与美东时间7月10日的市场走势和A股最新业绩预告，运行北京时间7月14的每日评分数据管线、7月14日市场前瞻分析展望和7月13日市场总结并交由团队进行分析与分数判断。",
-                    "mixed",
-                    {
-                        "get_market_session_status",
-                        "get_system_state",
-                        "run_macro_pipeline",
-                        "inspect_data_audit",
-                        "search_industry_research",
-                        "assess_deepresearch_evidence",
-                        "qveris_readonly_call",
-                        "write_text_file",
-                    },
-                    {"run_bash"},
-                ),
-                (
-                    "测试工具、上下文、数据接口。但不调用模型。数据交由你来分析A股7月14日早盘行情，并评估是否可以对159682、159516进行加仓？",
-                    "macro",
-                    {"get_system_state", "run_macro_pipeline", "inspect_data_audit"},
-                    {"run_bash", "write_text_file", "search_industry_research"},
-                ),
-                (
-                    "用过去三年数据回测159682的20日均线策略，并给最大回撤和夏普比率",
-                    "quant",
-                    {"get_system_state", "run_macro_pipeline", "write_text_file"},
-                    {"run_bash", "generate_daily_report", "search_industry_research"},
-                ),
-                (
-                    "个股调研：分析宁德时代2026年一季报、现金流、ROE和估值",
-                    "company",
-                    {
-                        "get_system_state",
-                        "search_industry_research",
-                        "inspect_data_audit",
-                        "write_text_file",
-                        "assess_deepresearch_evidence",
-                        "qveris_readonly_call",
-                    },
-                    {"run_bash", "run_macro_pipeline", "generate_daily_report"},
-                ),
-                (
-                    "梳理半导体设备产业链、上下游和利润池",
-                    "industry",
-                    {
-                        "get_system_state",
-                        "search_industry_research",
-                        "inspect_data_audit",
-                        "write_text_file",
-                        "assess_deepresearch_evidence",
-                        "qveris_readonly_call",
-                    },
-                    {"run_bash", "run_macro_pipeline", "generate_daily_report"},
-                ),
-            )
-
-            try:
-                with patch.object(investment_agent, "_configure_model_client"), patch.object(
-                    investment_agent,
-                    "_optional_codex_tools",
-                    side_effect=AssertionError("investment workflows must not open the broad Codex tool"),
-                ), patch("agents.Runner.run", new=fake_runner):
-                    for message, workflow, required, forbidden in cases:
-                        with self.subTest(workflow=workflow):
-                            output = await investment_agent._run_agents_sdk(context, message)
-                            self.assertEqual(output, "ok")
-                            tools = captured["tools"]
-                            self.assertTrue(required <= tools)
-                            self.assertTrue(forbidden.isdisjoint(tools))
-                            instructions = captured["instructions"]
-                            self.assertIn(f"workflow: {workflow}", instructions)
-                            self.assertIn("默认时区：America/Los_Angeles", instructions)
-                            self.assertIn("市场时区：Asia/Shanghai", instructions)
-            finally:
-                storage.close()
 
 
 if __name__ == "__main__":

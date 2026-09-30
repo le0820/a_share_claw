@@ -1,6 +1,6 @@
 # a_share_claw Harness 顶层设计
 
-修订日期：2026-09-30。本文是目标架构与实施边界；文中新增接口名均为待实现契约，不代表已有命令或集成。与 [README.md](README.md)、[研究角色与模板](IDENTITY.md)、[数据契约](DATA_CONTRACT.md) 配合使用；评估建设继续由 [Issue #1](https://github.com/le0820/a_share_claw/issues/1) 跟踪。
+修订日期：2026-09-30。本文保留目标架构；已落地的五源插件、计划/缺口、运行快照、文件归档和 Agent 来源限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。下文未标为已实现的统一请求、evaluator、SQLite trace 与宿主专用集成仍是目标。与 [README.md](README.md)、[研究角色与模板](IDENTITY.md)、[数据契约](DATA_CONTRACT.md) 配合使用；评估建设继续由 [Issue #1](https://github.com/le0820/a_share_claw/issues/1) 跟踪。
 
 ## 1. 产品主体与分层
 
@@ -15,7 +15,7 @@ a_share_claw 是可移植的投研 Harness。研究框架由问题、分析模�
 
 依赖方向是适配器/插件实现核心接口，核心按协议调用。数据获取与评分计算分离；插件返回数据，核心控制规则。外部 Agent 的 prompt、角色演绎或成功回复均不能代替可执行的校验与门禁。
 
-已有基础：`DATA_CONTRACT.md`、研究角色/输出模板、compiled 规则、确定性路由、评分管线、部分市场时点/状态/MCP 门禁及 L0 回归测试。未完成：统一宿主接口、结构化研究计划/缺口、插件注册和热插拔、run trace、固定回放和统一 evaluator。评估与风控是主体职责，但完整评估框架仍需建设。
+已有基础：`DATA_CONTRACT.md`、研究角色/输出模板、compiled 规则、确定性路由、评分管线、部分市场时点/状态/MCP 门禁及 L0 回归测试。已实现：显式 JSON 研究计划/缺口、五源插件注册/热插拔与运行快照、文件证据归档。未完成：模板自动编译、统一宿主接口、全链路 run trace、跨运行固定回放和统一 evaluator。评估与风控是主体职责，但完整评估框架仍需建设。
 
 ## 2. 运行模式
 
@@ -106,4 +106,8 @@ E0 trace 从入口到结束统一记录请求与 scope、host/model adapter、�
 
 首批迁移验收：无 Telegram/外部数据凭据可生成框架与缺口；相同归档输入在 CLI 与宿主桥接下通过相同硬门禁；新增 provider 不改核心；缺口为空时无外部连接；插件替换后旧 run 仍用原快照；错误 schema、未来数据、缺 provenance 和跨用户状态均被拦截；缺必需项不产生 official action/state。
 
-当前版本不提供新增 host/plugin CLI 命令，代码布局也暂不搬动。后续模块按 core、host/model adapters、data plugins、storage 四个边界迁移；既有 fetch 脚本与 Telegram 路径保留到兼容回归通过，再逐步替换。
+当前已提供 `data plugins/plan/fetch` CLI 和 `data_plugins` 库；专用宿主桥接尚未验收。后续模块按 core、host/model adapters、data plugins、storage 四个边界迁移；既有 fetch 脚本与 Telegram 路径保留到兼容回归通过，再逐步替换。
+
+## 本轮实施覆盖
+
+本轮优先落地五个来源及数据入口约束，不宣称完成上述全部阶段。Agent 已移除旧 fetch/MCP/自由执行工具，并暂时停用旧 SDK 会话/记忆/状态的数据注入。旧流水线保留人工入口，但不能作为 Agent 的绕过路径；正式评分和自动状态提升需等待插件输入迁移。实现、限制、可复现命令与下一步均以 [DATA_PLUGINS.md](DATA_PLUGINS.md) 为准。

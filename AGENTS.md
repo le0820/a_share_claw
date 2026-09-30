@@ -10,7 +10,7 @@ Load only these files at the start of a new task:
 2. `IDENTITY.md` - five-role research team and routing rules
 3. `DATA_CONTRACT.md` - data source, date, and fallback rules
 4. The authorized scoped state, if present; `data/state/system_state.json` is only a personal-mode state path, not an unconditional startup load for every host/user
-5. `HARNESS_DESIGN.md` only for architecture, host adaptation or plugin work
+5. `HARNESS_DESIGN.md` and `DATA_PLUGINS.md` for architecture, host adaptation or plugin work
 6. `src/pipeline/OPERATIONS.md` or `data/deepresearch/OPERATIONS.md` only when the task needs execution detail
 
 Do not load `MEMORY.md`, `memory/YYYY-MM-DD.md`, `journal/`, `analysis/`, or full SOP prose during startup. Those are archives and evidence stores; open them only when a specific question requires them.
@@ -39,7 +39,7 @@ The system has one team model:
 - Every official output must state `as_of_date`, source files, release dates when known, and whether fallback data was used.
 - Never answer a date-specific market question with data later than the requested date unless the user explicitly asks for a live update.
 - No silent fallback. If exact data is missing, either stop or label a stale fallback explicitly.
-- Current provider mappings (including `easy-tdx`) are compatibility defaults, not core dependencies. Replacements must satisfy `DATA_CONTRACT.md`, explicitly record source selection and preserve reproducible artifacts. TickFlow remains deprecated.
+- Agent acquisition is exclusively through the five registered sources: NBS, PBC, TickFlow, FRED and SEC. TickFlow is explicitly selected by the owner and supersedes its earlier deprecation. Legacy fetch/MCP/Bash/file tools must not be re-exposed as a shortcut. See `DATA_PLUGINS.md` for capability limitations.
 - Do not revive creative writing scripts or identities.
 - Treat cross-session and cross-user context leakage as a bug.
 
@@ -47,4 +47,4 @@ The system has one team model:
 
 Keep this workspace small. New docs should be short, indexed, and connected to the two active workflows. Put dated pipeline outputs under `data/`, research reports under `data/research/output/`, and one-off archives under existing archive folders without adding them to startup context.
 
-Clearly label proposed interfaces and missing implementations. The existing routing tests and schema-archival tests do not establish an implemented evaluation Harness, trace repository or hot-swappable plugin runtime.
+Clearly label proposed interfaces and missing implementations. The plugin runtime and file evidence archives are implemented; they do not establish the complete evaluator or SQLite trace required by Issue #1. Do not mark unverified publication/native financial payloads as official scoring inputs.
