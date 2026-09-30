@@ -40,85 +40,75 @@ def test_rule_tool_keeps_policy_and_removes_historical_observations(host):
 
 
 def test_agent_blocks_unsafe_prose_and_records_each_model_request(host):
-    config, storage, context, _ = host
-    agent = InvestmentAgent(config, storage)
-    async def fake_runner(sdk_agent, message, *, hooks):
-        for i in range(2):
-            await hooks.on_llm_start(None, sdk_agent, sdk_agent.instructions, [{"role": "user", "content": message}])
-            response = SimpleNamespace(usage=SimpleNamespace(input_tokens=10+i, output_tokens=2), response_id=str(i))
-            await hooks.on_llm_end(None, sdk_agent, response)
-        return SimpleNamespace(final_output="正式评分已通过，立即加仓至70%。")
-    async def exercise():
-        with patch.object(agent, "_configure_model_client"), patch("agents.Runner.run", new=fake_runner), \
-             patch("a_share_claw.data_plugins.core.Registry.snapshot", return_value={}):
-            outcome = await agent.run_result(context, "2026-07-13 数据缺失，请给正式加仓结论")
-        assert outcome.status == RunStatus.BLOCKED and outcome.action == "NO_ACTION"
-        assert "立即加仓" not in outcome.output and "NO_ACTION" in outcome.output
-        trace = TraceRepository(storage).read(outcome.run_id, Scope.from_context(ROOT, context))
-        assert len(trace["model_calls"]) == 2
-        assert all(row["status"] == "ok" for row in trace["model_calls"])
-        assert all(row["detail"]["cached_read_tokens"] is None and row["detail"]["cache_hit"] is None for row in trace["model_calls"])
-        assert [row["detail"]["call_index"] for row in trace["model_calls"]] == [1, 2]
-        assert trace["model_calls"][1]["detail"]["previous_call_id"] == trace["model_calls"][0]["id"]
-        assert trace["request"]["as_of_date"] == DAY
-        assert trace["outcome"]["official_output_allowed"] is False
-    asyncio.run(exercise())
+    from test_harness_framework import FrameworkEndpoint
+    from test_sdk_research import configured
+    config,storage,context,_=host;agent=InvestmentAgent(configured(config),storage);endpoint=FrameworkEndpoint()
+    with patch("a_share_claw.agent.build_model_client",side_effect=endpoint.client):
+        outcome=asyncio.run(agent.run_result(context,"2026-07-13 分析合成供应商产业链，不得虚构加仓"))
+    assert outcome.status==RunStatus.BLOCKED and outcome.action=="NO_ACTION"
+    trace=TraceRepository(storage).read(outcome.run_id,Scope.from_context(ROOT,context))
+    assert len(trace["model_calls"])==2 and not trace["tool_calls"]
+    assert all(row["status"]=="ok" for row in trace["model_calls"])
+    assert all(row["detail"]["cached_read_tokens"] is None and row["detail"]["cache_hit"] is None for row in trace["model_calls"])
+    assert trace["request"]["as_of_date"]==DAY
+    assert json.loads(outcome.output)["error_code"]=="missing_required_data"
+    assert not outcome.official_output_allowed
 
 
 def test_fake_failure_and_cancellation_all_have_terminal_runs(host):
-    config, storage, context, _ = host
+    from test_harness_framework import FrameworkEndpoint
+    from test_sdk_research import configured
+    config,storage,context,_=host
     async def exercise():
-        fake = InvestmentAgent(dataclasses.replace(config, fake_ai=True), storage)
-        result = await fake.run_result(context, "fake offline request")
-        assert result.status == RunStatus.SUCCEEDED
-        failed = InvestmentAgent(config, storage)
-        async def fail(*args, **kwargs): raise RuntimeError("api_key=credential-marker")
-        with patch.object(failed, "_run_agents_sdk", new=fail):
-            result = await failed.run_result(context, "test failure")
-        assert result.status == RunStatus.FAILED and "credential-marker" not in result.output
-        async def cancelled(*args, **kwargs): raise asyncio.CancelledError()
-        with patch.object(failed, "_run_agents_sdk", new=cancelled):
-            with pytest.raises(asyncio.CancelledError): await failed.run_result(context, "test cancellation")
-        statuses = {row["status"] for row in TraceRepository(storage).list_runs(Scope.from_context(ROOT, context))}
-        assert statuses == {"succeeded", "failed", "cancelled"}
+        result=await InvestmentAgent(dataclasses.replace(config,fake_ai=True),storage).run_result(context,"fake offline request")
+        assert result.status==RunStatus.SUCCEEDED
+        failed=InvestmentAgent(configured(config),storage)
+        async def failure(*args,**kwargs):raise RuntimeError("api_key=credential-marker")
+        with patch("agents.Runner.run",new=failure):
+            result=await failed.run_result(context,"2026-07-13 分析合成产业链")
+        assert result.status==RunStatus.FAILED and "credential-marker" not in result.output
+        with patch("a_share_claw.sdk_research.SDKResearchAdapter._framework",new=failure):
+            # A model exception is normalized by core, not rethrown into the host.
+            result=await failed.run_result(context,"2026-07-13 分析合成产业链")
+        assert result.status==RunStatus.FAILED
+        async def cancelled(*args,**kwargs):raise asyncio.CancelledError()
+        with patch("agents.Runner.run",new=cancelled):
+            result=await failed.run_result(context,"2026-07-13 分析合成产业链")
+        assert result.status==RunStatus.CANCELLED
+        statuses={row["status"] for row in TraceRepository(storage).list_runs(Scope.from_context(ROOT,context))}
+        assert statuses=={"succeeded","failed","cancelled"}
     asyncio.run(exercise())
 
 
 def test_model_declared_empty_plan_cannot_complete_macro_workflow(host):
-    from agents import RunContextWrapper
-    from agents.tool_context import ToolContext
-    config, storage, context, _ = host
-    agent = InvestmentAgent(config, storage)
-    async def fake_runner(sdk_agent, message, *, hooks):
-        tool = next(tool for tool in sdk_agent.tools if tool.name == "plan_data")
-        arguments = json.dumps({"plan_json": json.dumps({"framework": "Macro framework", "requirements": []})})
-        tool_context = ToolContext.from_agent_context(RunContextWrapper(context=None), "fixture-call", agent=sdk_agent,
-                                                      tool_name="plan_data", tool_arguments=arguments)
-        result = await tool.on_invoke_tool(tool_context, arguments)
-        assert json.loads(result)["data"]["required_data_complete"] is True
-        return SimpleNamespace(final_output="Macro workflow completed")
-    async def exercise():
-        with patch.object(agent, "_configure_model_client"), patch("agents.Runner.run", new=fake_runner), \
-             patch("a_share_claw.data_plugins.core.Registry.snapshot", return_value={}):
-            outcome = await agent.run_result(context, "2026-07-13 正式宏观评分")
-        assert outcome.status == RunStatus.BLOCKED and outcome.action == "NO_ACTION"
-        trace = TraceRepository(storage).read(outcome.run_id, Scope.from_context(ROOT, context))
-        assert len(trace["tool_calls"]) == 1
-        assert next(row["detail"] for row in trace["run_steps"] if row["stage"] == "business_gate")["status"] == "core_evaluation_pending"
-    asyncio.run(exercise())
+    from test_harness_framework import review
+    from test_sdk_research import configured
+    config,storage,context,_=host;agent=InvestmentAgent(configured(config),storage)
+    async def runner(sdk_agent,message,**kwargs):
+        entry=json.loads(message)
+        if "candidate" in entry:
+            from a_share_claw.harness.research import RoleRequest
+            result=review(RoleRequest(message,30))
+        else:result={"framework":"Synthetic macro framework","parameters":{},"unresolved_constraints":[]}
+        assert not sdk_agent.tools
+        return SimpleNamespace(final_output=json.dumps(result))
+    with patch("agents.Runner.run",new=runner):
+        outcome=asyncio.run(agent.run_result(context,"2026-07-13 正式宏观评分"))
+    assert outcome.status==RunStatus.BLOCKED and outcome.action=="NO_ACTION"
+    result=json.loads(outcome.output)
+    assert result["error_code"]=="missing_required_data" and result["mode"]=="research"
+    assert set(result["gaps"])=={"cn_macro","us_macro","market_history"}
+    assert TraceRepository(storage).read_state(Scope.from_context(ROOT,context),"macro") is None
 
 
 def test_scheduler_does_not_announce_failed_runs_as_completed(host):
-    config, storage, context, _ = host
-    storage.add_task(context.user_id, context.conversation_id, context.chat_id, "macro", "data unavailable", "2000-01-01T00:00:00+00:00")
-    agent = InvestmentAgent(config, storage)
-    sent = []
-    async def notify(chat, text): sent.append(text)
-    async def fail(*args, **kwargs): raise RuntimeError("error")
-    with patch.object(agent, "_run_agents_sdk", new=fail):
-        asyncio.run(Scheduler(config, storage, agent, notify).run_once())
-    row = storage.list_tasks(context.user_id, include_done=True)[0]
-    assert row["status"] == "failed" and "run_id=" in row["last_error"]
+    config,storage,context,_=host
+    storage.add_task(context.user_id,context.conversation_id,context.chat_id,"macro","data unavailable","2000-01-01T00:00:00+00:00")
+    sent=[]
+    async def notify(chat,text):sent.append(text)
+    asyncio.run(Scheduler(config,storage,InvestmentAgent(config,storage),notify).run_once())
+    row=storage.list_tasks(context.user_id,include_done=True)[0]
+    assert row["status"]=="failed" and "run_id=" in row["last_error"]
     assert "定时任务未完成" in sent[0] and "定时任务完成：" not in sent[0]
 
 
@@ -213,22 +203,20 @@ def test_sdk_context_loads_versioned_protocol_without_deployment_archive(host, m
 
 
 def test_sdk_missing_protocol_blocks_before_model_and_preserves_context_trace(host):
-    config, storage, context, tmp = host
-    config = dataclasses.replace(config, research_operations_path=tmp / "missing-protocol.md")
-    agent = InvestmentAgent(config, storage)
-    async def exercise():
-        with patch.object(agent, "_configure_model_client") as model_config, \
-             patch("agents.Runner.run") as runner:
-            outcome = await agent.run_result(context, "分析 HBM 产业链")
-        model_config.assert_not_called()
-        runner.assert_not_called()
-        return outcome
-    outcome = asyncio.run(exercise())
-    assert outcome.status == RunStatus.BLOCKED
-    assert "required_context_missing" in outcome.output and outcome.action == "NO_ACTION"
-    trace = TraceRepository(storage).read(outcome.run_id, Scope.from_context(config.root_dir, context))
-    detail = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
-    assert detail["missing_files"] == [str(tmp / "missing-protocol.md")]
+    import shutil
+    from a_share_claw.harness.policy import PolicyBundle
+    config,storage,context,tmp=host;checkout=tmp/"incomplete"
+    for name in PolicyBundle(ROOT).hashes:
+        target=checkout/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/name,target)
+    (checkout/"src/a_share_claw/RESEARCH_OPERATIONS.md").unlink()
+    agent=InvestmentAgent(dataclasses.replace(config,root_dir=checkout),storage)
+    with patch("agents.Runner.run") as runner:
+        outcome=asyncio.run(agent.run_result(context,"2026-07-13 分析 HBM 产业链"))
+    runner.assert_not_called();assert outcome.status==RunStatus.BLOCKED
+    assert "policy_context_missing" in outcome.output
+    trace=TraceRepository(storage).read(outcome.run_id,Scope.from_context(checkout,context))
+    detail=next(row["detail"] for row in trace["run_steps"] if row["stage"]=="context")
+    assert detail["missing_files"]==["src/a_share_claw/RESEARCH_OPERATIONS.md"]
     assert not trace["model_calls"] and not trace["tool_calls"]
 
 

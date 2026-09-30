@@ -52,7 +52,7 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
 | CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI/price_statistics 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；mixed 已有独立切片实现；普通 chat 自动接线、真实研究质量、策略回测及完整需求映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；mixed 已有独立切片实现；普通 chat 已接核心异步规划/缺口入口；真实规划/研究质量、策略回测及五源事实映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
 
 本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
 
@@ -75,7 +75,7 @@ JSON 报告固定来源、日期、fallback、政策版本和结果；宏观含�
 
 ### 显式 SDK 研究执行入口
 
-`SDKResearchAdapter.bind(session)` 为核心提供角色与独立评估回调，每阶段新建无工具/MCP/handoff/history 的 SDK run，显式绑定端点客户端与模型，限制一个 turn 和剩余时间；不修改 SDK 全局模型/客户端，使用本地 Harness hooks 记录 operation 和逐模型请求，禁用 SDK 远程 exporter。CLI `--model-executor configured` 是连接端点的显式选项，离线 replay 不启动模型。同步受信任宿主入口为 `InvestmentAgent.run_core_result(context, message, as_of_date=..., packet=..., research_spec=..., workflow=..., mode="research")`；异步 Telegram/chat 自动桥接仍未完成。
+`SDKResearchAdapter.bind(session)` 为核心提供角色与独立评估回调，每阶段新建无工具/MCP/handoff/history 的 SDK run，显式绑定端点客户端与模型，限制一个 turn 和剩余时间；不修改 SDK 全局模型/客户端，使用本地 Harness hooks 记录 operation 和逐模型请求，禁用 SDK 远程 exporter。CLI `--model-executor configured` 是连接端点的显式选项，离线 replay 不启动模型。同步受信任宿主入口为 `InvestmentAgent.run_core_result(context, message, as_of_date=..., packet=..., research_spec=..., workflow=..., mode="research")`；异步核心桥接后续进展见异步入口章节。
 
 `--research-spec` 接受 checked_spec 的 JSON：subject、technical_required、debate_required、debate_reason、required_facts、questions。required_facts 每项固定 fact_id/entity/metric/unit/data_period/value_type/observation_start/observation_end；questions 每项固定 question_id/question/role/required_fact_ids。plan 可读此规格而不调用模型；模型执行的事实包必须先通过同一核心门禁。该版本规格由受信任宿主提供；后续模型辅助编译进展见框架编译章节，五源事实自动映射仍未完成。
 
@@ -123,9 +123,19 @@ Harness.run 的 framework_adapter 或 framework_proposer/framework_reviewer 在�
 
 缺规格时只允许 parameters={} 并记录核心补充的缺口；plan 的成功为 framework_only，不等于已取证或业务完成。带缺口的执行请求在证据准入前 blocked/planning_constraints_required。框架、嵌套问题和缺口原因在普通 trace 中只存哈希，完整内容存授权归档。没有框架评估、候选哈希错配、未来观测窗口、越权参数、宿主约束变化、取消和预算耗尽均不能推进取证/角色/正式状态。回调仍是受信任宿主扩展点，不构成系统级沙箱。
 
-CLI 仅显式 `harness plan --model-executor configured --question ...` 调用已配置端点；`--planning-constraints FILE` 接受宿主约束，已有 --research-spec/--quant-spec/--outlook-spec/--mixed-spec 作为受保护约束，矛盾输入拒绝。没有 executor 的 plan 仍不调用模型。同步 InvestmentAgent.plan_core_result 使用同一入口；run_core_result(..., compile_framework=True, planning_constraints=...) 可先编译再执行已审核事实。普通 chat 的异步取消/预算/取证接线仍待完成。
+CLI 仅显式 `harness plan --model-executor configured --question ...` 调用已配置端点；`--planning-constraints FILE` 接受宿主约束，已有 --research-spec/--quant-spec/--outlook-spec/--mixed-spec 作为受保护约束，矛盾输入拒绝。没有 executor 的 plan 仍不调用模型。同步 InvestmentAgent.plan_core_result 使用同一入口；run_core_result(..., compile_framework=True, planning_constraints=...) 可先编译再执行已审核事实。该版本普通 chat 的异步取消/预算接线尚未完成，后续进展见异步入口章节；取证映射仍属于 B。
 
 Python 3.11/3.12 全量离线回归各为 **229 passed / 41 subtests**。固定合成提案与实际 SDK 的本地 MockTransport 核对零插件规划、独立框架评估、同 run 的编译→角色→报告、宿主约束保护、派生单位、缺口停止、越权/未来/坏评估拒绝和超时晚到结果。该证据不代表真实模型规划质量、供应商事实映射或最终市场 case。
+
+### 异步宿主与普通 chat 核心入口
+
+Harness.run_async 和 InvestmentAgent.run_core_result_async 在工作线程执行同一核心，先复制事实/规格 JSON 输入，保持宿主事件循环可用。RunControl 贯穿框架、角色和 mixed 父子运行；等待回调时轮询取消，SDK 收到取消后关闭当前请求/客户端。普通宿主取消等待不会单独丢弃后台核心：先发取消信号，等核心终态，再向调用方传播 CancelledError。任意受信任同步回调不能被强制杀线程；晚到回调只有不可变输入，结果不再进入角色、交付或发布。
+
+取消与成功发布共享同一锁。取消先于正式事务时，结果清除 data/report，终态 cancelled/NO_ACTION，staged 报告不能交付；事务先完成时保留真实 succeeded 与正式历史，不伪造回滚或取消。预算耗尽同样不能发布；本地归档不能被中断时须等待归档返回再记录终态。mixed 的当前子运行和父运行共用取消信号，已成功子切片仍不发布。
+
+普通 run/run_result（包括调度调用）进入该核心异步入口，以 research 模式编译框架、独立评估、冻结计划和核对缺口。聊天不接受规范化事实包或 official 权限；可由受信任宿主传入明确 as_of_date/workflow/planning_constraints。旧模型选源/plan_data/fetch_data 六工具循环及 SDK 全局默认客户端入口已移除；所有角色/框架调用均无工具/MCP/handoff/旧历史/长期记忆。缺日期、数值条件或事实时给核心错误/缺口，不把模型自由文案交付为研究完成。五源 CLI 保留独立取证用途，B 映射完成前普通 chat 不启动来源取数。
+
+Python 3.11/3.12 全量离线检查各 **241 passed / 41 subtests**，覆盖七种公共路由零来源/旧历史隔离、空宏观规划不得完成业务、异步事件循环可用、输入快照、框架/角色/归档中的取消、mixed 父子终态、重复取消、正式提交前后竞态、超时晚到结果、实际 SDK 请求取消/客户端关闭及同 run 编译到研究报告。合成响应与事实只证明入口/生命周期和门禁；不证明真实端点的规划/研究质量，也不证明五源或最终 case 已完成。
 
 ### A. 先闭环核心，再进入插件接入
 
@@ -136,7 +146,7 @@ Python 3.11/3.12 全量离线回归各为 **229 passed / 41 subtests**。固定�
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
 
-当前 company/industry/outlook 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；quant 的 price_statistics 可离线计算/回放，其他策略回测明确返回 quant_operation_not_implemented。mixed 已具备独立切片与父运行统一发布；普通 chat 取证入口仍停在 core_evaluation_pending。宏观展望使用独立事实和指标模板，不借日评分标的或缺失评分生成动作。
+当前 company/industry/outlook 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；quant 的 price_statistics 可离线计算/回放，其他策略回测明确返回 quant_operation_not_implemented。mixed 已具备独立切片与父运行统一发布；普通 chat 已接核心框架编译/冻结/缺口门禁，未接 B 的来源映射；旧 core_evaluation_pending 取证循环已移除。宏观展望使用独立事实和指标模板，不借日评分标的或缺失评分生成动作。
 
 ### B. 然后接入初步规划的五个事实接口
 

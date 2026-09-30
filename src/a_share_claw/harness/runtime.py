@@ -3,13 +3,30 @@ from __future__ import annotations
 
 import asyncio
 import time
+from threading import Event, RLock
 
 from .contracts import EvalResult, FailureCategory, RunOutcome, RunRequest, RunStatus, ToolResult, canonical, digest, redact
 from .trace import TraceRepository, now
 
 
+class RunControl:
+    """Host cancellation and official commit share one linearization lock."""
+    def __init__(self):
+        self.lock = RLock()
+        self.cancelled = Event()
+
+    def cancel(self):
+        with self.lock:
+            self.cancelled.set()
+
+    def check(self):
+        if self.cancelled.is_set():
+            raise asyncio.CancelledError()
+
+
 class RunSession:
-    def __init__(self, storage, request: RunRequest):
+    def __init__(self, storage, request: RunRequest, control=None):
+        self.control = control or RunControl()
         self.repository = TraceRepository(storage)
         self.request = request
         self.run_id = self.repository.begin(request)
@@ -22,6 +39,11 @@ class RunSession:
     @property
     def remaining(self):
         return max(0, self.request.wall_clock_seconds - (time.monotonic() - self.started))
+
+    def checkpoint(self):
+        self.control.check()
+        if self.remaining <= 0:
+            raise TimeoutError("budget_exceeded")
 
     def step(self, stage, detail, status="ok"):
         return self.repository.step(self.run_id, self.request.scope, stage, detail, status)
@@ -62,6 +84,12 @@ class RunSession:
         return envelope
 
     def finish(self, output, status=RunStatus.SUCCEEDED, *, action="NO_ACTION", official=False, state=None):
+        with self.control.lock:
+            if status == RunStatus.SUCCEEDED and self.failure is None:
+                self.checkpoint()
+            return self._finish(output, status, action=action, official=official, state=state)
+
+    def _finish(self, output, status, *, action, official, state):
         if self.closed:
             raise ValueError("Run already closed")
         if self.failure is not None:

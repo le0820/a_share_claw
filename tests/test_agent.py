@@ -59,79 +59,48 @@ class ModelClientTest(unittest.IsolatedAsyncioTestCase):
         config = self._config(model_base_url=None, model_api_key=None)
         self.assertIsNone(build_model_client(config))
 
-    def test_configure_model_client_ignores_socks_proxy(self) -> None:
-        config = self._config(
-            model_base_url="https://tokenhub.tencentmaas.com/v1",
-            model_api_key="sk-test",
-        )
-        agent = InvestmentAgent(config, storage=object())
-        with patch.dict(os.environ, {"ALL_PROXY": "socks5://127.0.0.1:7890"}):
-            # Must not raise "Using SOCKS proxy, but the 'socksio' package is
-            # not installed" from the tracing exporter's httpx.Client.
-            agent._configure_model_client()
-
-    async def test_all_routes_only_expose_plugins_even_with_legacy_flags(self) -> None:
+    async def test_all_chat_routes_enter_tool_free_core_even_with_legacy_flags(self) -> None:
         import json
-        from a_share_claw.research_context import tool_names_for_workflow, ResearchWorkflow
-        from a_share_claw.data_plugins import default_registry
+        from test_harness import ROOT, DAY
+        from test_harness_framework import review, proposal
+        from test_harness_research import spec
+        from test_sdk_research import configured
+        from a_share_claw.harness.research import RoleRequest
+        from a_share_claw.harness.contracts import Scope
+        from a_share_claw.harness.trace import TraceRepository
         with TemporaryDirectory() as raw_dir:
-            root = Path(raw_dir)
-            for name in ("AGENTS.md", "README.md", "IDENTITY.md", "DATA_CONTRACT.md"):
-                (root / name).write_text(f"# {name}\n", encoding="utf-8")
-            config = dataclasses.replace(AppConfig.from_env(root), model_base_url=None, model_api_key=None,
-                                         skill_dirs=(), plugin_dirs=(), enable_bash=True, enable_codex_tool=True)
-            config.ensure_dirs()
-            config.research_operations_path.parent.mkdir(parents=True, exist_ok=True)
-            config.research_operations_path.write_text("# Core Research Operations v1\n")
-            config.system_state_path.parent.mkdir(parents=True, exist_ok=True)
-            config.system_state_path.write_text('{"secret_marker":"LEGACY_DATA_MUST_NOT_ENTER"}')
-            storage = Storage(config.database_path)
-            storage.init()
-            context = storage.get_or_create_context("local", "local", "local", "Local")
-            investment_agent = InvestmentAgent(config, storage)
-            investment_agent.memory.remember(context.user_id, "old", "MEMORY_MUST_NOT_ENTER", [])
-            captured = {}
-
-            async def invoke(tool, arguments):
-                from agents.tool_context import ToolContext
-                ctx = ToolContext(context=None, tool_name=tool.name, tool_call_id="test-call", tool_arguments=arguments)
-                return await tool.on_invoke_tool(ctx, arguments)
-
-            async def fake_runner(agent, message, **kwargs):
-                self.assertNotIn("session", kwargs)  # old SDK tool evidence must not be replayed
-                captured["tools"] = {tool.name: tool for tool in agent.tools}
-                captured["instructions"] = agent.instructions
-                self.assertEqual(agent.mcp_servers, [])
-                self.assertNotIn("LEGACY_DATA_MUST_NOT_ENTER", agent.instructions)
-                self.assertNotIn("MEMORY_MUST_NOT_ENTER", agent.instructions)
-                fetch = captured["tools"]["fetch_data"]
-                denied = json.loads(await invoke(fetch, '{"requirement_id":"rates"}'))
-                self.assertEqual(denied["error_code"], "plan_required")
-                plan = {"framework": "Study rates before drawing a conclusion", "requirements": [{
-                    "requirement_id": "rates", "provider": "fred", "capability": "macro.series",
-                    "as_of_date": "2026-08-01", "params": {"series_id": "DGS10", "start_date": "2026-07-01"}}]}
-                await invoke(captured["tools"]["plan_data"], json.dumps({"plan_json": json.dumps(plan)}))
-                result = json.loads(await invoke(fetch, '{"requirement_id":"rates"}'))
-                self.assertEqual(result["error_code"], "not_configured")
-                return SimpleNamespace(final_output="Research framework with an explicit data gap")
-
-            cases = [("你好", "general"), ("每日评分和公司财报", "mixed"),
-                     ("L1/L2/L3宏观评分", "macro"), ("回测最大回撤", "quant"),
-                     ("个股调研现金流", "company"), ("半导体产业链", "industry"), ("四季度市场展望", "outlook")]
-            providers = default_registry().snapshot({})
-            with patch.object(investment_agent, "_configure_model_client"), \
-                 patch("a_share_claw.data_plugins.core.Registry.snapshot", return_value=providers), \
-                 patch("agents.Runner.run", new=fake_runner), \
-                 patch("a_share_claw.mcp.enter_mcp_servers", side_effect=AssertionError("No MCP")), \
-                 patch("urllib.request.build_opener", side_effect=AssertionError("No network without credentials")):
-                for message, workflow in cases:
+            data=Path(raw_dir)
+            config=configured(dataclasses.replace(AppConfig.from_env(ROOT),data_dir=data,database_path=data/"trace.sqlite",
+                enable_bash=True,enable_codex_tool=True))
+            storage=Storage(config.database_path);storage.init()
+            context=storage.get_or_create_context("local","local","local","Local")
+            agent=InvestmentAgent(config,storage)
+            agent.memory.remember(context.user_id,"old","MEMORY_MUST_NOT_ENTER",[])
+            storage.add_message(context.conversation_id,"assistant","OLD_TOOL_HISTORY_MUST_NOT_ENTER")
+            captured=[]
+            async def runner(sdk_agent,message,**kwargs):
+                self.assertNotIn("session",kwargs);self.assertEqual(sdk_agent.tools,[])
+                self.assertEqual(sdk_agent.mcp_servers,[]);self.assertEqual(sdk_agent.handoffs,[])
+                self.assertNotIn("MEMORY_MUST_NOT_ENTER",sdk_agent.instructions+message)
+                self.assertNotIn("OLD_TOOL_HISTORY_MUST_NOT_ENTER",sdk_agent.instructions+message)
+                entry=json.loads(message);captured.append(entry)
+                result=review(RoleRequest(message,30)) if "candidate" in entry else proposal(
+                    {"research_spec":spec()} if entry["workflow"] in {"company","industry"} else {})
+                return SimpleNamespace(final_output=json.dumps(result))
+            cases=[("你好","general"),("每日评分和公司财报","mixed"),("L1/L2/L3宏观评分","macro"),
+                ("回测最大回撤","quant"),("个股调研现金流","company"),("半导体产业链","industry"),("四季度市场展望","outlook")]
+            with patch("agents.Runner.run",new=runner), \
+                 patch("a_share_claw.data_plugins.core.Registry.snapshot",side_effect=AssertionError("No pre-B plugins")), \
+                 patch("a_share_claw.mcp.enter_mcp_servers",side_effect=AssertionError("No MCP")), \
+                 patch("urllib.request.build_opener",side_effect=AssertionError("No source network")):
+                for message,workflow in cases:
                     with self.subTest(workflow=workflow):
-                        output = await investment_agent._run_agents_sdk(context, message)
-                        self.assertIn('"official_output_allowed": false', output)
-                        self.assertIn("workflow: " + workflow, captured["instructions"])
-                        self.assertEqual(set(captured["tools"]), set(tool_names_for_workflow(ResearchWorkflow(workflow))))
-                        self.assertEqual(len(captured["tools"]), 6)
-            self.assertEqual(investment_agent._optional_codex_tools(), [])
+                        out=await agent.run_result(context,DAY+" "+message)
+                        self.assertFalse(out.official_output_allowed);self.assertEqual(out.action,"NO_ACTION")
+                        trace=TraceRepository(storage).read(out.run_id,Scope.from_context(ROOT,context))
+                        self.assertEqual(next(v["detail"]["workflow"] for v in trace["run_steps"] if v["stage"]=="route"),workflow)
+                        self.assertEqual(trace["tool_calls"],[])
+            self.assertEqual(len(captured),14);self.assertEqual(agent._optional_codex_tools(),[])
             storage.close()
 
 

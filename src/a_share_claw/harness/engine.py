@@ -20,7 +20,7 @@ from .reports import build_report, validate_report
 from .markdown import render_markdown, validate_markdown
 from .quant import compute_quant, timestamp
 from .outlook import outlook_facts
-from .runtime import RunSession
+from .runtime import RunSession, RunControl
 from .trace import now
 
 
@@ -56,14 +56,15 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None):
-        session = RunSession(self.storage, request)
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None):
+        session = RunSession(self.storage, request, control)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
         output = {"run_id": session.run_id, "scope_key": request.scope.key, "as_of_date": request.as_of_date, "mode": request.mode,
                   "action": "NO_ACTION", "official_output_allowed": False, "gaps": [], "data": None}
         status, state = RunStatus.BLOCKED, None
         try:
+            session.checkpoint()
             if parent_run_id is not None:
                 parent = session.repository.read(parent_run_id, request.scope)
                 if (parent["status"] != "running" or parent["request"]["as_of_date"] != request.as_of_date or
@@ -124,6 +125,7 @@ class Harness:
                     raise ValueError("WAIT_FOR_TRADING_DAY")
                 if workflow in {"macro", "ai"} and (request.mode == "official" or require_official_close) and cutoff == market_now.date().isoformat() and market_now.hour < 15:
                     raise ValueError("WAIT_FOR_CLOSE")
+                session.checkpoint()
                 if workflow == "mixed":
                     data, provenance = execute_mixed(self, session, plan, packet, reference, output,
                                                     role_runner, semantic_reviewer, research_adapter)
@@ -166,6 +168,7 @@ class Harness:
                 else:
                     # Evidence alone cannot implement an unsupported workflow.
                     raise ValueError("workflow_execution_pending")
+                session.checkpoint()
                 canonical(data)  # rejects NaN/Infinity before any artifact or state write
                 computed_hash = digest(data)
                 session.step("compute", {"data_hash": computed_hash, "policy_version": policy.version})
@@ -205,6 +208,7 @@ class Harness:
                     raise ValueError("plan_changed")
                 if not policy.unchanged():
                     raise ValueError("policy_changed")
+            session.checkpoint()
         except PolicyContextError as exc:
             session.step("context", {"kind": "policy_snapshot", "loaded_files": exc.loaded_files,
                                      "missing_files": exc.missing_files, "state_scope": request.scope.key,
@@ -261,12 +265,45 @@ class Harness:
         session.step("publish_gate", {"allowed": output["official_output_allowed"], "action": output["action"]})
         try:
             return session.finish(canonical(output), status, action=output["action"], official=output["official_output_allowed"], state=state)
+        except (asyncio.CancelledError, TimeoutError) as exc:
+            cancelled = isinstance(exc, asyncio.CancelledError)
+            session.failure = None if cancelled else Failure.TIMEOUT_OR_BUDGET_FAILURE
+            output.update(action="NO_ACTION", official_output_allowed=False, data=None,
+                          error_code="cancelled" if cancelled else "budget_exceeded")
+            output.pop("report", None)
+            output.pop("report_markdown", None)
+            session.step("publish_gate", {"allowed": False, "action": "NO_ACTION"}, "cancelled" if cancelled else "error")
+            return session.finish(canonical(output), RunStatus.CANCELLED if cancelled else RunStatus.FAILED)
         except ValueError:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None, error_code="promotion_denied")
             output.pop("report", None)
             output.pop("report_markdown", None)
             session.evaluate(EvalResult("official_promotion", False, category=Failure.STATE_CONTAMINATION_FAILURE, code="promotion_denied"))
             return session.finish(canonical(output), RunStatus.BLOCKED)
+
+    async def run_async(self, request: RunRequest, packet=None, **kwargs):
+        """Await core termination on cancellation; the worker cannot publish afterward."""
+        import copy
+        control = kwargs.pop("control", None) or RunControl()
+        # Snapshot JSON inputs before dispatch; callbacks/adapters remain trusted host objects.
+        packet = copy.deepcopy(packet)
+        for key in ("research_spec", "quant_spec", "outlook_spec", "mixed_spec", "planning_constraints"):
+            if key in kwargs: kwargs[key] = copy.deepcopy(kwargs[key])
+        task = asyncio.create_task(asyncio.to_thread(self.run, request, packet, control=control, **kwargs))
+        try:
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            control.cancel()
+            # Repeated host cancellation cannot strand a running core or its SQLite trace.
+            while not task.done():
+                try:
+                    await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    control.cancel()
+                except Exception:
+                    break
+            if task.done(): task.exception()  # retrieve any worker failure without replacing cancellation
+            raise
 
     def _evidence(self, session, policy, plan, packet, cutoff):
         if packet is None:

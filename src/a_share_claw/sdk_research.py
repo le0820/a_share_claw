@@ -99,9 +99,17 @@ class SDKResearchAdapter:
                 agent = Agent(name=operation, instructions=instructions,
                               model=OpenAIChatCompletionsModel(model=config.model_name, openai_client=client),
                               tools=[], mcp_servers=[], handoffs=[])
-                result = await asyncio.wait_for(Runner.run(agent, payload.document, hooks=hooks, max_turns=1,
-                              run_config=RunConfig(tracing_disabled=True, trace_include_sensitive_data=False)),
-                              timeout=min(payload.remaining_seconds, session.remaining))
+                call = asyncio.create_task(Runner.run(agent, payload.document, hooks=hooks, max_turns=1,
+                              run_config=RunConfig(tracing_disabled=True, trace_include_sensitive_data=False)))
+                try:
+                    while not call.done():
+                        session.checkpoint()
+                        await asyncio.wait({call}, timeout=min(.05, session.remaining))
+                    session.checkpoint()
+                    result = call.result()
+                finally:
+                    if not call.done(): call.cancel()
+                    await asyncio.gather(call, return_exceptions=True)
         except APITimeoutError as exc:
             raise TimeoutError("budget_exceeded") from exc
         if not isinstance(result.final_output, str) or len(result.final_output) > 64000:

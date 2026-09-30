@@ -77,6 +77,7 @@ def execute_mixed(engine, session, plan, packet, reference, output, runner, revi
     output["slice_status"], output["partial_reports"] = [], []
     results, sources, failures = [], [], []
     for item in spec["slices"]:
+        session.control.check()
         if session.remaining <= 0:
             raise TimeoutError("budget_exceeded")
         request = RunRequest(session.request.scope,
@@ -87,7 +88,7 @@ def execute_mixed(engine, session, plan, packet, reference, output, runner, revi
         child = engine.run(request, packets.get(item["slice_id"]), clock=reference,
             role_runner=runner, semantic_reviewer=reviewer, research_adapter=adapter,
             require_official_close=session.request.mode == "official",
-            parent_run_id=session.run_id, slice_id=item["slice_id"], **item["parameters"])
+            parent_run_id=session.run_id, slice_id=item["slice_id"], control=session.control, **item["parameters"])
         child_output = json.loads(child.output)
         if child.status == RunStatus.FAILED:
             failures.append(child.category)

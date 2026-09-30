@@ -9,7 +9,7 @@
 
 `宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **开发顺序（2026-09-30）**：先按 [E0 验收与未完成边界](E0_INFRA.md#验收与未完成边界) 闭环核心基础设施与业务门禁，再接入初步规划的五个事实接口，最后执行真实市场展望 case。统一运行契约、版本化 SQLite trace、CLI 摘要/回放和宏观/AI 确定性计算已实现，见 [E0_INFRA.md](E0_INFRA.md)。公司/行业核心执行器、统一 JSON/Markdown 报告与日期限制的状态读取已有合成事实验收；显式配置端点的角色/评估 SDK 路径已有本地模拟 HTTP 验证；独立价格统计与宏观展望模板已有合成执行；mixed 已实现独立切片与父运行发布门禁；模型辅助框架编译已接线；普通 chat 自动接线、真实研究质量、策略回测及连续正式日更仍待验收。五源接口与入口限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)；发布文本和原生响应尚不等于评分事实。
+> **开发顺序（2026-09-30）**：先按 [E0 验收与未完成边界](E0_INFRA.md#验收与未完成边界) 闭环核心基础设施与业务门禁，再接入初步规划的五个事实接口，最后执行真实市场展望 case。统一运行契约、版本化 SQLite trace、CLI 摘要/回放和宏观/AI 确定性计算已实现，见 [E0_INFRA.md](E0_INFRA.md)。公司/行业核心执行器、统一 JSON/Markdown 报告与日期限制的状态读取已有合成事实验收；显式配置端点的角色/评估 SDK 路径已有本地模拟 HTTP 验证；独立价格统计与宏观展望模板已有合成执行；mixed 已实现独立切片与父运行发布门禁；模型辅助框架编译已接线；普通 chat 已接核心异步规划与缺口门禁；真实规划/研究质量、五源事实映射、策略回测及连续正式日更仍待验收。五源接口与入口限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)；发布文本和原生响应尚不等于评分事实。
 
 ## 顶层设计
 
@@ -172,7 +172,7 @@ uv run python -m a_share_claw trace RUN_ID
 uv run python -m a_share_claw harness report RUN_ID --format markdown
 ```
 
-默认回放只产生 NO_ACTION。正式模式只接收经过操作人审核的规范化事实，按作用域与 workflow 原子更新 SQLite 状态；公司/行业核心库入口可注入受信任的角色执行和独立语义评估回调；CLI 显式 SDK 执行可用；独立 price_statistics 与 outlook 路径已接线；mixed 已接线，普通 chat 自动业务接线和策略回测待验收。插件不得修改核心规则。
+默认回放只产生 NO_ACTION。正式模式只接收经过操作人审核的规范化事实，按作用域与 workflow 原子更新 SQLite 状态；公司/行业核心库入口可注入受信任的角色执行和独立语义评估回调；CLI 显式 SDK 执行可用；独立 price_statistics 与 outlook 路径已接线；mixed 已接线，普通 chat 已接核心异步入口；五源事实映射、真实质量和策略回测待验收。插件不得修改核心规则。
 
 公司/行业研究需由受信任宿主提供审核事实与冻结研究规格。显式使用已配置端点执行角色和独立评估：
 
@@ -188,9 +188,11 @@ uv run python -m a_share_claw harness plan --workflow industry --date 2026-07-13
 uv run python -m a_share_claw harness plan --workflow outlook --date 2026-07-14 --question "形成条件市场展望框架" --planning-constraints constraints.json --model-executor configured
 ```
 
-constraints.json 固定实际仓位或量化/预测窗口等宿主条件，详见 [框架编译](E0_INFRA.md#模型辅助框架编译)。成功 plan 仅表示 framework_only，缺口与必需能力仍须填充。同步宿主 plan_core_result 可规划；run_core_result(..., compile_framework=True, planning_constraints=...) 可在同一 run 内编译后消费宿主审核的事实包。普通 chat 的异步自动取证与核心绑定仍未完成。
+constraints.json 固定实际仓位或量化/预测窗口等宿主条件，详见 [框架编译](E0_INFRA.md#模型辅助框架编译)。成功 plan 仅表示 framework_only，缺口与必需能力仍须填充。同步宿主 plan_core_result 可规划；run_core_result(..., compile_framework=True, planning_constraints=...) 可在同一 run 内编译后消费宿主审核的事实包。普通 chat 已接核心异步规划/缺口入口；自动取证的规范化事实映射仍属于后续五源接入。
 
 `spec.json` 字段见 [E0_INFRA.md](E0_INFRA.md#显式-sdk-研究执行入口)。未指定 executor 的 plan 不调用模型，也不会自动连接端点。配置端点必须显式给出 provider/base URL/model name/API key，不回落到 SDK 全局默认客户端。模型无取数/文件/MCP 工具，输出仍经过核心校验与发布门禁。普通 chat 的自由文案不能构造审核事实包；插件自动映射仍待接线。
+
+异步宿主 `run_core_result_async(..., packet=..., workflow=..., compile_framework=True)` 使用同一核心 run；取消会传播至当前模型和 mixed 子运行，核心记录终态后才结束等待。数值规格在 planning_constraints 中固定。普通 run_result 不接受事实包或 official 模式；当前自动回复是核心冻结计划及明确缺口，五源映射完成前不调用来源。旧模型选源/六工具循环与 SDK 全局默认客户端路径已移除，取源 CLI 保留独立研究边界。详见 [异步入口验收](E0_INFRA.md#异步宿主与普通-chat-核心入口)。
 
 价格统计使用独立规格与 price_history，不使用日评分固定标的：
 
@@ -202,7 +204,7 @@ uv run python -m a_share_claw harness plan --workflow mixed --date 2026-07-13 --
 uv run python -m a_share_claw harness run mixed-facts.json --workflow mixed --date 2026-07-13 --mixed-spec mixed-spec.json --mode research --model-executor configured
 ```
 
-成功运行会归档 report.json 与 report.md；任一渲染/验证/归档失败都不能发布。`harness report RUN_ID --format markdown --date YYYY-MM-DD` 在读取前检查授权作用域、成功终态、必需 evaluator、JSON/Markdown 哈希和归档绑定，并从正式历史事务决定 published/research；文件中的 staged 标记不自行变成正式发布。`--format json` 返回同一读取结果的结构化内容。同步宿主可用 `InvestmentAgent.read_core_report(context, run_id, as_of_date=...)`；普通 chat 的自动规划与核心执行仍待接线。
+成功运行会归档 report.json 与 report.md；任一渲染/验证/归档失败都不能发布。`harness report RUN_ID --format markdown --date YYYY-MM-DD` 在读取前检查授权作用域、成功终态、必需 evaluator、JSON/Markdown 哈希和归档绑定，并从正式历史事务决定 published/research；文件中的 staged 标记不自行变成正式发布。`--format json` 返回同一读取结果的结构化内容。同步宿主可用 `InvestmentAgent.read_core_report(context, run_id, as_of_date=...)`；异步宿主可用 run_core_result_async；普通 chat 已接核心规划与缺口门禁，五源事实映射尚未接线。
 
 以上文件由受信任宿主提供，字段见 [价格统计与宏观展望](E0_INFRA.md#独立价格统计与宏观展望)。统计与展望输出保持 NO_ACTION，不生成缺少输入的日度分数。季度日历和数据身份仍需来源验收；已声明的短窗口不能冒充完整季度。
 

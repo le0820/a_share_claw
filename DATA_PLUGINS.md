@@ -12,7 +12,7 @@
 | `fred` | `macro.series`，在 FRED API 设置 ALFRED 实时区间查询指定 vintage | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts`，按 CIK 和 taxonomy:concept 请求公司事实 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
-`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有运行的 `official_output_allowed=false`：旧评分流程尚未迁移到插件证据，不能借本次接入自动恢复官方评分或仓位行动。
+`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；原生插件结果尚未规范化接入，不能借取数成功自动恢复官方评分或仓位行动。
 
 ## 配置与命令
 
@@ -64,13 +64,13 @@ CLI 是本机个人模式；服务端集成必须由可信宿主构造 scope，�
 
 ## Agent 数据边界与兼容变化
 
-六种路由都只暴露：list_data_plugins、plan_data、fetch_data、data_gap_report、get_compiled_rule、get_market_session_status。后两个是本地政策读取/时钟计算，不是外部观测来源。
+普通 chat 的七种路由已接核心框架编译/冻结/缺口门禁，模型调用没有插件、文件、MCP 或执行工具。旧六工具选源/取证循环已移除；五源由独立 data CLI/受信任宿主保留，B 完成核心需求到规范化事实映射后才接入自动取证。
 
 - 不再向 Agent 提供通用网页搜索、任意 URL、MCP、QVeris、Bash、Codex 子工具、任意文件读写、旧取数流水线。
 - 即使旧配置启用了 Bash/Codex/MCP，也不能重开这些入口。
-- 不注入旧 system_state、长期记忆、任意 skill/plugin 文本和旧 SDK 会话中的工具证据。数据库历史保留；本轮上下文以当前请求、可信政策与本轮插件结果为准。
+- 不注入旧 system_state、长期记忆、任意 skill/plugin 文本和旧 SDK 会话中的工具证据。数据库历史保留；核心规划上下文以当前请求、可信政策和宿主约束为准；研究角色只消费已准入事实。
 - 旧 pipeline、ToolRuntime 和 MCP 模块保留供显式人工维护及离线回归，Agent 不持有其执行工具。旧策略的计算和风险权重未改动。
-- 当前自动回复附研究草稿标记与数据缺口摘要。模型仍可能产生错误推断；本次工具边界不是完整事实 evaluator。用户文字和模型知识不能成为可提升的插件证据。
+- 当前自动回复是核心结构化规划和缺口；缺事实时不会交付未经评估的模型研究文案。核心事实/角色/报告 evaluator 已实现，但合成检查不证明真实语义质量。用户文字和模型知识不能成为可提升的插件证据。
 
 限制作用于本 Harness 的 Agent 工具入口。外部宿主如果另外给自己的 Agent 开放浏览器/网络/Bash，需要在宿主侧同步限制；本库不能沙箱化宿主全部进程。
 

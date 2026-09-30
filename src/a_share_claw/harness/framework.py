@@ -109,7 +109,7 @@ def compile_framework(session, policy, workflow, constraints, proposer, reviewer
         "host_constraints":constraints,"policy_version":policy.version,"declared_policy":policy.plan(workflow),
         "instruction":"Propose only a research framework and typed requirements. No source selection, facts, state writes or action. Preserve host constraints. Missing calendar/window/actual position remains a declared gap."}),session.remaining)
     session.step("framework_start",{"workflow":workflow,"constraints_hash":digest(constraints)})
-    raw=bounded_call(proposer,payload,session.remaining)
+    raw=bounded_call(proposer,payload,session.remaining,session.control)
     checked=checked_proposal(workflow,raw,constraints,session.request.as_of_date)
     declared=mixed_plan(policy,checked["parameters"].get("mixed_spec")) if workflow=="mixed" else policy.plan(workflow)
     candidate={"schema_version":"framework-proposal-v1","workflow":workflow,"as_of_date":session.request.as_of_date,

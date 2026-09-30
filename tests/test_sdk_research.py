@@ -68,13 +68,11 @@ def test_real_sdk_roles_review_and_report_share_core_run(host):
     scope = Scope.from_context(ROOT, context)
     endpoint = OfflineEndpoint()
     agent = InvestmentAgent(configured(config), storage)
-    with patch("a_share_claw.agent.build_model_client", side_effect=endpoint.client), \
-         patch.object(agent, "_configure_model_client") as global_client:
+    with patch("a_share_claw.agent.build_model_client", side_effect=endpoint.client):
         outcome = agent.run_core_result(context, "Synthetic industry acceptance", as_of_date=DAY,
                     packet=research_packet(scope), research_spec=spec(technical=True, debate=True), workflow="industry")
     assert outcome.status == RunStatus.SUCCEEDED, outcome.output
     assert outcome.action == "NO_ACTION" and not outcome.official_output_allowed
-    global_client.assert_not_called()
     assert len(endpoint.requests) == 8 and all(client.is_closed() for client in endpoint.clients)
     roles = endpoint.requests[:-1]
     assert len({entry["packet_id"] for entry in roles}) == 1
