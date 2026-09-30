@@ -115,6 +115,9 @@ class Harness:
                 reference = clock or datetime.now(timezone.utc)
                 if reference.tzinfo is None:
                     raise ValueError("Clock must include timezone")
+                session.evaluation_clock = reference
+                session.step("clock", {"evaluation_timestamp":reference.isoformat(),
+                                       "market_timezone":self.market_timezone,"as_of_date":request.as_of_date})
                 market_now = reference.astimezone(ZoneInfo(self.market_timezone))
                 cutoff = request.as_of_date
                 if cutoff is None:
@@ -331,7 +334,8 @@ class Harness:
             source_time = datetime.fromisoformat(p["source_timestamp"].replace("Z", "+00:00"))
             if source_time.tzinfo is None:
                 raise ValueError("invalid_source_timestamp")
-            if source_time.astimezone(ZoneInfo(self.market_timezone)).date().isoformat() > cutoff:
+            if (source_time > session.evaluation_clock or
+                    source_time.astimezone(ZoneInfo(self.market_timezone)).date().isoformat() > cutoff):
                 raise ValueError("future_data")
             if plan["workflow"] in {"quant", "outlook"} and plan["parameters"].get("quant_spec"):
                 if source_time > timestamp(plan["parameters"]["quant_spec"]["cutoff_timestamp"]):

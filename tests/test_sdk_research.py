@@ -165,3 +165,24 @@ def test_configured_model_cannot_run_in_offline_replay_mode(host):
                   packet=research_packet(scope), research_spec=spec(), workflow="company", mode="replay")
     assert outcome.status == RunStatus.BLOCKED and json.loads(outcome.output)["error_code"] == "model_replay_not_supported"
     client.assert_not_called()
+
+
+def test_sdk_transmits_required_role_identity_and_question_schema(host):
+    config,storage,context,_=host;endpoint=OfflineEndpoint()
+    checked=[];original=endpoint.response
+    def response(request):
+        body=json.loads(request.content);schema=body["response_format"]["json_schema"]["schema"]
+        assert schema["additionalProperties"] is False
+        entry=json.loads(body["messages"][-1]["content"])
+        if "role" in entry:
+            answer=schema["properties"]["answers"]["items"]
+            assert set(answer["required"])=={"question_id","fact_ids","inference"}
+            assert schema["properties"]["packet_id"]["enum"]==[entry["packet_id"]]
+        else:assert schema["properties"]["candidate_hash"]["enum"]==[entry["candidate_hash"]]
+        checked.append(True);return original(request)
+    endpoint.response=response
+    scope=Scope.from_context(ROOT,context)
+    with patch("a_share_claw.agent.build_model_client",side_effect=endpoint.client):
+        out=InvestmentAgent(configured(config),storage).run_core_result(context,"Synthetic schema-bound research",as_of_date=DAY,
+            packet=research_packet(scope),research_spec=spec(),workflow="industry")
+    assert out.status==RunStatus.SUCCEEDED and len(checked)==3

@@ -12,7 +12,7 @@
 - 一个 SQLite 事务更新正式状态、历史和终态；按 scope + workflow 分别保存，不回退到较早日期。迁移 v2 保留 v1 已有正式状态；日期截止查询不读取未来状态。research/replay 永远 NO_ACTION；部分归档不等于正式状态。
 - 公司/行业核心执行器冻结逐字段事实需求，角色共享不可变事实包；技术核验与辩论按计划启用。引用门禁和受信任的独立语义评估均通过后才交付推断，风险结论保持 NO_ACTION。
 - 核心生成并验证 JSON 与 Markdown 报告，归档失败不能发布；`harness state` 校验作用域、日期、报告路径及哈希。报告与 computed_output 归档均标为 staged，最终发布状态由成功终态和正式状态事务决定。
-- Agent 只调用五源插件和规则/时点工具，规则剔除历史观测/示例。未经业务 evaluator 的模型自由结论不交付为评分或仓位建议。
+- 普通 Agent 使用无工具的核心框架/角色入口，五源取证暂保留独立 CLI/库接口；规范化映射未完成前不进入 chat。规则剔除历史观测/示例。未经业务 evaluator 的模型自由结论不交付为评分或仓位建议。
 
 ## 无模型、无插件运行
 
@@ -47,12 +47,12 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | Issue #1 E0 项 | 当前实现与接线 | 验收边界 / 下一步 |
 | --- | --- | --- |
 | FailureCategory / RunStatus / EvalResult / ToolResult | 已实现；核心、Agent 与数据 CLI 使用结构化结果 | 已有契约与失败传播检查；旧人工 ToolRuntime / MCP 全面标准化属于 E1，不能算全部已迁移 |
-| 每次 InvestmentAgent.run 生成 run_id | 已实现；run_result 先建记录，run 为兼容渲染入口 | fake、SDK 脚本、异常/取消有证据；真实模型业务完成尚未验收 |
+| 每次 InvestmentAgent.run 生成 run_id | 已实现；run_result 先建记录，run 为兼容渲染入口 | fake、SDK 脚本、异常/取消有证据；真实模型固定合成公司/行业研究已有人工复核，范围见下文 |
 | route、loaded/missing context、state scope | 记录已接线；SDK 记录装配结果，核心记录实际读取的政策快照、缺失项和 scope | 正常加载/缺 IDENTITY/缺必需 compiled 文件已验；版本化协议已接线；缺协议时在模型调用前停止，角色业务执行另列 |
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
 | CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI/price_statistics 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；mixed 已有独立切片实现；普通 chat 已接核心异步规划/缺口入口；真实规划/研究质量、策略回测及五源事实映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；显式 SDK 路径已有模拟 HTTP 验证；mixed 已有独立切片实现；普通 chat 已接核心异步规划/缺口入口；实际模型固定合成公司/行业及展望已有有限人工验收；该范围只证明核心接线和限定研究交付，不代表通用语义质量。策略回测及五源事实映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
 
 本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
 
@@ -137,6 +137,19 @@ Harness.run_async 和 InvestmentAgent.run_core_result_async 在工作线程执�
 
 Python 3.11/3.12 全量离线检查各 **241 passed / 41 subtests**，覆盖七种公共路由零来源/旧历史隔离、空宏观规划不得完成业务、异步事件循环可用、输入快照、框架/角色/归档中的取消、mixed 父子终态、重复取消、正式提交前后竞态、超时晚到结果、实际 SDK 请求取消/客户端关闭及同 run 编译到研究报告。合成响应与事实只证明入口/生命周期和门禁；不证明真实端点的规划/研究质量，也不证明五源或最终 case 已完成。
 
+### 同日时点与实际模型有限验收（2026-09-30）
+
+核心保存本次带时区 evaluation_clock；所有事实的 source_timestamp 同时受请求日期和实际执行时钟约束。同一日期但执行时点尚未可得的事实不能计算、调用角色或发布；mixed 子切片继承同一时钟，坏宏观切片不阻断已可得的独立研究。
+
+实际 Tencent/hy3 端点使用固定合成事实，模型没有取数工具。调用前核对角色与运行协议在公开 GitHub 提交中的 blob 与本地相同；未注入私有仓位、记忆或旧会话。公司规划曾错误要求仓位/日历，行业角色曾漏 question_id；修复后以端点 JSON Schema 约束角色/评估结构，核心仍再次检查引用、身份与语义门禁。依据 [Tencent TokenHub 调用指南](https://intl.cloud.tencent.com/zh/document/product/1300/80695)，schema 约束仅用于输出形状，不赋予模型准入或发布权。普通 trace 保存 instruction/schema 哈希；被拒的 JSON 只保存在授权作用域的 staged artifact，不进入正常报告。
+
+- 行业研究 run `d250c26f96994897b566e22ec8f0081d`：八次实际调用，技术/价值链、双方初始观点与相互回应、最终风险及独立评估完成。人工复核确认产能/单位成本未冒充实际销量/利润，条件性算术与缺口明确，NO_ACTION。
+- 公司 run `c4c7a1b97e5f487e879ecffd8c8be5a7`：同一运行完成编译→框架评估→价值→风险→研究评估五次实际调用，中文双报告可授权重读。产能与实际产量、单位成本与总支出明确区分，缺售价/需求/利润不补造。
+- 实际模型 reviewer 分别拒绝脚本化“保证利润率/分配仓位”及“不相关仓位先决条件”。拒绝是 gate 验收成功，不是研究任务成功。
+- 展望编译 run `445e18fb5d504e509cb60fa8388316fb` 保持 blocked：reviewer 要求框架修改核心固定输出模板/新增不存在的语言字段，属错误拒绝。随后修复评估契约及语言要求；run `d017a11786b24a779ef23447fc81db61` 虽运行成功，人工复核发现模型自设数值风险阈值，质量不通过。已增加 numeric_risk_thresholds_grounded，实际 reviewer 明确拒绝模型自定 cost=9 阈值（run `0247fc8ab515456d8f88644ab80676c3`）。框架遗漏 outlook_spec 包装层的 run `64ac327c8b564641b3566f53cc04cda8` 保持 blocked；已给具备冻结量化条件的展望编译增加嵌套 Schema，最终 run `69892d96adea457da20f436d399c8164` 完成同 run 五次调用并授权读取中文双报告；十二项价格统计及超额收益百分点口径匹配核心，条件情景保留缺口，NO_ACTION。监控文本仍有“合理范围”等不够具体措辞，回撤比较未直接引用回撤 ID；仅接受有限研究交付，不作为可执行风险规则。历史回撤观测值不是新的批准风控阈值，模型文本不会修改核心政策或执行动作。
+
+本机 `data/harness_acceptance/core_model_quality_schema`、`core_model_quality_compiled` 保存各次输入、run_id、trace、报告、人工结论和代码文件哈希。各次快照不同，最终展望的四个改动代码文件哈希与待提交代码一致；公司/行业证据保留其原快照，不能把先前成功冒称最终提交同版本证据。Python 3.11/3.12 全量离线检查各 **249 passed / 41 subtests**；CI 另核对最终提交。固定合成语义验收不代表一般准确率、E3 benchmark、真实数据或生产服务；五源接入及最终市场 case 均未完成。
+
 ### A. 先闭环核心，再进入插件接入
 
 按以下顺序补齐实现、接线和验收证据。可使用固定事实包验证核心行为，不提前执行用户的真实市场 case。
@@ -145,6 +158,8 @@ Python 3.11/3.12 全量离线检查各 **241 passed / 41 subtests**，覆盖七�
 2. **框架与业务执行。** 请求先冻结问题、日期、mode、scope、输出模板、必需/可选/禁用证据；宏观保持既有评分与风控，产业研究消费同一版本事实包并按 IDENTITY 执行技术/价值链/必要辩论/最终风险 gate。company 复用研究契约；mixed 按独立切片记录等待和完成；quant 先冻结 universe/window/adjustment/benchmark/metrics，不凭现有市场事实包宣称回测完成。
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
+
+Issue #1 的五项 E0 最小契约/接线/验收已具备：统一类型、每请求 run_id、实际 route/context/scope、事务迁移与 scoped trace、CLI 摘要。A 的运行/评分/发布/状态与合成事实业务门禁已有证据；真实模型只完成上述有限质量复核。完整 ContextManifest/E1 旧工具标准化/E3 benchmark 不属于本次 E0 完成声明，Issue #1 仍 open。最终提交 CI 通过且代码哈希绑定后可进入 B；B 的行情主源冲突须按用户最新授权先统一，不因核心验收替任何来源授权。PR #2 暂不合并。
 
 当前 company/industry/outlook 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；quant 的 price_statistics 可离线计算/回放，其他策略回测明确返回 quant_operation_not_implemented。mixed 已具备独立切片与父运行统一发布；普通 chat 已接核心框架编译/冻结/缺口门禁，未接 B 的来源映射；旧 core_evaluation_pending 取证循环已移除。宏观展望使用独立事实和指标模板，不借日评分标的或缺失评分生成动作。
 

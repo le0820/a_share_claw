@@ -104,13 +104,19 @@ def compile_framework(session, policy, workflow, constraints, proposer, reviewer
         proposer,reviewer=adapter.bind_framework(session)
     if proposer is None:
         raise ValueError("framework_proposer_required")
+    quant=constraints.get("quant_spec") or constraints.get("outlook_spec",{}).get("quant_spec")
+    derived=derived_requirements(quant) if workflow=="outlook" and quant is not None else []
     payload=RoleRequest(canonical({"user_request":session.request.message,"workflow":workflow,
         "as_of_date":session.request.as_of_date,"scope_key":session.request.scope.key,"mode":session.request.mode,
-        "host_constraints":constraints,"policy_version":policy.version,"declared_policy":policy.plan(workflow),
+        "host_constraints":constraints,"core_derived_requirements":derived,"policy_version":policy.version,"declared_policy":policy.plan(workflow),
         "instruction":"Propose only a research framework and typed requirements. No source selection, facts, state writes or action. Preserve host constraints. Missing calendar/window/actual position remains a declared gap."}),session.remaining)
     session.step("framework_start",{"workflow":workflow,"constraints_hash":digest(constraints)})
     raw=bounded_call(proposer,payload,session.remaining,session.control)
-    checked=checked_proposal(workflow,raw,constraints,session.request.as_of_date)
+    try:
+        checked=checked_proposal(workflow,raw,constraints,session.request.as_of_date)
+    except ValueError:
+        archive(session,"rejected_framework",raw)
+        raise
     declared=mixed_plan(policy,checked["parameters"].get("mixed_spec")) if workflow=="mixed" else policy.plan(workflow)
     candidate={"schema_version":"framework-proposal-v1","workflow":workflow,"as_of_date":session.request.as_of_date,
                "scope_key":session.request.scope.key,"framework":checked["framework"],"parameters":checked["arguments"],
@@ -119,7 +125,7 @@ def compile_framework(session, policy, workflow, constraints, proposer, reviewer
     archive(session,"framework_candidate",candidate)
     session.evaluate(EvalResult("framework_contract",True))
     review=review_candidate(session,{**declared,"parameters":checked["parameters"],"planning_only":True},candidate,reviewer,archive,artifact_name="framework_review",evaluator="framework_semantic_review",
-                            criteria=["original_request_satisfied","requirements_cover_question","host_constraints_preserved","conditional_debate","gaps_explicit","no_admitted_facts_or_action"])
+                            criteria=["original_request_satisfied","requirements_cover_question","host_constraints_preserved","conditional_debate","gaps_explicit","planning_evidence_separation","unit_consistency","no_irrelevant_host_constraints","no_admitted_facts_or_action"])
     if session.remaining<=0: raise TimeoutError("budget_exceeded")
     if not policy.unchanged(): raise ValueError("policy_changed")
     session.step("framework_end",{"candidate_hash":digest(candidate),"review_hash":digest(review),

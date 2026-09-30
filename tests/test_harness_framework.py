@@ -107,8 +107,13 @@ def test_outlook_compilation_binds_host_prices_horizon_and_derived_fact_units(en
     storage,scope,engine,_=environment
     specification=outlook_spec()
     constraints={k:v for k,v in specification.items() if k!="research_spec"}
+    def proposer(payload):
+        from a_share_claw.harness.outlook import derived_requirements
+        assert payload.json()["core_derived_requirements"]==derived_requirements(specification["quant_spec"])
+        assert all("value" not in item for item in payload.json()["core_derived_requirements"])
+        return proposal({"outlook_spec":specification})
     out=engine.run(RunRequest(scope,"Synthetic outlook framework",AS_OF,"research","outlook"),outlook_packet(scope),planning_constraints=constraints,
-                   framework_proposer=lambda payload:proposal({"outlook_spec":specification}),framework_reviewer=review,
+                   framework_proposer=proposer,framework_reviewer=review,
                    role_runner=outlook_reply,semantic_reviewer=outlook_review)
     assert out.status==RunStatus.SUCCEEDED,out.output
     bad=copy.deepcopy(specification)
@@ -195,3 +200,27 @@ def test_actual_sdk_compiler_then_roles_share_the_same_core_run(host):
     assert len(TraceRepository(storage).list_runs(scope))==1 and not trace["tool_calls"]
     assert [v["detail"]["operation"] for v in trace["model_calls"]]==["framework_proposal","framework_semantic_review","jia_zhi:initial","ping_heng:final","research_semantic_review"]
     assert not out.official_output_allowed and out.action=="NO_ACTION"
+
+
+def test_sdk_outlook_compilation_transmits_nested_contract_and_protected_calendar(host):
+    config,storage,context,_=host;endpoint=FrameworkEndpoint();original=endpoint.response
+    specification=outlook_spec();constraints={k:v for k,v in specification.items() if k!="research_spec"}
+    def response(request):
+        body=json.loads(request.content);entry=json.loads(body["messages"][-1]["content"])
+        if "candidate" not in entry:
+            schema=body["response_format"]["json_schema"]["schema"]
+            executable=schema["properties"]["parameters"]["anyOf"][1]
+            assert executable["required"]==["outlook_spec"] and executable["additionalProperties"] is False
+            quant=executable["properties"]["outlook_spec"]["properties"]["quant_spec"]["properties"]
+            assert quant["cutoff_timestamp"]["enum"]==[constraints["quant_spec"]["cutoff_timestamp"]]
+            assert not body.get("tools")
+            endpoint.requests.append(entry)
+            reply=proposal({"outlook_spec":specification})
+            return httpx.Response(200,json={"id":"synthetic-framework","object":"chat.completion","created":1,"model":"synthetic-sdk-model",
+                "choices":[{"index":0,"message":{"role":"assistant","content":canonical(reply)},"finish_reason":"stop"}],"usage":{"prompt_tokens":10,"completion_tokens":10,"total_tokens":20}})
+        return original(request)
+    endpoint.response=response
+    with patch("a_share_claw.agent.build_model_client",side_effect=endpoint.client):
+        out=InvestmentAgent(configured(config),storage).plan_core_result(context,"Synthetic outlook plan",as_of_date=AS_OF,workflow="outlook",planning_constraints=constraints)
+    assert out.status==RunStatus.SUCCEEDED,out.output
+    assert len(endpoint.requests)==2 and all(client.is_closed() for client in endpoint.clients)

@@ -272,3 +272,18 @@ def test_research_fields_are_frozen_by_core_before_role_execution(environment, f
     outcome = engine.run(req, source, research_spec=spec(), role_runner=runner, semantic_reviewer=fixture_review)
     assert outcome.status == RunStatus.BLOCKED and json.loads(outcome.output)["error_code"] == "research_fact_contract_mismatch"
     assert not calls and TraceRepository(storage).read_state(scope, "industry") is None
+
+
+def test_rejected_role_is_private_staged_evidence_not_delivered(environment):
+    storage,scope,_,_=environment
+    def bad(payload):
+        reply=role_reply(payload);reply["unexpected"]="PRIVATE_REJECTED_CANDIDATE";return reply
+    out=run_research(environment,runner=bad,mode="official")
+    assert out.status==RunStatus.BLOCKED and json.loads(out.output)["error_code"]=="invalid_role_output"
+    trace=TraceRepository(storage).read(out.run_id,scope)
+    artifact=next(v["detail"] for v in trace["artifacts"] if Path(v["detail"]["path"]).name=="rejected_role_jia_zhi_initial.json")
+    assert artifact["publication_status"]=="staged"
+    assert "PRIVATE_REJECTED_CANDIDATE" in Path(artifact["path"]).read_text()
+    assert "PRIVATE_REJECTED_CANDIDATE" not in json.dumps(trace)
+    assert json.loads(out.output)["data"] is None and "report" not in json.loads(out.output)
+    assert TraceRepository(storage).read_state(scope,"industry") is None
