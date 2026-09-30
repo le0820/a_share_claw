@@ -130,3 +130,12 @@ Python 3.11/3.12 全量离线检查各 **241 passed / 41 subtests**，含七路�
 E0 最小验收的最终 CI run 36772582916 两版均为 249 passed / 41 subtests，CLI smoke 成功。之后才开始本项 B 实现。FRED 新增同 vintage 元数据能力；DataRun.select 从本 run 归档绑定精确观测/单位/频率/季调，SEC 固定 unit/duration/filed/accession。raw 和结果分别核对哈希，不补 null、不静默改单位、不将 YTD 变单季。产物保留 available_at=null、日期级精度与 core_admission_complete=false，无发布权；尚未映射为核心 FactPacket。
 
 来源 fixture 相关检查 37 passed；本地 Python 3.11/3.12 全套各 258 passed / 41 subtests。真实 FRED/SEC/TickFlow 凭据未配置；NBS/PBC 数值/附件、行情主源统一、五源到核心自动事实映射及最终市场 case 继续未完成。数据选择进度不代表全部 B 完成，不提前执行真实市场 case。详见 DATA_PLUGINS.md。
+
+
+## B 事实接入第二步：NBS / PBC 正文候选（2026-09-30）
+
+NBS/PBC 1.1.0 保留原生明确发布时钟及精度，不从日期制造午夜。macro.release 的固定版本映射绑定报告标题/表头与统计年月，区分 NBS 月度/累计、PBC 月末存量；固定原生百分比，降幅保留负号。M1 修订/口径备注保留，累计社融不推算单月；其他指标/附件缺口显式拒绝。DataRun.select 从同 run 归档核对原始和结果哈希，保存选择产物，始终保留 observation.eligibility=unverified 与 core_admission_complete/official_output_allowed=false。
+
+先完成上述实现/接线，再用合成 HTML 验证月度/YTD、旧年度、地域/单位、重复冲突、显式时区、缺发布日期、未来时钟和归档篡改边界。真实来源 vintage/核心 FactPacket、完整序列/附件、行情主源授权和五源自动取证仍未完成；不是恢复正式评分，也未执行用户真实市场 case。
+
+实施后的相关来源检查为 **61 passed**；Python 3.11/3.12 全量离线回归各 **282 passed / 41 subtests**。合成检查覆盖实现边界，不证明真实接口、来源 vintage 或市场展望 case。

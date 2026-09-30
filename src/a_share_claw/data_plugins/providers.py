@@ -90,6 +90,29 @@ class _Publication(HTMLParser):
         return iso_date(m[1]) if m else None
 
 
+    def publication_timestamp(self):
+        # Only an explicit publisher clock; never fabricate midnight for a date-only page.
+        clock = r"(\d{4})[-/年](\d{1,2})[-/月](\d{1,2})[日T\s]+(\d{1,2}):(\d{2})(?::(\d{2}))?(Z|[+-]\d{2}:?\d{2})?"
+        candidates = [self.meta.get(key, "") for key in
+                      ("pubdate", "publishdate", "publishtime", "date", "dc.date", "article:published_time")]
+        labelled = re.search(r"(?:发布时间|发布日期|文章来源)[：:\s]*[^\n]{0,100}", "".join(self.text))
+        if labelled:
+            candidates.append(labelled.group())
+        for value in candidates:
+            match = re.search(clock, value)
+            if not match:
+                continue
+            local = datetime(*(int(match[i]) for i in range(1, 6)), int(match[6] or 0))
+            if match[7]:
+                stamp = datetime.fromisoformat(local.isoformat() + match[7].replace("Z", "+00:00")).astimezone(ZoneInfo("Asia/Shanghai"))
+            else:
+                stamp = local.replace(tzinfo=ZoneInfo("Asia/Shanghai"))
+            if stamp.date().isoformat() != self.publication_date():
+                raise DataError("invalid_schema", "Publisher date and timestamp disagree")
+            return stamp.isoformat(), "second" if match[6] else "minute"
+        return None, "day" if self.publication_date() else "unknown"
+
+
 class OfficialPublication(Provider):
     index_url: str
 
@@ -130,19 +153,20 @@ class OfficialPublication(Provider):
             raise DataError("no_results", "Publication contains no readable text")
         # A live page can be revised without changing its initial publication date.
         # Preserve prose/units and require archived vintage validation for historical scoring.
-        return Payload({"publication_date": published, "text": content,
+        available_at,precision=parser.publication_timestamp()
+        return Payload({"publication_date": published, "available_at":available_at,"publication_time_precision":precision,"text": content,
                         "format": "official_publication_text", "numeric_series": False}, raw, url, "unverified",
                        ["Publication text is evidence, not a normalized macro time series",
                         "Live page revision history is unavailable; no historical-vintage certification"])
 
 
 class NBS(OfficialPublication):
-    manifest = Manifest("nbs", ("macro.release", "macro.release_index"), ("www.stats.gov.cn",))
+    manifest = Manifest("nbs", ("macro.release", "macro.release_index"), ("www.stats.gov.cn",),version="1.1.0")
     index_url = "https://www.stats.gov.cn/sj/zxfb/index.html"
 
 
 class PBC(OfficialPublication):
-    manifest = Manifest("pbc", ("macro.release", "macro.release_index"), ("www.pbc.gov.cn",))
+    manifest = Manifest("pbc", ("macro.release", "macro.release_index"), ("www.pbc.gov.cn",),version="1.1.0")
     index_url = "https://www.pbc.gov.cn/diaochatongjisi/116219/index.html"
 
 

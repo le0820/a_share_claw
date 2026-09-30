@@ -268,6 +268,7 @@ class DataRun:
     def select(self, requirement_id: str, selector: dict, *, metadata_requirement_id: str | None = None) -> dict:
         """Trusted host selection from this run's archived evidence; never core admission."""
         from .normalization import fred_observation, sec_fact
+        from .macro_mapping import publication_observation
         if not isinstance(selector,dict):
             raise DataError("invalid_request", "Selection must be a typed object")
         def archived(key):
@@ -303,6 +304,11 @@ class DataRun:
             if set(selector)!=keys or metadata_requirement_id is not None:
                 raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
             selection=sec_fact(result,**selector)
+        elif result["capability"]=="macro.release":
+            keys={"metric","year","month","period_kind"}
+            if set(selector)!=keys or metadata_requirement_id is not None:
+                raise DataError("invalid_request", "Official prose selection requires an explicit metric and monthly/cumulative period")
+            selection=publication_observation(result,**selector)
         else:
             raise DataError("mapping_unavailable", "This provider/capability lacks an accepted numeric mapping")
         identity=hashlib.sha256(json.dumps({"requirement_id":requirement_id,"metadata_requirement_id":metadata_requirement_id,"selector":selector},sort_keys=True,allow_nan=False).encode()).hexdigest()
