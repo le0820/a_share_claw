@@ -13,11 +13,27 @@ Every official score or research output must declare:
 
 If a user asks for July 1 market summary, data dated July 2 or later is forbidden unless the user explicitly asks for a live update.
 
-## Source Ownership
+## Data Capability and Plugin Boundary
+
+Research requirements own data meaning; providers supply evidence. First form the research framework and its dated data requirements, inspect authorized existing artifacts, and then attach only the plugins needed for the remaining gaps. The plugin runtime is a design target in [HARNESS_DESIGN.md](HARNESS_DESIGN.md); current fetch scripts remain the compatibility path.
+
+- Each requirement identifies the capability/metric, universe, period/window, frequency, unit, adjustment method, availability cutoff, coverage threshold and required/optional status. Policy-disabled fields are not data gaps.
+- A plugin declares its capabilities, schema/version, supported dates/vintages, permissions, credential references and limits. Core code chooses by capability and contract compatibility, not a fixed provider import.
+- Provider replacement is permitted only when units, adjustment, universe, release timing and vintage satisfy the same requirement. Record the selection and any fallback; do not substitute a different economic series or loosen risk limits just because an interface is available.
+- Plugin output retains the raw artifact and provenance: provider/plugin version, source URL/file, observation and publication/availability dates, retrieval time, content hash, fallback and truncation. Retrieval time never proves historical availability.
+- Missing provenance, invalid schema, insufficient coverage and source disagreement remain explicit failures/gaps. An unconfigured plugin, backend error and `no_results` are different outcomes; none permits fabricated evidence.
+- Required gaps block official scoring/action output. Optional omission follows the existing compiled observed-weight rules; L2 stays `disabled/null` until a separately reviewed rule change.
+- Hot registration/removal applies to subsequent runs. Each active run pins its plugin/config versions and evidence snapshot; removal cannot silently switch providers or promote a partial result. Historical replay uses archived inputs, not the currently installed provider.
+
+Model access alone is sufficient to develop the research framework, but it does not establish market or macro evidence. Local files and archived datasets may implement the same capability contract without an external network source.
+
+## Current Provider Mappings (Compatibility Defaults)
+
+The table describes existing implementations and reference sources, not mandatory dependencies of the Harness core. Future plugins must preserve the semantic and date constraints in the Notes column; alternatives require an explicit eligible source mapping. Existing scoring keeps its current provider behavior until the plugin migration is implemented.
 
 | Data Type | Primary Source | Backup / Verification | Notes |
 |:---|:---|:---|:---|
-| A-share/ETF daily K-line and quotes | `easy-tdx==1.20.4` | /caidazi | Official scoring market source. Use QFQ and the context-managed `MacClient`/`MacExClient` contract. |
+| A-share/ETF daily K-line and quotes | `easy-tdx==1.20.4` | /caidazi | Current official-scoring adapter. Preserve QFQ semantics; this adapter uses context-managed `MacClient`/`MacExClient`. Other plugins must validate equivalent adjustment and date coverage. |
 | HK/US market K-line used by scoring | `easy-tdx MacExClient` | web/FMP/ | Must record last trade date used. |
 | CN macro monthly data | `akshare` script output or /cn_financial_pro | official publisher label | Record release period, not just fetch date. |
 | US Treasury yields | FRED | FMP/web source cross-check | Current-date runs may use current-vintage FRED graph CSV. Historical runs require an archived FRED/ALFRED artifact; current revisions cannot backfill history. |
@@ -37,14 +53,14 @@ TickFlow is deprecated in this workspace. Do not load `skills/tickflow` or use T
 
 The owner/scheduler timezone and the A-share market-date timezone are separate:
 
-- `ASCLAW_TIMEZONE` is the owner's local timezone for Telegram messages and scheduled tasks.
+- `ASCLAW_TIMEZONE` is the owner's local timezone for host display and scheduled tasks; it is independent of the input adapter.
 - `ASCLAW_MARKET_TIMEZONE` defaults to `Asia/Shanghai` and defines the A-share trading date used by `as_of_date` future-date checks.
 - A request for the current China trading date is therefore valid even when the owner is still on the previous calendar date in `America/Los_Angeles`.
 - A same-day official close score is not valid before the A-share close gate. Pre-market and intraday requests return `WAIT_FOR_CLOSE`; after close, missing dated outputs require an upstream full pipeline run rather than treating the audit as proof that the pipeline is unavailable.
 - Intraday/provisional scoring is not implemented. If added later, it must use a separate output mode and explicit `fallback_status`/provisional label; it cannot overwrite an official close score.
 - Cross-market inputs keep their own exact `observation_date`, `last_trade_date_used`, and `release_date`; the A-share market timezone must never relabel a US or HK observation.
 
-Macro daily scoring uses one explicit `--date YYYYMMDD`:
+The current compatibility pipeline uses one explicit `--date YYYYMMDD`; the target plugin path plans requirements first and fetches only unresolved inputs:
 
 ```bash
 cd src/pipeline

@@ -2,12 +2,23 @@
 
 ## Mission
 
-This agent is a personal investment research operating system for two workflows:
+This Harness supplies reusable research roles, templates and risk discipline across hosts or a standalone model endpoint, for two core workflows:
 
 1. Macro daily scoring.
 2. Industry chain research and debate.
 
-It is not a creative writing assistant, social bot, or general OpenClaw runtime. Keep the architecture minimal and purpose-built for personal investment research.
+The team model belongs to the Harness, not Telegram or a particular model SDK. A host may use one model or multiple agents to carry out these roles; role names do not require a specific multi-agent runtime. Keep the architecture minimal and purpose-built for investment research.
+
+## Framework Before Data
+
+1. Ping Heng fixes the question, workflow, `as_of_date`, authorized state scope and output mode.
+2. The relevant roles form the research framework and report template: hypotheses, metrics, risk limits, evidence requirements and completion criteria.
+3. Produce a dated data requirement list and compare it with authorized existing artifacts; separate required, optional and policy-disabled fields.
+4. Only then select eligible plugins to fill the actual gaps. Macro and quantitative data are capabilities, independent of provider names. Additional evidence requests must be appended to a versioned plan before acquisition.
+5. Validate sources, date availability, coverage and permission; compute and synthesize only from admitted evidence. Required gaps block official conclusions, while the framework and gap report remain useful outputs.
+6. Apply risk gates and evaluators before official publication or state promotion. Record unresolved gaps and fallback explicitly.
+
+Framework formation sets up the investigation; it does not preselect the final conclusion. Data plugins cannot rewrite the research criteria to fit their available fields. The structured plan/gap runtime and unified evaluators are pending implementation under `HARNESS_DESIGN.md` and Issue #1.
 
 ## Team
 

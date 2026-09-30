@@ -1,15 +1,25 @@
 # a_share_claw
 
-一个围绕个人 A 股投研构建的 Agent 系统。它不是 OpenClaw/NanoClaw 的通用复刻；当前优先交付两条可审计的投研工作流：
+一个可由不同宿主调用、也可独立接入模型端点运行的 A 股投研 Harness。主体是投研契约、研究模板、工作流、评估与风控；入口、模型和数据源通过适配层接入。当前优先交付两条可审计的投研工作流：
 
 1. 宏观日度评分与仓位纪律。
 2. 行业链/公司研究与证据化辩论。
 
 目标链路为：
 
-`Telegram -> a_share_claw host -> OpenAI Agents SDK -> 投研路由 -> 受约束的领域工具/MCP -> 可审计数据产物`
+`宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **项目状态（2026-07-31）**：第 1、2 章已有可运行基础；当前仍在收口第 3 章。第 4–8 章及 loop-engineer 不是“已完成能力”，即使仓库中已有少量辅助模块或单元测试。
+> **架构修订（2026-09-30）**：本次确定环境无关与数据插件化的顶层设计。现有代码仍使用 OpenAI Agents SDK runner、直接绑定的数据脚本和可选 Telegram 入口；通用宿主接口、插件注册/热插拔与 Issue #1 的评估 trace 尚待实现。已有契约、研究角色/报告模板、评分与部分门禁可复用，不能因此宣称完整评估框架已经运行。
+
+## 顶层设计
+
+- **Harness 核心**：维护数据与权限契约、宏观/量化/公司/行业研究模板、路由、评分、风险门禁，以及待建设的评估、trace 和改进提案控制面。核心不依赖 Telegram 用户 ID、某个模型 SDK 或具体数据供应商。
+- **宿主与模型适配层**：Codex、Claude Code、Meta Muse、WorkBuddy 等环境是目标宿主；宿主可提供模型和工具执行能力，Harness 仍负责契约与正式产物门禁。独立模式通过模型 URL、模型名和端点需要的凭据运行。Telegram 是可选消息适配器，调度和通知不决定核心投研生命周期。
+- **数据插件层**：先形成投研框架、输出模板和必需数据清单，再检查已有证据，最后仅接入补齐缺口所需的数据能力。量化行情、宏观序列、公司披露和搜索分别声明能力；无插件时仍能生成框架和缺口报告，必需证据不足时阻止正式评分或交易动作结论。
+
+宿主适配和数据插件是两个独立扩展点；接入新宿主不需要重写投研框架，更换数据源不改变指标定义、评分权重或风控阈值。目标宿主清单表示设计兼容目标，逐个集成与端到端验收仍待完成。
+
+完整边界、运行契约、热插拔语义和实施顺序见 [HARNESS_DESIGN.md](HARNESS_DESIGN.md)。数据时点、来源和替换限制以 [DATA_CONTRACT.md](DATA_CONTRACT.md) 为准。
 
 ## 当前边界
 
@@ -34,23 +44,23 @@
 
 | 阶段 | 状态 | 目标 | 完成定义 |
 | --- | --- | --- | --- |
-| 1. Telegram 入口 | 基础已具备 | 接收授权用户消息并回复 | `init-db`、本地 fake AI、真实 Telegram 一次收发均验证；异常不会使轮询退出 |
-| 2. 模型接入 | 基础已具备 | 通过受控的 OpenAI 兼容端点运行 Agent | 国内模型直连、Telegram 代理、超时/错误信息和生效配置均在真实环境验证 |
+| 1. 宿主适配 | 本地 CLI/Telegram 基础已具备；通用适配未完成 | 所有入口提交统一请求，使用同一核心门禁 | 无 Telegram 配置也能运行；外部宿主与 CLI 对同一输入产生一致的契约检查和 trace；身份/权限显式映射 |
+| 2. 模型接入 | 独立 OpenAI 兼容端点基础已具备；宿主模型适配未完成 | 支持宿主提供模型或独立模型 URL 两种模式 | 核心不绑定模型 SDK；模型名、凭据引用、超时与预算明确；模型不可替代硬门禁 |
 | 3. 投研执行平面 | **进行中** | 将策略、数据契约、研究路由和受约束工具闭环 | 宏观与产业研究均按日期、来源、fallback 输出；正式宏观日更恢复；AI P0/P1 只有在正式数据可用时写入状态 |
-| 4. 工具与证据工作台 | 未完成 | 将搜索、网页、文件和必要执行能力变为可审计、最小权限的工作流工具 | 明确每个工具的授权、输入/输出契约、审计记录、失败边界和端到端研究验收；不把宽泛 Bash 当作正式投研执行路径 |
+| 4. 数据插件与证据工作台 | 未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
 | 5. 短期上下文管理 | 未完成 | 管理每个会话的上下文生命周期和 token 预算 | 有保留窗口、摘要/压缩、恢复策略、上下文预算和回归测试；不会因历史无限增长而失控 |
-| 6. 长期记忆与隔离 | 未完成 | 只在允许的主体边界内检索、写入和注入记忆 | 记忆作用域、保留/删除、检索排序和 prompt 注入规则明确；跨 `platform + user + chat + agent_key` 的隔离有端到端测试 |
+| 6. 长期记忆与隔离 | 未完成 | 只在允许的主体边界内检索、写入和注入记忆 | 采用 `workspace + principal + session + agent_key` 核心作用域，入口映射原 platform/user/chat；隔离、保留/删除和注入均有端到端测试 |
 | 7. 任务与 Cron 调度 | 未完成 | 可靠地创建、执行、重试、观测和取消一次性/周期性投研任务 | 支持明确时区与 cron/固定周期语义，具备幂等、失败重试、并发/错过执行策略、状态查询与通知验收 |
 | 8. 运行隔离与可观测性 | 未完成 | 将会话、任务、工具调用、数据产物和权限作为独立运行边界 | 身份授权、会话/任务/记忆/产物隔离一致；日志、指标、审计和故障恢复可验证 |
 | 9. loop-engineer / 自提升 | 未开始 | 用受控评估驱动策略和流程改善，而不是让 Agent 自行改写生产规则 | 固定评测集、变更提案、回放、人工批准、版本化回滚和上线后监控齐备；无自动越权交易或修改数据契约 |
 
 ### 第 3 章当前工作
 
-第 3 章包含此前所有策略相关开发：L1/L3 评分、L2 禁用与权重重归一、数据日期/来源契约、宏观/研究路由、MCP evidence gate，以及 AI 行业仓位叠加层。
+第 3 章包含此前所有策略相关开发：L1/L3 评分、L2 禁用与权重重归一、数据日期/来源契约、宏观/研究路由、MCP evidence gate，以及 AI 行业仓位叠加层。新的开发顺序先收口可复用投研框架与数据需求，再补数据插件；已有固定管线作为迁移期间的兼容路径。
 
-当前增量在完善 AI 战术加仓门禁：除了流动性分位数，还要求 2Y、10Y、30Y 与 10Y TIPS 在同一五日窗口内均未上行，并且 Brent 不触发通胀冲击。其目的是避免“分位数看似宽松、绝对利率或油价实际恶化”时错误触发 `ADD`。
+最近已提交的 AI 战术加仓门禁除了流动性分位数，还要求 2Y、10Y、30Y 与 10Y TIPS 在同一五日窗口内均未上行，并且 Brent 不触发通胀冲击。其目的是避免“分位数看似宽松、绝对利率或油价实际恶化”时错误触发 `ADD`。新架构继续保留这些风险约束。
 
-第 3 章收口前的优先验收：
+按新架构先收口框架/需求/E0，再接入数据插件。正式数据链路仍需完成以下业务验收：
 
 1. 恢复连续、可审计的正式宏观日更；每份产物包含 `as_of_date`、数据源、发布日期/观测日期和 fallback 状态。
 2. 验证 AI 当前日期的正式输入链路；历史 current-vintage 回放始终保持 `unverified`，不得写入正式状态。
@@ -68,18 +78,18 @@
 硬性约束：
 
 - 历史问题不得使用请求日期之后的数据；没有精确数据默认停止，不能静默回退。
-- A 股交易日用 `ASCLAW_MARKET_TIMEZONE=Asia/Shanghai` 判断，用户时区只用于 Telegram 和任务调度。
+- A 股交易日用 `ASCLAW_MARKET_TIMEZONE=Asia/Shanghai` 判断，用户时区用于宿主展示和任务调度。
 - 同日正式收盘评分仅在 A 股收盘后可运行；盘前和盘中返回 `WAIT_FOR_CLOSE`。
 - L2 保持 `disabled/null`，Composite 使用 `L1 × 4/7 + L3 × 3/7`。
 - AI 策略中增长决定结构仓位；数据覆盖不足只能 `NO_ACTION`，不得转换成中性分数。
 
-详见 [DATA_CONTRACT.md](DATA_CONTRACT.md)、[宏观运行手册](src/pipeline/OPERATIONS.md) 和 [产业研究运行手册](data/deepresearch/OPERATIONS.md)。
+详见 [DATA_CONTRACT.md](DATA_CONTRACT.md) 和 [宏观运行手册](src/pipeline/OPERATIONS.md)。产业研究运行手册 `data/deepresearch/OPERATIONS.md` 由部署侧提供，当前 main 未包含该文件；缺失时必须披露，不能假定已加载完整研究协议。
 
 ## 系统结构
 
 ```text
 src/
-  a_share_claw/             # Telegram host、Agent、路由、领域工具、SQLite 基础设施
+  a_share_claw/             # 当前 Agent runner、路由、领域工具、SQLite 与可选入口
   compiled/                 # 版本化 L1/L2/L3/权重与 AI 策略规则
   pipeline/                 # 确定性数据获取、评分、报告与 AI 叠加层脚本
 data/
@@ -95,6 +105,8 @@ tests/                      # 现有单元与路由回归测试
 
 `src/a_share_claw/` 是唯一运行实现；根目录 `a_share_claw/` 仅是兼容启动 shim。运行数据是审计证据，默认不作为代码提交物。
 
+以上是当前目录，不代表核心/宿主/数据插件已经物理拆分。目标模块划分和兼容迁移见 [HARNESS_DESIGN.md](HARNESS_DESIGN.md)。
+
 ## 快速开始（开发验证）
 
 ```bash
@@ -106,12 +118,9 @@ python -m a_share_claw init-db
 ASCLAW_FAKE_AI=1 python -m a_share_claw chat "测试一下"
 ```
 
-配置 `.env`：
+独立模型模式配置 `.env`，本地 `chat` 不需要 Telegram token：
 
 ```bash
-TELEGRAM_BOT_TOKEN=123456:...
-TELEGRAM_ALLOWED_USER_IDS=123456789
-
 # 国内 OpenAI 兼容端点；不配置时才回落到教程占位模型。
 ASCLAW_MODEL_PROVIDER=tencent
 ASCLAW_MODEL_BASE_URL=https://tokenhub.tencentmaas.com/v1
@@ -119,10 +128,16 @@ ASCLAW_MODEL_API_KEY=sk-...
 ASCLAW_MODEL_NAME=hy3
 ASCLAW_OPENAI_MODEL=gpt-5.5
 
-# Telegram/任务的用户时区，与 A 股市场日期边界分离。
+# 宿主展示/任务的用户时区，与 A 股市场日期边界分离。
 ASCLAW_TIMEZONE=America/Los_Angeles
 ASCLAW_MARKET_TIMEZONE=Asia/Shanghai
 ```
+
+```bash
+python -m a_share_claw chat "先梳理宏观日度评分框架和所需数据"
+```
+
+模型 URL 须符合当前 OpenAI 兼容协议，并配置端点接受的模型名与必要凭据。未来由外部宿主提供模型时无需另配模型 URL；统一宿主协议尚未实现。模型接入也不会自动补齐投研所需的真实数据。
 
 查看不含密钥的生效配置：
 
@@ -130,17 +145,24 @@ ASCLAW_MARKET_TIMEZONE=Asia/Shanghai
 python -m a_share_claw show-config
 ```
 
-启动 Telegram 和当前的轮询调度原型：
+可选 Telegram 入口：先在 `.env` 中配置以下两项，再启动当前的轮询调度原型。
+
+```dotenv
+TELEGRAM_BOT_TOKEN=123456:...
+TELEGRAM_ALLOWED_USER_IDS=123456789
+```
 
 ```bash
 python -m a_share_claw run
 ```
 
+当前 `run` 默认启动 Telegram，这是后续入口拆分需要调整的兼容行为；通用宿主命令与热插拔命令尚未提供。
+
 > Telegram 在需要代理的网络环境中使用 `HTTPS_PROXY` / `HTTP_PROXY`；模型客户端默认 `trust_env=False` 并直连国产端点。若确实需要让模型走系统代理，设置 `ASCLAW_MODEL_TRUST_ENV=1`，并确认已安装 `socksio`。
 
 ## 第 3 章运行入口
 
-正式宏观评分必须显式传入日期，并在收盘门禁通过后运行：
+以下是现有固定管线的兼容入口。目标插件路径先生成研究框架和数据需求，只对未满足的必需输入执行获取；评分、报告与数据获取分开。正式宏观评分必须显式传入日期，并在收盘门禁通过后运行：
 
 ```bash
 AS_OF_DATE=YYYYMMDD
@@ -171,7 +193,7 @@ uv run python run_ai_position.py --date "$AS_OF_DATE" --current-ai-pct 57.5
 
 ## MCP 与工具边界
 
-Tavily 和 QVeris 是第 3 章的可选外部取证层，不承载内部评分规则或运行状态。配置示例在 `.mcp.example.json`，真实密钥只放在已忽略的 `.env`：
+Tavily 和 QVeris 是当前可选外部取证适配，不承载内部评分规则或运行状态。MCP 是一种插件传输方式；当前 MCP 配置不等于统一数据插件注册表，也尚未按数据缺口延迟加载。配置示例在 `.mcp.example.json`，真实密钥只放在已忽略的 `.env`：
 
 ```bash
 TAVILY_API_KEY=
@@ -189,8 +211,10 @@ QVERIS_MAX_RETRIES=3
 
 - 现有 `SQLiteSession` 只保存会话历史，并不解决短期上下文生命周期管理。
 - 现有长期记忆是按 `user_id` 的文件追加和 SQLite 查询；它尚未满足按 `platform + user + chat + agent_key` 的严格隔离要求。
+- 新的环境无关作用域需要从现有 platform/user/chat 映射，并保留历史会话数据；当前隔离机制仍需迁移与验证。
 - 现有 `Scheduler` 是 host 进程内的 SQLite polling loop，只支持一次性或秒级周期；它不是完成态的 cron 服务。
 - `loop-engineer`、离线评测、变更审批和策略自提升控制面尚未开始建设。
+- 数据供应商仍直接绑定在 runtime 与 fetch 脚本中；能力注册、缺口驱动加载、插件快照和热插拔尚未实现。
 
 ## 参考
 

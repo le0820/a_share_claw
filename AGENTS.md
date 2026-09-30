@@ -1,6 +1,6 @@
-# AGENTS.md - Investment Research OS Startup
+# AGENTS.md - Investment Research Harness Startup
 
-This workspace is now a purpose-built investment research operating system. Do not load legacy general-assistant, writing, crypto-bot, or broad OpenClaw behavior.
+This workspace is a host-independent investment research Harness. Its core is the research contracts, templates, workflows, evaluation and risk controls. Telegram is an optional input/output adapter. Codex, Claude Code, Meta Muse and WorkBuddy are target hosts; portable integrations are design targets until individually implemented and verified. See `HARNESS_DESIGN.md` for architecture and migration status.
 
 ## Startup Load Order
 
@@ -9,8 +9,9 @@ Load only these files at the start of a new task:
 1. `README.md` - system map and active directory layout
 2. `IDENTITY.md` - five-role research team and routing rules
 3. `DATA_CONTRACT.md` - data source, date, and fallback rules
-4. `data/state/system_state.json` - latest structured score/position state
-5. `src/pipeline/OPERATIONS.md` or `data/deepresearch/OPERATIONS.md` only when the task needs execution detail
+4. The authorized scoped state, if present; `data/state/system_state.json` is only a personal-mode state path, not an unconditional startup load for every host/user
+5. `HARNESS_DESIGN.md` only for architecture, host adaptation or plugin work
+6. `src/pipeline/OPERATIONS.md` or `data/deepresearch/OPERATIONS.md` only when the task needs execution detail
 
 Do not load `MEMORY.md`, `memory/YYYY-MM-DD.md`, `journal/`, `analysis/`, or full SOP prose during startup. Those are archives and evidence stores; open them only when a specific question requires them.
 
@@ -31,13 +32,19 @@ The system has one team model:
 
 ## Hard Rules
 
+- Form the research framework, output template and dated data requirements before choosing providers. Check authorized existing evidence, then acquire only the missing required data and explicitly selected optional evidence.
+- Host identity and available tools do not automatically authorize state access or network calls. Map each request to `workspace + principal + session + agent_key`; adapters map legacy platform/user/chat identifiers without widening access.
+- Keep data providers outside core research rules. A plugin may supply evidence but cannot change metric definitions, weights, risk gates, evaluators or official-state promotion rules.
+- With no eligible provider, return a framework and gap report. Do not fabricate required data or publish an official action conclusion. Disabled factors such as L2 are policy states, not gaps to auto-fill.
 - Every official output must state `as_of_date`, source files, release dates when known, and whether fallback data was used.
 - Never answer a date-specific market question with data later than the requested date unless the user explicitly asks for a live update.
 - No silent fallback. If exact data is missing, either stop or label a stale fallback explicitly.
-- Do not use TickFlow as a primary source. Current market data source is `easy-tdx`; qveris/FMP/web/akshare are scoped by `DATA_CONTRACT.md`.
+- Current provider mappings (including `easy-tdx`) are compatibility defaults, not core dependencies. Replacements must satisfy `DATA_CONTRACT.md`, explicitly record source selection and preserve reproducible artifacts. TickFlow remains deprecated.
 - Do not revive creative writing scripts or identities.
 - Treat cross-session and cross-user context leakage as a bug.
 
 ## Editing Policy
 
 Keep this workspace small. New docs should be short, indexed, and connected to the two active workflows. Put dated pipeline outputs under `data/`, research reports under `data/research/output/`, and one-off archives under existing archive folders without adding them to startup context.
+
+Clearly label proposed interfaces and missing implementations. The existing routing tests and schema-archival tests do not establish an implemented evaluation Harness, trace repository or hot-swappable plugin runtime.
