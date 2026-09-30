@@ -16,7 +16,7 @@ PLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE -> EVALUATE -> ARCHIVE -> PUBLISH
 2. EVIDENCE_GATE: accept only authorized artifacts that satisfy the frozen contract. Plugin retrieval success is not research completion; raw response text is not a normalized scoring input. Acquisition uses only host-authorized plugin capabilities and registered requirement IDs.
 3. COMPUTE_OR_SYNTHESIZE: deterministic scoring uses compiled core policy. Research roles distinguish confirmed facts, interpretations and unknowns, citing packet fact IDs. No role can alter weights, thresholds, evaluator or formal state.
 4. EVALUATE: the host checks dates, scope, completeness, references and risk constraints before delivery. Semantic quality judgment cannot override a failed hard gate. Correct denial proves the gate worked, not that the requested research was completed.
-5. ARCHIVE: retain the plan, packet/version, source table, role outputs, report and evaluator evidence under scope/run_id. If a report or archive fails, no official state is promoted.
+5. ARCHIVE: retain the plan, packet/version, source table, role outputs, report and evaluator evidence under scope/run_id. Core JSON and deterministic Markdown reports must both be validated and archived; if either report or archive fails, no official state is promoted.
 6. PUBLISH: only the core publisher may update scoped official state after all required gates pass. Research/replay remain NO_ACTION. Model prose and plugin official_output_allowed=false cannot authorize promotion.
 
 ## Macro scoring
@@ -47,4 +47,4 @@ Quant freezes symbols, window, frequency, unit, adjustment, benchmark and metric
 
 ## Delivery boundary
 
-Final output is rendered by the host from evaluated results, with run_id and unresolved boundaries. Never announce task completion solely because a model-declared plan is empty or its fetches returned ok. Exceptions, cancellation and budgets become structured terminal statuses and preserve trace evidence. No trade execution, external messaging or automatic policy changes are authorized by this protocol.
+Final output is rendered by the host from evaluated results, with run_id and unresolved boundaries. Report readers first authorize scope, require a successful terminal run and business evaluators, and verify plan/report/computation identities and artifact hashes. A staged file never proves publication; only the exact scoped official history transaction does. Never announce task completion solely because a model-declared plan is empty or its fetches returned ok. Exceptions, cancellation and budgets become structured terminal statuses and preserve trace evidence. No trade execution, external messaging or automatic policy changes are authorized by this protocol.

@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from .contracts import digest
+from .markdown import VERSION
 
 
 def build_report(request, run_id, plan, data, audit, prior, generated_at):
     workflow = plan["workflow"]
-    report = {"schema_version": "harness-report-v1", "run_id": run_id, "plan_id": plan["plan_id"],
+    report = {"schema_version": "harness-report-v1", "markdown_version": VERSION, "run_id": run_id, "plan_id": plan["plan_id"],
               "scope_key": request.scope.key, "workflow": workflow, "as_of_date": request.as_of_date,
               "generated_at": generated_at, "mode": request.mode, "data_period": [p["data_period"] for p in audit["source_files"]],
               "source_table": audit["source_files"], "fallback_status": audit["fallback_status"],

@@ -16,6 +16,7 @@ from .planning import freeze_plan, trace_parameters, trace_plan
 from .research import execute_research
 from .mixed import workflow_parameters, mixed_plan, execute_mixed
 from .reports import build_report, validate_report
+from .markdown import render_markdown, validate_markdown
 from .quant import compute_quant, timestamp
 from .outlook import outlook_facts
 from .runtime import RunSession
@@ -166,7 +167,11 @@ class Harness:
                 validate_report(report, request, session.run_id, plan, data, output["data_audit"], prior, report_timestamp)
                 if digest(data) != computed_hash:
                     raise ValueError("report_contract_failure")
+                rendered = render_markdown(report)
+                validate_markdown(rendered, report)
                 output["report"] = self._archive(session, "report", report)
+                output["report_markdown"] = self._archive_content(session, "report.md", rendered.encode("utf-8"))
+                session.evaluate(EvalResult("report_markdown_contract", True))
                 session.evaluate(EvalResult("report_contract", True))
                 session.step("report", {"sha256": output["report"]["sha256"], "status": "staged"})
                 output["data"] = data
@@ -174,7 +179,7 @@ class Harness:
                 output["action"] = (data["decision"]["action"] if workflow == "ai" else "POSITION_BAND" if workflow == "macro" else "NO_ACTION") if request.mode == "official" else "NO_ACTION"
                 status = RunStatus.SUCCEEDED
                 if request.mode == "official":
-                    state = {"run_id": session.run_id, "workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"], "report": output["report"]}
+                    state = {"run_id": session.run_id, "workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"], "report": output["report"], "report_markdown": output["report_markdown"]}
                 self._archive(session, "computed_output", {**output, "publication_status": "staged", "official_output_allowed": False, "action": "NO_ACTION"})
                 if session.remaining <= 0:
                     raise TimeoutError("budget_exceeded")
@@ -232,6 +237,7 @@ class Harness:
         if status != RunStatus.SUCCEEDED or session.failure is not None:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None)
             output.pop("report", None)
+            output.pop("report_markdown", None)
             state = None
         session.step("publish_gate", {"allowed": output["official_output_allowed"], "action": output["action"]})
         try:
@@ -239,6 +245,7 @@ class Harness:
         except ValueError:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None, error_code="promotion_denied")
             output.pop("report", None)
+            output.pop("report_markdown", None)
             session.evaluate(EvalResult("official_promotion", False, category=Failure.STATE_CONTAMINATION_FAILURE, code="promotion_denied"))
             return session.finish(canonical(output), RunStatus.BLOCKED)
 
@@ -301,10 +308,12 @@ class Harness:
         return facts, sources
 
     def _archive(self, session, name, obj):
+        return self._archive_content(session, name + ".json", canonical(obj).encode())
+
+    def _archive_content(self, session, filename, raw):
         directory = self.artifact_root / session.request.scope.key / session.run_id
         directory.mkdir(parents=True, exist_ok=True)
-        path = directory / (name + ".json")
-        raw = canonical(obj).encode()
+        path = directory / filename
         with path.open("xb") as stream:
             stream.write(raw)
         detail = {"path": str(path), "sha256": hashlib.sha256(raw).hexdigest(),

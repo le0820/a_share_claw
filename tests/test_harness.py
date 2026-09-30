@@ -131,7 +131,7 @@ def test_complete_fact_packet_computes_without_network_and_traces_all_stages(env
     trace = TraceRepository(storage).read(outcome.run_id, scope)
     stages = {row["stage"] for row in trace["run_steps"]}
     assert stages >= {"request", "route", "context", "plan", "policy_snapshot", "evidence", "gap_report", "compute", "publish_gate", "final_output"}
-    assert len(trace["artifacts"]) == 6 and all(row["passed"] for row in trace["evaluations"])
+    assert len(trace["artifacts"]) == 7 and all(row["passed"] for row in trace["evaluations"])
     context = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
     assert context["kind"] == "policy_snapshot"
     assert set(context["loaded_files"]) == set(PolicyBundle(ROOT).hashes)

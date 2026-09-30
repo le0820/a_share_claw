@@ -82,6 +82,14 @@ mixed-spec 冻结 2–8 个必需切片与独立规格，父计划按实际切�
 
 Python 3.11/3.12 全量离线回归各 **194 passed / 41 subtests**，含真正 SDK/client 的本地 MockTransport、CLI 零模型规划/拒绝回放、独立等待、坏宏观不压住研究、父评估/报告/输出失败、取消和超时晚到结果。合成事实和 fixture reviewer 只验证 infra；普通 chat 自动框架/接线、Markdown/其他宿主交付、真实研究质量和五源事实映射仍待闭环。没有执行真实市场 case，PR #2 暂不合并。
 
+## JSON/Markdown 报告和授权交付（2026-09-30）
+
+核心从同一已评估结果生成并验证 JSON 与确定性 Markdown。来源/日期/fallback、事实与核心派生值、角色推断/引用/未知项、统计口径和风险分别展示；模型与来源文本以纯文本转义，角色按研究阶段排列。两份报告都归档成功后才允许发布，正式事务要求六个必需业务硬 evaluator 和两个同 run/scope 的报告描述符。
+
+CLI harness report 与同步宿主 read_core_report 使用相同 scope/日期/成功终态/评估/哈希/归档绑定门禁；按确切 run_id 的正式历史区分 published/research，staged 文件不证明发布。新版 state 也校验双报告；旧 JSON-only 历史不丢弃，不伪造新 Markdown。计算 replay 验证 Markdown 哈希但不把它解析成事实或调用模型。
+
+本地 Python 3.11/3.12 全量检查各 211 passed / 41 subtests；其后新增的实际 CLI 进程读取/跨作用域拒绝/含 Markdown 回放检查双版本各通过 1 项。固定合成事实覆盖七个工作流的双报告往返、阶段顺序、同日精确历史、源/模型格式转义、篡改/越日期/跨主体拒绝、staged 失败拒绝交付、Markdown 渲染/归档失败保护和单权限 evaluator 发布绕过。没有连接真实模型或来源，没有执行市场 case。普通 chat 自动框架/核心绑定、真实研究质量与五源事实映射仍需闭环，PR #2 暂不合并。
+
 ## 下一步顺序（2026-09-30 校正）
 
 以 [E0_INFRA.md 的验收与未完成边界](E0_INFRA.md#验收与未完成边界) 为准。旧记录中“先配置 TickFlow、最后补 E0”的顺序已失效。

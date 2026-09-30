@@ -102,6 +102,16 @@ class InvestmentAgent:
         return engine.run(request, packet, research_spec=research_spec,
                           research_adapter=SDKResearchAdapter(self.config), outlook_spec=outlook_spec, mixed_spec=mixed_spec)
 
+    def read_core_report(self, context: ConversationContext, run_id: str, *, as_of_date=None, format="markdown"):
+        """Trusted host reads through the same authorization/integrity gate as CLI."""
+        from .harness.delivery import read_report
+        from .harness.trace import TraceRepository
+        if format not in {"markdown", "json"}:
+            raise ValueError("Unknown report format")
+        delivery = read_report(TraceRepository(self.storage), Scope.from_context(self.config.root_dir, context),
+                               run_id, self.config.data_dir / "harness_runs", as_of_date=as_of_date)
+        return delivery["markdown"] if format == "markdown" else {k:v for k,v in delivery.items() if k != "markdown"}
+
     def _effective_model(self) -> str:
         # `model_name` is the configured domestic model; `openai_model` stays as the
         # tutorial's placeholder/fake value when no domestic model is set.

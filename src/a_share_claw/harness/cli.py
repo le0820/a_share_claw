@@ -9,6 +9,7 @@ from .contracts import RunRequest, RunStatus, Scope
 from .engine import Harness
 from .policy import PolicyBundle
 from .trace import TraceRepository
+from .delivery import read_report
 
 
 def scope_options(parser):
@@ -26,6 +27,11 @@ def add_harness_parser(sub):
     scope_options(trace)
     harness = sub.add_parser("harness", help="Provider-free planning, scoring and replay")
     commands = harness.add_subparsers(dest="harness_command", required=True)
+    report = commands.add_parser("report", help="Read a verified scoped report by run_id")
+    scope_options(report)
+    report.add_argument("run_id")
+    report.add_argument("--format", choices=["markdown", "json"], default="markdown")
+    report.add_argument("--date", help="Reject reports later than this cutoff")
     for name in ("plan", "run", "replay", "state"):
         command = commands.add_parser(name)
         scope_options(command)
@@ -70,6 +76,17 @@ def run_harness(args, config, storage):
         except (LookupError, ValueError):
             print(json.dumps({"ok": False, "error_code": "trace_not_found"}))
             return 2
+    if args.harness_command == "report":
+        try:
+            delivery = read_report(repo, scope, args.run_id, config.data_dir / "harness_runs", as_of_date=args.date)
+            print(delivery["markdown"] if args.format == "markdown" else json.dumps({k:v for k,v in delivery.items() if k != "markdown"}, ensure_ascii=False, indent=2))
+            return 0
+        except LookupError:
+            print(json.dumps({"ok":False,"error_code":"report_not_found"}))
+            return 2
+        except (ValueError, OSError, KeyError, TypeError):
+            print(json.dumps({"ok":False,"error_code":"report_integrity_error"}))
+            return 2
     if args.harness_command == "state":
         try:
             state = repo.read_state(scope, args.workflow, as_of_date=args.date)
@@ -80,6 +97,10 @@ def run_harness(args, config, storage):
             path.relative_to((config.data_dir / "harness_runs" / scope.key / state["run_id"]).resolve())
             if report.get("scope_key") != scope.key or report.get("run_id") != state["run_id"] or hashlib.sha256(path.read_bytes()).hexdigest() != report["sha256"]:
                 raise ValueError("Official report integrity failure")
+            if "report_markdown" in state:
+                delivery = read_report(repo, scope, state["run_id"], config.data_dir / "harness_runs", as_of_date=args.date)
+                if delivery["publication_status"] != "published":
+                    raise ValueError("Official report is not published")
             print(json.dumps({"ok": True, "scope_key": scope.key, "publication_status": "published", "state": state}, ensure_ascii=False, indent=2))
             return 0
         except (ValueError, OSError, KeyError, TypeError):
@@ -105,6 +126,8 @@ def run_harness(args, config, storage):
                 raw = path.read_bytes()
                 if hashlib.sha256(raw).hexdigest() != detail["sha256"]:
                     raise ValueError("Artifact hash mismatch")
+                if path.suffix == ".md":
+                    continue  # the hash was checked; Markdown is not a FactPacket
                 obj = json.loads(raw)
                 if "capability" in obj:
                     facts.append(obj)

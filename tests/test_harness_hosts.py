@@ -135,7 +135,7 @@ def test_cli_run_trace_replay_and_tampered_archive(host, capsys):
     trace_args = argparse.Namespace(command="trace", run_id=first["run_id"], list=False, full=False, **common)
     assert run_harness(trace_args, config, storage) == 0
     trace = json.loads(capsys.readouterr().out)
-    assert trace["status"] == "succeeded" and len(trace["artifacts"]) == 6
+    assert trace["status"] == "succeeded" and len(trace["artifacts"]) == 7
     assert Path(trace["artifacts"][0]["detail"]["path"]).name == "plan.json"
     replay_args = argparse.Namespace(command="harness", harness_command="replay", run_id=first["run_id"], **common)
     assert run_harness(replay_args, config, storage) == 0
