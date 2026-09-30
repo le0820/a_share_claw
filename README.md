@@ -9,7 +9,7 @@
 
 `宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **开发顺序（2026-09-30）**：先按 [E0 验收与未完成边界](E0_INFRA.md#验收与未完成边界) 闭环核心基础设施与业务门禁，再接入初步规划的五个事实接口，最后执行真实市场展望 case。统一运行契约、版本化 SQLite trace、CLI 摘要/回放和宏观/AI 确定性计算已实现，见 [E0_INFRA.md](E0_INFRA.md)。公司/行业核心执行器、统一 JSON/Markdown 报告与日期限制的状态读取已有合成事实验收；显式配置端点的角色/评估 SDK 路径已有本地模拟 HTTP 验证；独立价格统计与宏观展望模板已有合成执行；mixed 已实现独立切片与父运行发布门禁；普通 chat 自动接线、真实研究质量、策略回测及连续正式日更仍待验收。五源接口与入口限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)；发布文本和原生响应尚不等于评分事实。
+> **开发顺序（2026-09-30）**：先按 [E0 验收与未完成边界](E0_INFRA.md#验收与未完成边界) 闭环核心基础设施与业务门禁，再接入初步规划的五个事实接口，最后执行真实市场展望 case。统一运行契约、版本化 SQLite trace、CLI 摘要/回放和宏观/AI 确定性计算已实现，见 [E0_INFRA.md](E0_INFRA.md)。公司/行业核心执行器、统一 JSON/Markdown 报告与日期限制的状态读取已有合成事实验收；显式配置端点的角色/评估 SDK 路径已有本地模拟 HTTP 验证；独立价格统计与宏观展望模板已有合成执行；mixed 已实现独立切片与父运行发布门禁；模型辅助框架编译已接线；普通 chat 自动接线、真实研究质量、策略回测及连续正式日更仍待验收。五源接口与入口限制见 [DATA_PLUGINS.md](DATA_PLUGINS.md)；发布文本和原生响应尚不等于评分事实。
 
 ## 顶层设计
 
@@ -181,7 +181,16 @@ uv run python -m a_share_claw harness plan --workflow industry --date 2026-07-13
 uv run python -m a_share_claw harness run facts.json --workflow industry --date 2026-07-13 --research-spec spec.json --mode research --model-executor configured
 ```
 
-`spec.json` 字段见 [E0_INFRA.md](E0_INFRA.md#显式-sdk-研究执行入口)。plan 不调用模型；未指定 executor 时不会自动连接端点。配置端点必须显式给出 provider/base URL/model name/API key，不回落到 SDK 全局默认客户端。模型无取数/文件/MCP 工具，输出仍经过核心校验与发布门禁。普通 chat 的自由文案不能构造审核事实包；插件自动映射仍待接线。
+模型辅助框架编译先校验宿主约束并独立评估，不加载插件或获取事实：
+
+```bash
+uv run python -m a_share_claw harness plan --workflow industry --date 2026-07-13 --question "梳理产业链价值捕获、证据需求和风险边界" --model-executor configured
+uv run python -m a_share_claw harness plan --workflow outlook --date 2026-07-14 --question "形成条件市场展望框架" --planning-constraints constraints.json --model-executor configured
+```
+
+constraints.json 固定实际仓位或量化/预测窗口等宿主条件，详见 [框架编译](E0_INFRA.md#模型辅助框架编译)。成功 plan 仅表示 framework_only，缺口与必需能力仍须填充。同步宿主 plan_core_result 可规划；run_core_result(..., compile_framework=True, planning_constraints=...) 可在同一 run 内编译后消费宿主审核的事实包。普通 chat 的异步自动取证与核心绑定仍未完成。
+
+`spec.json` 字段见 [E0_INFRA.md](E0_INFRA.md#显式-sdk-研究执行入口)。未指定 executor 的 plan 不调用模型，也不会自动连接端点。配置端点必须显式给出 provider/base URL/model name/API key，不回落到 SDK 全局默认客户端。模型无取数/文件/MCP 工具，输出仍经过核心校验与发布门禁。普通 chat 的自由文案不能构造审核事实包；插件自动映射仍待接线。
 
 价格统计使用独立规格与 price_history，不使用日评分固定标的：
 

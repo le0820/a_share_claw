@@ -43,12 +43,15 @@ def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | Non
         missing += ["mixed_spec"]
     if workflow == "quant" and not (parameters or {}).get("quant_spec"):
         missing += ["universe", "window", "adjustment", "benchmark", "metric_definitions"]
+    missing += [v["constraint"] for v in declared_plan.get("planning_gaps", [])]
+    if workflow == "ai" and "current_ai_pct" not in (parameters or {}):
+        missing += ["current_ai_pct"]
     document = {
         **declared_plan, "schema_version": "research-plan-v1", "version": 1,
         "question_hash": digest(request.message), "scope_key": request.scope.key,
         "as_of_date": request.as_of_date, "mode": request.mode,
         "parameters": parameters or {}, "report_sections": REPORT_SECTIONS[workflow],
-        "framework": "Freeze question and evidence needs before acquisition; interpret admitted facts under core policy.",
+        "framework": declared_plan.get("framework", "Freeze question and evidence needs before acquisition; interpret admitted facts under core policy."),
         "requirements": [
             {"requirement_id": capability, "capability": capability, "as_of_date": request.as_of_date,
              "disposition": disposition, "provider": None}
@@ -56,7 +59,7 @@ def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | Non
                                                ("optional", declared_plan["optional_capabilities"]))
             for capability in capabilities
         ],
-        "unresolved_constraints": missing,
+        "unresolved_constraints": sorted(set(missing)),
         "completion_criteria": ["required_context_loaded", "frozen_plan_unchanged",
                                 "required_evidence_admitted", "workflow_executed", "report_evaluated_and_archived"],
         "stopping_conditions": ["future_data", "scope_mismatch", "unverified_evidence", "missing_required_data",
@@ -87,4 +90,7 @@ def trace_parameters(parameters):
 def trace_plan(plan):
     result = json.loads(canonical(plan))
     result["parameters"] = trace_parameters(result["parameters"])
+    result["framework"] = {"sha256": digest(result["framework"]), "chars":len(result["framework"])}
+    if "planning_gaps" in result:
+        result["planning_gaps"] = [{"constraint":v["constraint"],"reason_hash":digest(v["reason"])} for v in result["planning_gaps"]]
     return result

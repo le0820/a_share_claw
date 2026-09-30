@@ -46,6 +46,9 @@ def add_harness_parser(sub):
                 command.add_argument("--outlook-spec", type=Path)
                 command.add_argument("--mixed-spec", type=Path)
                 command.add_argument("--question")
+            if name == "plan":
+                command.add_argument("--model-executor",choices=["configured"],help="Propose and review a tool-free core framework")
+                command.add_argument("--planning-constraints",type=Path,help="Trusted immutable planner constraints")
             if name == "run":
                 command.add_argument("packet_file", type=Path)
                 command.add_argument("--mode", choices=["replay", "research", "official"], default="replay")
@@ -155,6 +158,21 @@ def run_harness(args, config, storage):
             return 2
         adapter = None
         if getattr(args, "model_executor", None):
+            if args.harness_command == "plan":
+                from ..sdk_research import SDKResearchAdapter
+                try:
+                    constraints=json.loads(args.planning_constraints.read_text()) if getattr(args,"planning_constraints",None) else {}
+                    for key,value in (("research_spec",research_spec),("quant_spec",quant_spec),("outlook_spec",outlook_spec),("mixed_spec",mixed_spec)):
+                        if value is not None:
+                            if key in constraints and constraints[key]!=value:
+                                raise ValueError("Conflicting planner inputs")
+                            constraints[key]=value
+                except (ValueError,OSError,TypeError):
+                    print(json.dumps({"ok":False,"error_code":"invalid_request"}))
+                    return 2
+                outcome=engine.run(request,framework_adapter=SDKResearchAdapter(config),planning_constraints=constraints)
+                print(outcome.output)
+                return 0 if outcome.status==RunStatus.SUCCEEDED else 2
             if args.workflow not in {"company", "industry", "outlook", "mixed"}:
                 print(json.dumps({"ok": False, "error_code": "unsupported_model_workflow"}))
                 return 2

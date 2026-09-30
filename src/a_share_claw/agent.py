@@ -88,7 +88,7 @@ class InvestmentAgent:
         return outcome
 
     def run_core_result(self, context: ConversationContext, message: str, *, as_of_date: str,
-                        packet: dict, workflow: str, research_spec: dict | None = None, outlook_spec: dict | None = None, mixed_spec: dict | None = None, mode="research"):
+                        packet: dict, workflow: str, research_spec: dict | None = None, outlook_spec: dict | None = None, mixed_spec: dict | None = None, mode="research", compile_framework=False, planning_constraints=None):
         """Synchronous trusted host entry; reviewed facts never come from chat prose."""
         from .harness.engine import Harness
         from .sdk_research import SDKResearchAdapter
@@ -99,8 +99,19 @@ class InvestmentAgent:
         engine = Harness(self.config.root_dir, self.storage, self.config.data_dir / "harness_runs",
                          self.config.market_timezone)
         # The core owns the single run and all budgets, evaluation and publication.
+        adapter=SDKResearchAdapter(self.config)
         return engine.run(request, packet, research_spec=research_spec,
-                          research_adapter=SDKResearchAdapter(self.config), outlook_spec=outlook_spec, mixed_spec=mixed_spec)
+                          research_adapter=adapter, outlook_spec=outlook_spec, mixed_spec=mixed_spec,
+                          framework_adapter=adapter if compile_framework else None,
+                          planning_constraints=planning_constraints)
+
+    def plan_core_result(self, context: ConversationContext, message: str, *, as_of_date=None, workflow=None, planning_constraints=None):
+        """Tool-free framework proposal and independent review; never acquisition."""
+        from .harness.engine import Harness
+        from .sdk_research import SDKResearchAdapter
+        request=RunRequest(Scope.from_context(self.config.root_dir,context),message,as_of_date,"plan",workflow,host=context.platform)
+        return Harness(self.config.root_dir,self.storage,self.config.data_dir/"harness_runs",self.config.market_timezone).run(
+            request,framework_adapter=SDKResearchAdapter(self.config),planning_constraints=planning_constraints)
 
     def read_core_report(self, context: ConversationContext, run_id: str, *, as_of_date=None, format="markdown"):
         """Trusted host reads through the same authorization/integrity gate as CLI."""

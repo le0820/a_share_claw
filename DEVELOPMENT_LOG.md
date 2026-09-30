@@ -90,6 +90,12 @@ CLI harness report 与同步宿主 read_core_report 使用相同 scope/日期/�
 
 本地 Python 3.11/3.12 全量检查各 211 passed / 41 subtests；其后新增的实际 CLI 进程读取/跨作用域拒绝/含 Markdown 回放检查双版本各通过 1 项。固定合成事实覆盖七个工作流的双报告往返、阶段顺序、同日精确历史、源/模型格式转义、篡改/越日期/跨主体拒绝、staged 失败拒绝交付、Markdown 渲染/归档失败保护和单权限 evaluator 发布绕过。没有连接真实模型或来源，没有执行市场 case。普通 chat 自动框架/核心绑定、真实研究质量与五源事实映射仍需闭环，PR #2 暂不合并。
 
+## 受约束的模型辅助框架编译（2026-09-30）
+
+核心在取证前编译 framework/parameters/unresolved_constraints，独立评估原请求覆盖后冻结计划。模型不能修改 scope/date/workflow/政策/能力，也不能创造实际仓位、量化窗口、日历或预测范围；缺少可执行规格只保留显式缺口，执行在证据前停止。outlook 派生事实逐字段匹配核心规格，框架评估与研究评估各自归档。普通 trace 对框架和缺口原因仅记哈希。
+
+CLI 显式 plan --model-executor configured、同步 plan_core_result 和 run_core_result 的 compile_framework 选项已接同一核心。实际 SDK 的本地 MockTransport 核对两次规划请求零插件，以及编译→独立框架评估→角色→研究评估五次请求共用一个 run。Python 3.11/3.12 全量离线回归各 **229 passed / 41 subtests**，另含缺约束、拒绝越权/未来/错误评估及超时晚到结果保护。响应和事实仍为合成 fixture；没有调用真实模型或来源。普通 chat 的异步取消/预算/取证桥接、真实规划和研究质量仍未关闭，核心验收未整体完成；随后才是五源映射和真实 case，PR #2 暂不合并。
+
 ## 下一步顺序（2026-09-30 校正）
 
 以 [E0_INFRA.md 的验收与未完成边界](E0_INFRA.md#验收与未完成边界) 为准。旧记录中“先配置 TickFlow、最后补 E0”的顺序已失效。

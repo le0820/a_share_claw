@@ -210,20 +210,20 @@ def execute_research(session, plan, admitted, runner, reviewer, archive):
     return {**candidate, "semantic_review": review}
 
 
-def review_candidate(session, plan, candidate, reviewer, archive):
+def review_candidate(session, plan, candidate, reviewer, archive, *, artifact_name="semantic_review", evaluator="research_semantic_review", criteria=None):
     candidate_hash = digest(candidate)
     if reviewer is None:
         raise ValueError("semantic_review_required")
     review_request = RoleRequest(canonical({"candidate_hash": candidate_hash, "candidate": candidate,
-                    "plan": plan, "user_request": session.request.message, "criteria": ["original_request_satisfied", "required_questions_resolved", "supported_inferences", "conflicts_addressed", "no_unsupported_action", "no_fabricated_confidence_or_probability"]}), session.remaining)
+                    "plan": plan, "user_request": session.request.message, "criteria": criteria or ["original_request_satisfied", "required_questions_resolved", "supported_inferences", "conflicts_addressed", "no_unsupported_action", "no_fabricated_confidence_or_probability"]}), session.remaining)
     review = bounded_call(reviewer, review_request, session.remaining)
     if (not isinstance(review, dict) or set(review) != {"candidate_hash", "passed", "findings", "reviewer", "version"} or
             review["candidate_hash"] != candidate_hash or type(review["passed"]) is not bool or
             not isinstance(review["findings"], list) or any(not isinstance(v, str) for v in review["findings"]) or
             any(not isinstance(review[k], str) or not review[k].strip() for k in ("reviewer", "version"))):
         raise ValueError("invalid_semantic_review")
-    archive(session, "semantic_review", review)
-    session.evaluate(EvalResult("research_semantic_review", review["passed"], hard_gate=False,
+    archive(session, artifact_name, review)
+    session.evaluate(EvalResult(evaluator, review["passed"], hard_gate=False,
                                code="review_passed" if review["passed"] else "review_failed",
                                evidence={"candidate_hash": candidate_hash, "reviewer": review["reviewer"]}, version=review["version"]))
     if not review["passed"]:

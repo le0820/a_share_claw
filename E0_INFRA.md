@@ -77,7 +77,7 @@ JSON 报告固定来源、日期、fallback、政策版本和结果；宏观含�
 
 `SDKResearchAdapter.bind(session)` 为核心提供角色与独立评估回调，每阶段新建无工具/MCP/handoff/history 的 SDK run，显式绑定端点客户端与模型，限制一个 turn 和剩余时间；不修改 SDK 全局模型/客户端，使用本地 Harness hooks 记录 operation 和逐模型请求，禁用 SDK 远程 exporter。CLI `--model-executor configured` 是连接端点的显式选项，离线 replay 不启动模型。同步受信任宿主入口为 `InvestmentAgent.run_core_result(context, message, as_of_date=..., packet=..., research_spec=..., workflow=..., mode="research")`；异步 Telegram/chat 自动桥接仍未完成。
 
-`--research-spec` 接受 checked_spec 的 JSON：subject、technical_required、debate_required、debate_reason、required_facts、questions。required_facts 每项固定 fact_id/entity/metric/unit/data_period/value_type/observation_start/observation_end；questions 每项固定 question_id/question/role/required_fact_ids。plan 可读此规格而不调用模型；模型执行的事实包必须先通过同一核心门禁。当前规格由受信任宿主提供，模型辅助框架编译及其到取证需求的自动映射尚未完成。
+`--research-spec` 接受 checked_spec 的 JSON：subject、technical_required、debate_required、debate_reason、required_facts、questions。required_facts 每项固定 fact_id/entity/metric/unit/data_period/value_type/observation_start/observation_end；questions 每项固定 question_id/question/role/required_fact_ids。plan 可读此规格而不调用模型；模型执行的事实包必须先通过同一核心门禁。该版本规格由受信任宿主提供；后续模型辅助编译进展见框架编译章节，五源事实自动映射仍未完成。
 
 Python 3.12 全量检查为 **164 passed / 40 subtests**，Python 3.11 相关检查为 **44 passed / 6 subtests**。本地模拟 HTTP 验证使用真正安装的 SDK 与兼容客户端：共享 run_id、七个角色阶段加一次独立评估、零取数工具、资源关闭、错误 JSON/引用/评估不发布、缺事实/端点零调用、CLI 和同步宿主一致。响应为固定合成 fixture，仍不代表真实端点可用或模型质量验收。依据 [官方模型适配](https://developers.openai.com/api/docs/guides/agents/models) 与 [观测说明](https://developers.openai.com/api/docs/guides/agents/integrations-observability)，模型和 trace 配置属于适配层，核心仍拥有验证和发布权。
 
@@ -89,7 +89,7 @@ Python 3.12 全量检查为 **164 passed / 40 subtests**，Python 3.11 相关检
 
 `--outlook-spec` 包含 quant_spec、research_spec、forecast_start/end。研究规格复用原事实契约，至少固定 Hong Guan 的 base_scenario/market_comparison 和 Ping Heng 的 risk_monitoring 问题，market_comparison 必须引用所有声明价格指标。可用 derived_requirements(quant_spec) 在取证前编译派生指标身份。macro_release_facts 使用 macro-release-facts-v1，逐事实字段与 research-facts-v1 一致并增加带时区 available_at；当日截止检查精确到时间。核心从已准入价格计算指标，保存 derivation artifact/input hash，再加入同一 packet；供应商不能提交 price.* 派生事实冒充核心结果。Hong Guan → 可选 Jia Zhi → Ping Heng 后独立语义评估，报告包含预测窗口、基准情景、来源与监控条件，始终保持 NO_ACTION；不虚构 L1/L3/composite 或概率。模型无新取数权限。
 
-固定合成窗口覆盖收益/回撤/波动的解析值、代理/缺行/占位值/日期拒绝、undefined 相关性、CLI 规格回放、宏观派生事实及真正 SDK 的本地模拟 HTTP 路径。修复 NASDAQ Composite 名称被误判为 Composite 日评分关键词。该证据不是完整 Q3 数据、真实插件或四季度市场 case。该版本尚未完成 mixed 切片，后续进展见下节；自动框架编译/普通 chat 绑定、真实研究质量仍未完成；Markdown 后续进展见报告交付章节。
+固定合成窗口覆盖收益/回撤/波动的解析值、代理/缺行/占位值/日期拒绝、undefined 相关性、CLI 规格回放、宏观派生事实及真正 SDK 的本地模拟 HTTP 路径。修复 NASDAQ Composite 名称被误判为 Composite 日评分关键词。该证据不是完整 Q3 数据、真实插件或四季度市场 case。该版本尚未完成 mixed 切片，后续进展见下节；该版本自动框架编译尚未完成，后续进展见框架编译章节；普通 chat 绑定与真实研究质量仍未完成；Markdown 后续进展见报告交付章节。
 
 ### Mixed 切片和原请求覆盖门禁
 
@@ -114,6 +114,18 @@ report.json 与 report.md 均为 staged，分别验证并归档；Markdown 失�
 新版 `harness state` 通过同一读取 gate 校验双报告；旧数据库的 JSON-only 历史仍保留原有 state 读取兼容，但不会伪造补建 Markdown。旧运行缺少 Markdown evaluator 时 report 命令返回 report_not_found，需要在适用版本重新执行才能拥有双报告。计算 replay 检查 Markdown 哈希后跳过文本解析；仍不拉新数据或启动模型。
 
 本地 Python 3.11/3.12 全量各为 **211 passed / 41 subtests**，新增实际 CLI 进程检查随后双版本各通过 1 项。本项使用各工作流固定合成事实验证归档/读取往返、纯文本转义、阶段顺序、同日精确历史、跨 scope/日期拒绝、文件篡改、未完成 staged 拒绝交付、渲染与 Markdown 归档失败保护，以及不得以单权限 evaluator 发布。它关闭报告/同步交付实现项，不证明实际源真实性、真实研究质量或 Telegram 自动业务接线。
+
+### 模型辅助框架编译
+
+Harness.run 的 framework_adapter 或 framework_proposer/framework_reviewer 在证据前提出并独立评估框架。模型只返回 framework、parameters、unresolved_constraints；公司/行业规格沿用 checked_spec，问题与事实字段先确定，技术核验和辩论按条件声明。scope/date/mode/workflow、政策与必需能力由核心固定，模型不能返回提供商、事实、权重、动作或新的权限。候选、框架评估、冻结 plan 和后续研究可共用一个 run_id/预算；框架评估和研究评估分别归档，不能覆盖。
+
+宿主 planning_constraints 可提供 current_ai_pct、quant_spec、outlook_spec、mixed_spec 或 research_spec。outlook 也可分别固定 quant_spec/forecast_start/forecast_end，研究需求由模型补充。模型不得创造或修改量化窗口/交易日历/收盘时刻/复权/benchmark/指标、预测范围或实际当前仓位；数值 mixed 切片需要完整受保护 mixed_spec。公司/行业或纯宏观/研究 mixed 的问题可以由模型编译，但必须通过类型/日期/角色契约和独立原请求覆盖评估。outlook 派生 price.* 需求逐字段匹配核心量化要求，不接受模型选定的单位或替代指标。
+
+缺规格时只允许 parameters={} 并记录核心补充的缺口；plan 的成功为 framework_only，不等于已取证或业务完成。带缺口的执行请求在证据准入前 blocked/planning_constraints_required。框架、嵌套问题和缺口原因在普通 trace 中只存哈希，完整内容存授权归档。没有框架评估、候选哈希错配、未来观测窗口、越权参数、宿主约束变化、取消和预算耗尽均不能推进取证/角色/正式状态。回调仍是受信任宿主扩展点，不构成系统级沙箱。
+
+CLI 仅显式 `harness plan --model-executor configured --question ...` 调用已配置端点；`--planning-constraints FILE` 接受宿主约束，已有 --research-spec/--quant-spec/--outlook-spec/--mixed-spec 作为受保护约束，矛盾输入拒绝。没有 executor 的 plan 仍不调用模型。同步 InvestmentAgent.plan_core_result 使用同一入口；run_core_result(..., compile_framework=True, planning_constraints=...) 可先编译再执行已审核事实。普通 chat 的异步取消/预算/取证接线仍待完成。
+
+Python 3.11/3.12 全量离线回归各为 **229 passed / 41 subtests**。固定合成提案与实际 SDK 的本地 MockTransport 核对零插件规划、独立框架评估、同 run 的编译→角色→报告、宿主约束保护、派生单位、缺口停止、越权/未来/坏评估拒绝和超时晚到结果。该证据不代表真实模型规划质量、供应商事实映射或最终市场 case。
 
 ### A. 先闭环核心，再进入插件接入
 

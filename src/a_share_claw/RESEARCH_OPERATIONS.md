@@ -12,7 +12,7 @@ Every admitted fact belongs to one scoped, versioned packet and retains source/f
 
 PLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE -> EVALUATE -> ARCHIVE -> PUBLISH.
 
-1. PLAN: Ping Heng fixes scope and completion criteria. Relevant roles define questions and evidence requirements before selecting plugins. A no-plugin run can deliver this framework and explicit gaps.
+1. PLAN: Ping Heng fixes scope and completion criteria. Relevant roles define questions and evidence requirements before selecting plugins. A no-plugin run can deliver this framework and explicit gaps. Model-assisted proposals must preserve host scope/date/mode/workflow and protected numerical constraints, pass typed validation and an independent framework coverage review, then freeze before acquisition. A framework_only success is never research completion. Missing calendars, adjustment, benchmark, horizon or actual current position remain gaps; models cannot fabricate them.
 2. EVIDENCE_GATE: accept only authorized artifacts that satisfy the frozen contract. Plugin retrieval success is not research completion; raw response text is not a normalized scoring input. Acquisition uses only host-authorized plugin capabilities and registered requirement IDs.
 3. COMPUTE_OR_SYNTHESIZE: deterministic scoring uses compiled core policy. Research roles distinguish confirmed facts, interpretations and unknowns, citing packet fact IDs. No role can alter weights, thresholds, evaluator or formal state.
 4. EVALUATE: the host checks dates, scope, completeness, references and risk constraints before delivery. Semantic quality judgment cannot override a failed hard gate. Correct denial proves the gate worked, not that the requested research was completed.

@@ -13,6 +13,7 @@ from ..research_context import classify_research_route
 from .contracts import EvalResult, FailureCategory as Failure, RunRequest, RunStatus, canonical, digest, validate_date
 from .policy import PolicyBundle, PolicyContextError
 from .planning import freeze_plan, trace_parameters, trace_plan
+from .framework import compile_framework
 from .research import execute_research
 from .mixed import workflow_parameters, mixed_plan, execute_mixed
 from .reports import build_report, validate_report
@@ -55,7 +56,7 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None):
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None):
         session = RunSession(self.storage, request)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
@@ -78,11 +79,24 @@ class Harness:
             session.step("context", {"kind": "policy_snapshot", "loaded_files": list(policy.hashes),
                                      "missing_files": [], "state_scope": request.scope.key,
                                      "state_injected": False})
-            parameters = workflow_parameters(workflow, current_ai_pct=current_ai_pct,
-                research_spec=research_spec, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec)
+            compiled = None
+            if framework_adapter is not None or framework_proposer is not None:
+                if request.mode == "replay":
+                    raise ValueError("model_replay_not_supported")
+                if any(v is not None for v in (research_spec,quant_spec,outlook_spec,mixed_spec)):
+                    raise ValueError("conflicting_framework_specs")
+                compiled = compile_framework(session,policy,workflow,planning_constraints,framework_proposer,
+                                              framework_reviewer,framework_adapter,self._archive)
+                parameters = compiled["parameters"]
+                current_ai_pct = parameters.get("current_ai_pct",current_ai_pct)
+            else:
+                parameters = workflow_parameters(workflow, current_ai_pct=current_ai_pct,
+                    research_spec=research_spec, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec)
             if require_official_close:
                 parameters["official_close_required"] = True
-            declared = mixed_plan(policy, parameters["mixed_spec"]) if workflow == "mixed" else policy.plan(workflow)
+            declared = mixed_plan(policy, parameters.get("mixed_spec")) if workflow == "mixed" else policy.plan(workflow)
+            if compiled is not None:
+                declared.update(framework=compiled["framework"],planning_gaps=compiled["planning_gaps"])
             frozen_plan = freeze_plan(request, declared, parameters)
             plan = frozen_plan.json()
             session.step("plan", trace_plan(plan))
@@ -91,8 +105,12 @@ class Harness:
             output["plan"] = plan
             if request.mode == "plan":
                 output["gaps"] = plan["required_capabilities"]
+                output["completion"] = "framework_only"
                 status = RunStatus.SUCCEEDED
             else:
+                if compiled is not None and plan["unresolved_constraints"]:
+                    output["gaps"] = plan["unresolved_constraints"]
+                    raise ValueError("planning_constraints_required")
                 reference = clock or datetime.now(timezone.utc)
                 if reference.tzinfo is None:
                     raise ValueError("Clock must include timezone")
@@ -199,6 +217,7 @@ class Harness:
             known = {"future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
+                     "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
                      "mixed_spec_required", "invalid_mixed_spec", "invalid_mixed_packet", "invalid_mixed_link", "mixed_incomplete",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
                      "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
@@ -209,7 +228,7 @@ class Harness:
             code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
             if code in {"future_data", "scope_mismatch", "unverified_evidence", "role_packet_mismatch"}:
                 category = Failure.STATE_CONTAMINATION_FAILURE
-            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "mixed_spec_required", "mixed_incomplete", "invalid_mixed_link", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
+            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "mixed_spec_required", "mixed_incomplete", "invalid_mixed_link", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
                 category = Failure.PERMISSION_POLICY_FAILURE
             elif code == "semantic_review_failed":
                 category = Failure.SYNTHESIS_OR_UNKNOWN_FAILURE
