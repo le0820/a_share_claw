@@ -46,11 +46,13 @@ GitHub Actions 工作流是 `Harness offline tests`，在 push/PR 上执行 Pyth
 
 代码和测试在 GitHub；运行数据、密钥、企业工作区文件没有上传。临时本地检出位于系统临时目录，不是长期开发依赖。
 
-## 下一步顺序
+## 下一步顺序（2026-09-30 校正）
 
-1. 配置 TickFlow，取得去敏真实响应样本，完成三表单位/披露日/修订 vintage 和行情覆盖映射。历史三表请求当前明确拒绝；不要移除门禁来迁就接口。
-2. 从 compiled 规则列出 CN 必需宏观指标，再实现 NBS/PBC 发布与附件到数值序列的版本化解析；缺失数据继续保留缺口。
-3. 将旧 fetch/compute/report 拆开，计算端只读已验证的插件 artifact；完成契约/覆盖门禁后再恢复 Agent 的官方评分与 state promotion。
-4. 独立补全 Issue #1 的 FailureCategory、RunStatus、EvalResult、统一 ToolResult、SQLite 迁移、最小 trace repository 和 CLI 摘要，不关闭 Issue #1。
+以 [E0_INFRA.md 的验收与未完成边界](E0_INFRA.md#验收与未完成边界) 为准。旧记录中“先配置 TickFlow、最后补 E0”的顺序已失效。
+
+1. 先闭环核心：版本化运行协议与实际上下文记录 → 框架/业务执行 → 报告/发布及状态读取 → 逐项验收证据。已有 CI 结果不代替业务验收。
+2. 核心验收通过后，接入 NBS/PBC/TickFlow/FRED/SEC 事实映射；按当前数据/主源授权、单位、披露日、vintage 和覆盖限制准入，不允许原生响应直接提升正式状态。
+3. 五源接线后，再执行 8 月 PCE、8 月中国国民经济和三指数三季度 → 四季度展望 case。此前直接下载的原始材料未验收，不计作接入或 case 完成。
+4. 连续正式日更、完整上下文/记忆、调度恢复与 E3–E5 留在对应后续工作包；PR #2 和 Issue #1 的关闭条件分别记录，不因一个 case 通过而整体宣告完成。
 
 当前行为变化：Agent 仅有六个插件/规则工具；旧 MCP、网页、自由执行、文件、旧 state/记忆/SDK 工具历史不再进入取证上下文。旧人工 pipeline 仍可维护，但不能作为 Agent 绕过插件的入口。外部宿主若另有浏览器/网络工具，需在宿主侧同步约束。

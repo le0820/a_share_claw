@@ -39,8 +39,43 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 
 ## 验收与未完成边界
 
-测试覆盖迁移/回滚、作用域隔离、宏观与旧流水线比对、AI 原始输入、硬门禁、归档失败、逐模型调用 trace、CLI 回放和失败通知。GitHub Actions 配置 Python 3.11/3.12；本次提交是否通过须以对应运行结果为准。
+2026-09-30 按 PR #2 的 `773564e` 和 Issue #1 实际清单复核。该版本 [Actions run 36698444615](https://github.com/le0820/a_share_claw/actions/runs/36698444615) 已通过 Python 3.11/3.12 的离线检查；127 passed / 40 subtests 是覆盖范围内的证据，不能据此宣称全部业务或 Issue #1 完成。本文只更新验收边界，没有重跑真实市场 case。
 
-下一步先补公司/行业业务执行器和证据 evaluator，再验收事实映射。company/industry/mixed/quant 可规划，执行返回 `workflow_execution_pending`；不能把运行骨架具备解释为整个研究团队已跑通。
+| Issue #1 E0 项 | 当前实现与接线 | 验收边界 / 下一步 |
+| --- | --- | --- |
+| FailureCategory / RunStatus / EvalResult / ToolResult | 已实现；核心、Agent 与数据 CLI 使用结构化结果 | 已有契约与失败传播检查；旧人工 ToolRuntime / MCP 全面标准化属于 E1，不能算全部已迁移 |
+| 每次 InvestmentAgent.run 生成 run_id | 已实现；run_result 先建记录，run 为兼容渲染入口 | fake、SDK 脚本、异常/取消有证据；真实模型业务完成尚未验收 |
+| route、loaded/missing context、state scope | 部分实现；SDK 记录装配结果，核心记录 scope 和政策哈希 | 核心 context 清单仍是固定值；政策读取失败时的缺失文件记录、两条工作流的版本化运行协议需补齐 |
+| SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
+| CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-NBS/PBC 发布文本、TickFlow 原生财务/真实账户样本仍需数值归一化和 PIT 验收。Agent 尚不自动把插件响应提交核心评分。传统 `data/state/system_state.json` 未被覆盖，旧读取方迁移与连续正式日更待完成。完整 ContextManifest、长期记忆、固定评测报告和 proposal 审批继续按 Issue #1 后续阶段建设。
+**整体状态：E0 技术清单仍有上下文验收缺口；“整个系统运行逻辑、评分策略、风控策略可独立运行”的业务验收也未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+
+### A. 先闭环核心，再进入插件接入
+
+按以下顺序补齐实现、接线和验收证据。可使用固定事实包验证核心行为，不提前执行用户的真实市场 case。
+
+1. **运行协议与上下文。** 两条核心工作流的必要协议进入版本控制，干净检出可加载；记录实际 loaded/missing、政策版本与 state scope，缺关键协议停止相应业务。完整 token 压缩/长期记忆不是本项完成条件。
+2. **框架与业务执行。** 请求先冻结问题、日期、mode、scope、输出模板、必需/可选/禁用证据；宏观保持既有评分与风控，产业研究消费同一版本事实包并按 IDENTITY 执行技术/价值链/必要辩论/最终风险 gate。company 复用研究契约；mixed 按独立切片记录等待和完成；quant 先冻结 universe/window/adjustment/benchmark/metrics，不凭现有市场事实包宣称回测完成。
+3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
+4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
+
+当前公司/产业/量化/mixed 只有规划路径，执行仍返回 `workflow_execution_pending`；SDK Agent 始终停在 `core_evaluation_pending`，模型自由文案不能代替核心输出。以上是待完成工作，不是本次文档更新的交付声明。
+
+### B. 然后接入初步规划的五个事实接口
+
+仅在 A 完成后推进 NBS、PBC、TickFlow、FRED、SEC 到核心 FactPacket 的映射。逐接口登记能力、真实字段、单位、统计期/披露日、修订 vintage、覆盖和不可得项。插件不能新增评分权重或把预计算 action 当事实。
+
+NBS/PBC 目前保留发布正文；数值和附件解析未完成。TickFlow 真实账户样本、三表披露/单位和历史 PIT 未验收；FRED/SEC 已有时点过滤，但尚未自动接入评分事实包。缺凭据或不支持的证券/指标继续返回缺口，不另接网页、旧 pipeline 或其他供应商补数。当前任务 AGENTS.md 的行情主源限制必须先落实；现有 TickFlow 接口的存在不构成主源授权。
+
+`data` 插件运行的 `official_output_allowed=false` 保持不变；它表示取数本身没有发布权。核心单独通过 evaluator、报告与原子发布门禁后才可允许 official。手工 FactPacket 的可运行性不等于插件到核心链路已验收。
+
+### C. 最后执行用户指定的业务 case
+
+五源映射和入口接线完成后，再通过已授权插件取得美国 8 月 PCE、中国 8 月国民经济运行和 NASDAQ Composite / 创业板 / 科创50 三季度数据，生成四季度展望及基准情景，并沿用同一核心 trace、证据和风控门禁。
+
+冻结发布日期/截止时点、季度末完整性、指数身份、指标单位与来源。季度未收盘只可标明部分窗口；NASDAQ Composite 不能以 QQQ/NDX 替代。该材料不足以填满既有每日评分全部必需指标时，展望保持研究模式 / NO_ACTION，不虚构 L1/L3/composite 或交易动作。此前提前下载的原始材料尚未准入，只留在 data 中；不作为完成证据。
+
+### 明确留给后续阶段的范围
+
+完整 ContextManifest/上下文压缩与长期记忆、通用宿主桥接、可靠 Cron/崩溃恢复、E3 的 30–50 固定任务与 ≥20 故障注入、四臂缓存性能对照及 E4/E5 proposal 审批/自提升继续按 Issue #1 推进。这些边界必须保留，不能为本次 case 扩张范围或标记完成。连续正式宏观日更和 AI 正式输入验收依赖 B；一次 case 通过也不替代连续服务观察。
