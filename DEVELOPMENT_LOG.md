@@ -6,7 +6,7 @@
 
 本地完整套件按锁文件分别验证 Python 3.11/3.12：均为 **127 passed, 40 subtests passed**。包括宏观与旧流水线结果比对、AI 输入与覆盖门禁、迁移失败回滚、归档失败撤销发布、作用域及正式状态隔离。下文的 90 项及旧 CI 结果属于先前提交，不能代表本次提交。
 
-尚未完成公司/行业/mixed/quant 业务执行器、供应商事实映射与连续正式日更。暂不合并 main、不关闭 Issue #1。后续按 README 先验收核心业务门禁，再接插件。
+截至该次提交，尚未完成公司/行业/mixed/quant 业务执行器、供应商事实映射与连续正式日更；后续公司/行业核心进展见文末验收记录。暂不合并 main、不关闭 Issue #1。后续按 README 先验收核心业务门禁，再接插件。
 
 日期：2026-09-30。相关 Issue：[#1](https://github.com/le0820/a_share_claw/issues/1)。代码分支：`docs/portable-harness-data-plugins`，PR：[#2](https://github.com/le0820/a_share_claw/pull/2)。
 
@@ -55,6 +55,12 @@ GitHub Actions 工作流是 `Harness offline tests`，在 push/PR 上执行 Pyth
 版本化 `RESEARCH_OPERATIONS.md` 已接到配置、Agent 和核心政策快照；部署手册不再作为运行依赖。SDK 缺关键协议时在模型调用前 blocked；同日宏观等待与独立研究切片在协议上分离。核心在证据前归档不可变规划，固定日期/scope/mode、证据能力、报告与停止条件；计划被改动时不能发布。
 
 相关 Python 3.11/3.12 离线回归各为 67 passed / 31 subtests；Python 3.12 全量离线回归为 137 passed / 40 subtests，覆盖真实加载、缺协议零模型调用、计划归档/副本隔离、改计划不晋级，以及原计算/CLI 回放。角色执行、逐字段需求编译、报告发布和状态读取仍待闭环；没有接入真实插件或执行市场 case。
+
+## 公司/行业核心执行与发布门禁（2026-09-30）
+
+公司/行业核心库已接冻结事实需求、角色执行、引用检查和独立语义评估；角色共享 packet/version，必要辩论包含相互回应，风险结论保持 NO_ACTION。core JSON 报告成功归档/校验后才可更新正式状态；所有磁盘中间产物保留 staged。迁移 v2 保留旧正式状态并建立按 scope/workflow/date 查询的历史，CLI state 校验报告路径与哈希。
+
+Python 3.12 全套 156 passed / 40 subtests；Python 3.11/3.12 的新增业务及相关基础回归各 66 passed。角色/评估回调均为合成 fixture，未调用真实模型或数据源。尚未闭环真实 SDK 接线、研究质量验收、mixed/quant 和宏观展望模板；五源真实映射与最终 case 均未开始，PR #2 暂不合并。
 
 ## 下一步顺序（2026-09-30 校正）
 

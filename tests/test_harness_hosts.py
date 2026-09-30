@@ -135,7 +135,7 @@ def test_cli_run_trace_replay_and_tampered_archive(host, capsys):
     trace_args = argparse.Namespace(command="trace", run_id=first["run_id"], list=False, full=False, **common)
     assert run_harness(trace_args, config, storage) == 0
     trace = json.loads(capsys.readouterr().out)
-    assert trace["status"] == "succeeded" and len(trace["artifacts"]) == 5
+    assert trace["status"] == "succeeded" and len(trace["artifacts"]) == 6
     assert Path(trace["artifacts"][0]["detail"]["path"]).name == "plan.json"
     replay_args = argparse.Namespace(command="harness", harness_command="replay", run_id=first["run_id"], **common)
     assert run_harness(replay_args, config, storage) == 0
@@ -230,3 +230,27 @@ def test_sdk_missing_protocol_blocks_before_model_and_preserves_context_trace(ho
     detail = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
     assert detail["missing_files"] == [str(tmp / "missing-protocol.md")]
     assert not trace["model_calls"] and not trace["tool_calls"]
+
+
+def test_cli_reads_only_scoped_official_state_at_cutoff(host, capsys):
+    config, storage, context, tmp = host
+    from a_share_claw.harness.engine import Harness
+    from a_share_claw.harness.contracts import RunRequest
+    scope = Scope.from_context(ROOT, context)
+    outcome = Harness(ROOT, storage, tmp / "harness_runs").run(RunRequest(scope, "Fixed macro", DAY, "official", "macro"), packet(scope))
+    assert outcome.status == RunStatus.SUCCEEDED
+    args = argparse.Namespace(command="harness", harness_command="state", workflow="macro", date=DAY,
+                              platform="local", user="local-user", chat="local-chat", agent_key="default")
+    assert run_harness(args, config, storage) == 0
+    saved = json.loads(capsys.readouterr().out)
+    assert saved["state"]["run_id"] == outcome.run_id and saved["scope_key"] == scope.key
+    args.date = "2026-07-12"
+    assert run_harness(args, config, storage) == 2
+    assert json.loads(capsys.readouterr().out)["error_code"] == "official_state_not_found"
+    args.date, args.user = DAY, "other-user"
+    assert run_harness(args, config, storage) == 2
+    assert "data" not in json.loads(capsys.readouterr().out)
+    args.user = "local-user"
+    Path(saved["state"]["report"]["path"]).write_text("tampered report")
+    assert run_harness(args, config, storage) == 2
+    assert json.loads(capsys.readouterr().out)["error_code"] == "official_state_integrity_error"

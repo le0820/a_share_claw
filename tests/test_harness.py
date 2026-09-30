@@ -103,7 +103,7 @@ def test_migration_preserves_existing_history_and_is_idempotent(environment):
     context = storage.get_or_create_context("local", "1", "chat")
     storage.add_message(context.conversation_id, "user", "existing history")
     storage.init()
-    assert storage._conn.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 1
+    assert storage._conn.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 2
     assert storage._conn.execute("SELECT content FROM messages").fetchone()[0] == "existing history"
     assert {r[0] for r in storage._conn.execute("SELECT name FROM sqlite_master WHERE type='table'")} >= {
         "runs", "run_steps", "model_calls", "tool_calls", "artifacts", "evaluations", "improvement_proposals", "official_states"}
@@ -131,7 +131,7 @@ def test_complete_fact_packet_computes_without_network_and_traces_all_stages(env
     trace = TraceRepository(storage).read(outcome.run_id, scope)
     stages = {row["stage"] for row in trace["run_steps"]}
     assert stages >= {"request", "route", "context", "plan", "policy_snapshot", "evidence", "gap_report", "compute", "publish_gate", "final_output"}
-    assert len(trace["artifacts"]) == 5 and all(row["passed"] for row in trace["evaluations"])
+    assert len(trace["artifacts"]) == 6 and all(row["passed"] for row in trace["evaluations"])
     context = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
     assert context["kind"] == "policy_snapshot"
     assert set(context["loaded_files"]) == set(PolicyBundle(ROOT).hashes)
@@ -317,10 +317,10 @@ def test_archive_failure_revokes_successful_computation(environment):
 def test_migration_failure_rolls_back_and_modified_version_is_rejected(environment, monkeypatch):
     from a_share_claw.harness import trace
     storage, _, _, _ = environment
-    monkeypatch.setattr(trace, "MIGRATIONS", {2: ("CREATE TABLE partial_upgrade (id INTEGER)", "INVALID SQL")})
+    monkeypatch.setattr(trace, "MIGRATIONS", {3: ("CREATE TABLE partial_upgrade (id INTEGER)", "INVALID SQL")})
     with pytest.raises(sqlite3.OperationalError): trace.migrate(storage._conn)
     assert not storage._conn.execute("SELECT name FROM sqlite_master WHERE name='partial_upgrade'").fetchall()
-    assert storage._conn.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 1
+    assert storage._conn.execute("SELECT count(*) FROM schema_migrations").fetchone()[0] == 2
     monkeypatch.setattr(trace, "MIGRATIONS", {1: ("changed historical migration",)})
     with pytest.raises(RuntimeError, match="checksum"): trace.migrate(storage._conn)
 
@@ -362,7 +362,7 @@ def test_frozen_plan_pins_identity_and_archives_before_evidence(environment):
     from a_share_claw.harness.planning import freeze_plan
     storage, scope, engine, _ = environment
     req = request(scope, "plan", "industry")
-    frozen = freeze_plan(req, PolicyBundle(ROOT).plan("industry"))
+    frozen = freeze_plan(req, PolicyBundle(ROOT).plan("industry"), {"research_spec": None})
     copy = frozen.json()
     copy["requirements"].clear()
     assert frozen.json()["requirements"]

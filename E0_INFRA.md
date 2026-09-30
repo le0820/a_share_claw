@@ -9,7 +9,9 @@
 - 每次 Agent/CLI 请求先生成 run_id。异常、超时和取消写入终态；调度器不会把 blocked/failed 通知为完成。逐次模型调用记录哈希、usage 和相邻输入前缀长度；不保存模型输入正文，缺失的缓存和首字延迟为 null。
 - 宏观保留既有 L1、L3 风险/情绪、L2 disabled、4/7 与 3/7 权重及仓位区间；AI 复用增长、动量、情绪、流动性与绝对利率/Brent 门禁。
 - 核心验证作用域、日期、单位、覆盖、来源字段和事实哈希。缺数据、未来数据、unverified/fallback、政策变化和预算耗尽阻止动作。
-- 一个 SQLite 事务更新正式状态和终态；宏观/AI 按 scope + workflow 分别保存，不回退到较早日期。research/replay 永远 NO_ACTION；部分归档不等于正式状态。
+- 一个 SQLite 事务更新正式状态、历史和终态；按 scope + workflow 分别保存，不回退到较早日期。迁移 v2 保留 v1 已有正式状态；日期截止查询不读取未来状态。research/replay 永远 NO_ACTION；部分归档不等于正式状态。
+- 公司/行业核心执行器冻结逐字段事实需求，角色共享不可变事实包；技术核验与辩论按计划启用。引用门禁和受信任的独立语义评估均通过后才交付推断，风险结论保持 NO_ACTION。
+- 核心生成并验证 JSON 报告，归档失败不能发布；`harness state` 校验作用域、日期、报告路径及哈希。报告与 computed_output 归档均标为 staged，最终发布状态由成功终态和正式状态事务决定。
 - Agent 只调用五源插件和规则/时点工具，规则剔除历史观测/示例。未经业务 evaluator 的模型自由结论不交付为评分或仓位建议。
 
 ## 无模型、无插件运行
@@ -23,6 +25,7 @@ uv run python -m a_share_claw harness run facts.json --workflow macro --date 202
 uv run python -m a_share_claw trace RUN_ID
 uv run python -m a_share_claw trace RUN_ID --full
 uv run python -m a_share_claw harness replay RUN_ID
+uv run python -m a_share_claw harness state --workflow macro --date 2026-07-13
 ```
 
 run 默认 replay；显式 `--mode official` 才进入正式门禁。操作人必须提供已经审核的事实和来源，核心不能仅凭 source 字符串证明数据真实或 vintage 正确。CLI 身份参数用于本地个人入口；远程宿主必须根据自身认证映射 Scope。
@@ -49,7 +52,7 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 | SQLite migration / 最小 trace repository | 已实现；事务迁移、作用域授权、终态和 scoped official state | 已有旧库保留、回滚、隔离与不回退检查；崩溃恢复/完整 memory 迁移留在后续阶段 |
 | CLI 按 run_id 查摘要 | 已实现；trace / --full / --list 与计算回放 | 回放范围为宏观/AI 核心计算，不等于 SDK 会话或全部研究工作流回放 |
 
-**整体状态：本轮补齐了 E0 实际上下文记录缺口，版本化协议与不可变规划契约已接线；“整个系统运行逻辑、评分策略、风控策略可独立运行”的业务验收也未闭环。PR #2 暂不合并，Issue #1 保持 open。**
+**整体状态：E0 契约、上下文、冻结规划、核心公司/行业执行、统一报告与状态读取已有对应实现和合成验收；真实模型 SDK 接线、mixed/quant 业务路径及完整需求映射仍未闭环。PR #2 暂不合并，Issue #1 保持 open。**
 
 本轮上下文修复在 Python 3.11/3.12 各执行相关核心回归一次：`tests/test_harness.py` 均为 31 passed。缺失 IDENTITY 或必需 compiled 文件时保留 route/context、记录缺失项及 CONTEXT_TRUNCATION_FAILURE，阻止计算/产物/正式状态。此证据仅适用于本项修复，不是新增真实数据 case 或全业务验收。
 
@@ -58,7 +61,17 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 - `src/a_share_claw/RESEARCH_OPERATIONS.md` 取代未提交部署手册作为配置/上下文依赖，核心政策快照固定其版本。Agent 读取完整简短协议；缺协议在模型配置/调用前 blocked，不回退归档 SOP 或旧工具。
 - `harness/planning.py` 固定 question hash、scope/date/mode、policy/version、required/optional/disabled 能力、报告章节、停止/完成条件及参数；canonical document 不可变，消费者拿到独立副本。核心在证据前归档 `plan.json`，发布前检查其不变性。
 - quant 的 universe/window/adjustment/benchmark/metrics 缺失明确列为 unresolved；不把宏观评分标的静默当作用户回测标的。产业/公司辩论按共享证据后有真正双向不确定性决定，不强制每次辩论。
-- 这些交付只关闭协议可复现和核心规划记录项。逐字段需求编译、SDK 计划到核心计划绑定、角色执行/证据评估、报告发布及状态读取仍待完成，不能据此进入五源接入或市场 case。
+- 该协议提交关闭协议可复现和核心规划记录项；其后核心执行进展见下节。SDK 计划绑定、真实模型验收和完整业务切片仍未闭环，不能据此进入五源接入或市场 case。
+
+### 公司/行业核心执行、报告与状态闭环（2026-09-30）
+
+核心库 `Harness.run(..., research_spec=..., role_runner=..., semantic_reviewer=...)` 已接线。spec 明确对象、指标、单位、统计期、类型和观测窗口；事实必须逐字段匹配。每个角色输出绑定同一 packet/version、回答必需问题并引用已准入事实；有必要的辩论包含两方初始观点和回应，最后由 Ping Heng 给出监控触发条件。回调只获得不可变请求副本，超时晚到结果不能进入发布事务；此机制不替代宿主的系统沙箱。
+
+结构化引用检查只证明契约匹配，不能证明推断质量。核心另外要求受信任的独立语义评估回调，缺评估、评估不通过或候选哈希不匹配均不交付自由文案。当前验收用脚本化角色和脚本化 fixture reviewer，未调用真实模型、未完成真实研究质量验收。
+
+JSON 报告固定来源、日期、fallback、政策版本和结果；宏观含评分、驱动项、L2 禁用、仓位纪律及可用历史对比。正式发布要求同 run 的报告已归档并通过验证；归档失败、身份错配、计划/政策变化、较早日期覆盖均不能更新正式状态。SQLite 迁移 v2 保存状态历史；`harness state` 可查指定日期前的授权状态，并验证报告路径/哈希。旧全局 JSON 不自动迁入，Markdown 报告及其他宿主读取尚未接线。
+
+本地 Python 3.12 全套为 **156 passed / 40 subtests**；新增业务及相关基础回归在 Python 3.11/3.12 各为 **66 passed**，覆盖角色引用/缺问题/回应/超时/取消、事实口径、独立评估、报告归档失败、历史日期与迁移保留。此证据仅验证固定合成事实的核心行为，不是五源真实接入或市场 case。
 
 ### A. 先闭环核心，再进入插件接入
 
@@ -69,7 +82,7 @@ provenance 必須有 `source/source_file/source_timestamp/publication_date/obser
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
 
-当前公司/产业/量化/mixed 只有规划路径，执行仍返回 `workflow_execution_pending`；SDK Agent 始终停在 `core_evaluation_pending`，模型自由文案不能代替核心输出。以上是待完成工作，不是本次文档更新的交付声明。
+当前 company/industry 可通过核心库的受信任回调执行；mixed/quant 执行仍返回 `workflow_execution_pending`。SDK Agent 仍停在 `core_evaluation_pending`，CLI 没有真实角色执行器，模型自由文案不能代替核心输出。宏观展望的独立研究模板也未接线，不能用既有日评分标的替代 case 指数。
 
 ### B. 然后接入初步规划的五个事实接口
 

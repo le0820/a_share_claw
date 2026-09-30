@@ -34,6 +34,8 @@ class FrozenResearchPlan:
 def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | None = None):
     workflow = declared_plan["workflow"]
     missing = [] if request.as_of_date else ["as_of_date"]
+    if workflow in {"company", "industry"} and not (parameters or {}).get("research_spec"):
+        missing += ["research_spec"]
     if workflow == "quant":
         missing += ["universe", "window", "adjustment", "benchmark", "metric_definitions"]
     document = {
@@ -58,3 +60,21 @@ def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | Non
         "state_publication": "core_only_after_evaluation" if request.mode == "official" else "disabled",
     }
     return FrozenResearchPlan(canonical(document))
+
+
+def trace_parameters(parameters):
+    """Keep private investigation text in scoped artifacts, not trace metadata."""
+    result = json.loads(canonical(parameters))
+    spec = result.get("research_spec")
+    if spec:
+        spec["subject"] = {"sha256": digest(spec["subject"]), "chars": len(spec["subject"])}
+        spec["debate_reason"] = {"sha256": digest(spec["debate_reason"]), "chars": len(spec["debate_reason"])}
+        for question in spec["questions"]:
+            question["question"] = {"sha256": digest(question["question"]), "chars": len(question["question"])}
+    return result
+
+
+def trace_plan(plan):
+    result = json.loads(canonical(plan))
+    result["parameters"] = trace_parameters(result["parameters"])
+    return result

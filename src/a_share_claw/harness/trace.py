@@ -25,6 +25,11 @@ MIGRATIONS = {
         "CREATE TABLE improvement_proposals (id TEXT PRIMARY KEY, run_id TEXT NOT NULL REFERENCES runs(run_id), status TEXT NOT NULL DEFAULT 'proposed', detail_json TEXT NOT NULL)",
         "CREATE TABLE official_states (scope_key TEXT NOT NULL, workflow TEXT NOT NULL, run_id TEXT NOT NULL REFERENCES runs(run_id), as_of_date TEXT NOT NULL, state_json TEXT NOT NULL, PRIMARY KEY(scope_key, workflow))",
     ),
+    2: (
+        "CREATE TABLE official_state_history (scope_key TEXT NOT NULL, workflow TEXT NOT NULL, run_id TEXT NOT NULL REFERENCES runs(run_id), as_of_date TEXT NOT NULL, state_json TEXT NOT NULL, PRIMARY KEY(scope_key,workflow,run_id))",
+        "CREATE INDEX idx_official_history_cutoff ON official_state_history(scope_key,workflow,as_of_date)",
+        "INSERT INTO official_state_history SELECT scope_key,workflow,run_id,as_of_date,state_json FROM official_states",
+    ),
 }
 
 
@@ -126,10 +131,22 @@ class TraceRepository:
                         request["mode"] != "official" or request["as_of_date"] != as_of_date or
                         not checks or any(not check[0] for check in checks)):
                     raise ValueError("Official promotion denied")
+                if state.get("as_of_date") != as_of_date or state.get("run_id") != outcome.run_id:
+                    raise ValueError("Official state identity mismatch")
+                report = state.get("report", {})
+                if report.get("scope_key") != scope.key or report.get("run_id") != outcome.run_id:
+                    raise ValueError("Official state requires its own scoped report")
+                artifacts = self.storage._conn.execute("SELECT detail_json FROM artifacts WHERE run_id=?", (outcome.run_id,)).fetchall()
+                if not any(json.loads(item[0]) == report for item in artifacts):
+                    raise ValueError("Official report is not archived in this run")
                 workflow = state["workflow"]
+                route = self.storage._conn.execute("SELECT detail_json FROM run_steps WHERE run_id=? AND stage='route' ORDER BY id DESC LIMIT 1", (outcome.run_id,)).fetchone()
+                if route is None or json.loads(route[0]).get("workflow") != workflow:
+                    raise ValueError("Official workflow does not match the run route")
                 previous = self.storage._conn.execute("SELECT as_of_date FROM official_states WHERE scope_key=? AND workflow=?", (scope.key, workflow)).fetchone()
                 if previous and previous[0] > as_of_date:
                     raise ValueError("Cannot replace a newer official state")
+                self.storage._conn.execute("INSERT INTO official_state_history VALUES (?,?,?,?,?)", (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
                 self.storage._conn.execute("INSERT INTO official_states VALUES (?,?,?,?,?) ON CONFLICT(scope_key,workflow) DO UPDATE SET run_id=excluded.run_id,as_of_date=excluded.as_of_date,state_json=excluded.state_json",
                                             (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
             self.storage._conn.execute("UPDATE runs SET status=?,finished_at=?,outcome_json=? WHERE run_id=?",
@@ -155,7 +172,10 @@ class TraceRepository:
         with self.storage._lock:
             return [dict(row) for row in self.storage._conn.execute("SELECT run_id,status,started_at,finished_at FROM runs WHERE scope_key=? ORDER BY started_at DESC LIMIT ?", (scope.key, min(max(int(limit), 1), 100)))]
 
-    def read_state(self, scope, workflow):
+    def read_state(self, scope, workflow, as_of_date=None):
         with self.storage._lock:
-            row = self.storage._conn.execute("SELECT state_json FROM official_states WHERE scope_key=? AND workflow=?", (scope.key, workflow)).fetchone()
+            if as_of_date is not None:
+                from .contracts import validate_date
+                validate_date(as_of_date)
+            row = self.storage._conn.execute("SELECT state_json FROM official_state_history WHERE scope_key=? AND workflow=? AND (? IS NULL OR as_of_date<=?) ORDER BY as_of_date DESC,rowid DESC LIMIT 1", (scope.key, workflow, as_of_date, as_of_date)).fetchone()
             return json.loads(row[0]) if row else None

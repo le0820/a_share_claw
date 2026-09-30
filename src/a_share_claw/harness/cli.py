@@ -26,7 +26,7 @@ def add_harness_parser(sub):
     scope_options(trace)
     harness = sub.add_parser("harness", help="Provider-free planning, scoring and replay")
     commands = harness.add_subparsers(dest="harness_command", required=True)
-    for name in ("plan", "run", "replay"):
+    for name in ("plan", "run", "replay", "state"):
         command = commands.add_parser(name)
         scope_options(command)
         if name == "replay":
@@ -62,6 +62,24 @@ def run_harness(args, config, storage):
             return 0
         except (LookupError, ValueError):
             print(json.dumps({"ok": False, "error_code": "trace_not_found"}))
+            return 2
+    if args.harness_command == "state":
+        try:
+            state = repo.read_state(scope, args.workflow, as_of_date=args.date)
+            if state is None:
+                raise LookupError("No scoped official state at this cutoff")
+            report = state.get("report", {})
+            path = Path(report["path"]).resolve()
+            path.relative_to((config.data_dir / "harness_runs" / scope.key / state["run_id"]).resolve())
+            if report.get("scope_key") != scope.key or report.get("run_id") != state["run_id"] or hashlib.sha256(path.read_bytes()).hexdigest() != report["sha256"]:
+                raise ValueError("Official report integrity failure")
+            print(json.dumps({"ok": True, "scope_key": scope.key, "publication_status": "published", "state": state}, ensure_ascii=False, indent=2))
+            return 0
+        except (ValueError, OSError, KeyError, TypeError):
+            print(json.dumps({"ok": False, "scope_key": scope.key, "error_code": "official_state_integrity_error"}))
+            return 2
+        except LookupError:
+            print(json.dumps({"ok": False, "scope_key": scope.key, "error_code": "official_state_not_found"}))
             return 2
     engine = Harness(config.root_dir, storage, config.data_dir / "harness_runs", config.market_timezone)
     if args.harness_command == "replay":
