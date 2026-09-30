@@ -42,7 +42,7 @@ class SDKResearchAdapter:
             operation = "research_semantic_review"
             contract = {"candidate_hash": entry["candidate_hash"], "passed": False, "findings": ["Explain specific unresolved or unsupported claims."],
                         "reviewer": "independent_sdk_review", "version": "sdk-review-v1"}
-            purpose = "Independently review the candidate against the supplied fact packet, frozen questions and criteria. Citation existence is not proof of inference validity. Fail if required questions, conflicts, unsupported action, invented facts or numerical confidence/probability remain unresolved."
+            purpose = "Independently review the candidate against the original user_request, supplied facts, frozen questions and criteria. Fail if the frozen questions or slices omit a material part of the original request. For a slice, assess its declared scope; the parent owns full request coverage. A mixed candidate contains evaluated slices; assess combined completeness without inventing missing information. Citation existence is not proof of inference validity. Fail if required questions, conflicts, unsupported action, invented facts or numerical confidence/probability remain unresolved."
         else:
             role, phase = entry["role"], entry["phase"]
             operation = role + ":" + phase

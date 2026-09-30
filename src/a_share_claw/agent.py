@@ -88,19 +88,19 @@ class InvestmentAgent:
         return outcome
 
     def run_core_result(self, context: ConversationContext, message: str, *, as_of_date: str,
-                        packet: dict, workflow: str, research_spec: dict | None = None, outlook_spec: dict | None = None, mode="research"):
+                        packet: dict, workflow: str, research_spec: dict | None = None, outlook_spec: dict | None = None, mixed_spec: dict | None = None, mode="research"):
         """Synchronous trusted host entry; reviewed facts never come from chat prose."""
         from .harness.engine import Harness
         from .sdk_research import SDKResearchAdapter
-        if workflow not in {"company", "industry", "outlook"}:
-            raise ValueError("Configured research execution requires company/industry/outlook")
+        if workflow not in {"company", "industry", "outlook", "mixed"}:
+            raise ValueError("Configured research execution requires company/industry/outlook/mixed")
         request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
                              as_of_date, mode, workflow, host=context.platform)
         engine = Harness(self.config.root_dir, self.storage, self.config.data_dir / "harness_runs",
                          self.config.market_timezone)
         # The core owns the single run and all budgets, evaluation and publication.
         return engine.run(request, packet, research_spec=research_spec,
-                          research_adapter=SDKResearchAdapter(self.config), outlook_spec=outlook_spec)
+                          research_adapter=SDKResearchAdapter(self.config), outlook_spec=outlook_spec, mixed_spec=mixed_spec)
 
     def _effective_model(self) -> str:
         # `model_name` is the configured domestic model; `openai_model` stays as the

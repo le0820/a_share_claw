@@ -13,10 +13,11 @@ from ..research_context import classify_research_route
 from .contracts import EvalResult, FailureCategory as Failure, RunRequest, RunStatus, canonical, digest, validate_date
 from .policy import PolicyBundle, PolicyContextError
 from .planning import freeze_plan, trace_parameters, trace_plan
-from .research import checked_spec, execute_research
+from .research import execute_research
+from .mixed import workflow_parameters, mixed_plan, execute_mixed
 from .reports import build_report, validate_report
-from .quant import checked_quant_spec, compute_quant, timestamp
-from .outlook import checked_outlook_spec, outlook_facts
+from .quant import compute_quant, timestamp
+from .outlook import outlook_facts
 from .runtime import RunSession
 from .trace import now
 
@@ -53,7 +54,7 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None):
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None):
         session = RunSession(self.storage, request)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
@@ -61,6 +62,13 @@ class Harness:
                   "action": "NO_ACTION", "official_output_allowed": False, "gaps": [], "data": None}
         status, state = RunStatus.BLOCKED, None
         try:
+            if parent_run_id is not None:
+                parent = session.repository.read(parent_run_id, request.scope)
+                if (parent["status"] != "running" or parent["request"]["as_of_date"] != request.as_of_date or
+                        request.mode not in {"research", "replay"} or
+                        not any(row["stage"] == "route" and row["detail"].get("workflow") == "mixed" for row in parent["run_steps"])):
+                    raise ValueError("invalid_mixed_link")
+                session.step("parent_run", {"run_id": parent_run_id, "slice_id": slice_id})
             route = classify_research_route(request.message)
             workflow = request.workflow or route.workflow.value
             session.step("route", {"workflow": workflow, "reason": route.reason, "override": request.workflow is not None})
@@ -69,14 +77,12 @@ class Harness:
             session.step("context", {"kind": "policy_snapshot", "loaded_files": list(policy.hashes),
                                      "missing_files": [], "state_scope": request.scope.key,
                                      "state_injected": False})
-            parameters = {"current_ai_pct": current_ai_pct} if workflow == "ai" else {}
-            if workflow in {"company", "industry"}:
-                parameters = {"research_spec": checked_spec(research_spec) if research_spec is not None else None}
-            if workflow == "quant":
-                parameters = {"quant_spec": checked_quant_spec(quant_spec) if quant_spec is not None else None}
-            if workflow == "outlook":
-                parameters = checked_outlook_spec(outlook_spec) if outlook_spec is not None else {}
-            frozen_plan = freeze_plan(request, policy.plan(workflow), parameters)
+            parameters = workflow_parameters(workflow, current_ai_pct=current_ai_pct,
+                research_spec=research_spec, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec)
+            if require_official_close:
+                parameters["official_close_required"] = True
+            declared = mixed_plan(policy, parameters["mixed_spec"]) if workflow == "mixed" else policy.plan(workflow)
+            frozen_plan = freeze_plan(request, declared, parameters)
             plan = frozen_plan.json()
             session.step("plan", trace_plan(plan))
             session.step("workflow_parameters", trace_parameters(parameters))
@@ -95,19 +101,25 @@ class Harness:
                     raise ValueError("explicit_date_required")
                 if cutoff > market_now.date().isoformat():
                     raise ValueError("future_data")
-                if workflow in {"macro", "ai"} and request.mode == "official" and datetime.fromisoformat(cutoff).weekday() >= 5:
+                if workflow in {"macro", "ai"} and (request.mode == "official" or require_official_close) and datetime.fromisoformat(cutoff).weekday() >= 5:
                     raise ValueError("WAIT_FOR_TRADING_DAY")
-                if workflow in {"macro", "ai"} and request.mode == "official" and cutoff == market_now.date().isoformat() and market_now.hour < 15:
+                if workflow in {"macro", "ai"} and (request.mode == "official" or require_official_close) and cutoff == market_now.date().isoformat() and market_now.hour < 15:
                     raise ValueError("WAIT_FOR_CLOSE")
-                facts, provenance = self._evidence(session, policy, plan, packet, cutoff)
+                if workflow == "mixed":
+                    data, provenance = execute_mixed(self, session, plan, packet, reference, output,
+                                                    role_runner, semantic_reviewer, research_adapter)
+                else:
+                    facts, provenance = self._evidence(session, policy, plan, packet, cutoff)
+                    missing = [key for key in plan["required_capabilities"] if key not in facts]
+                    output["gaps"] = missing
+                    session.step("gap_report", {"missing": missing, "disabled_layers": ["L2"]})
+                    if missing:
+                        raise ValueError("missing_required_data")
                 output["data_audit"] = {"as_of_date": cutoff, "source_files": provenance,
                                         "fallback_status": "none", "policy_version": policy.version}
-                missing = [key for key in plan["required_capabilities"] if key not in facts]
-                output["gaps"] = missing
-                session.step("gap_report", {"missing": missing, "disabled_layers": ["L2"]})
-                if missing:
-                    raise ValueError("missing_required_data")
-                if workflow == "macro":
+                if workflow == "mixed":
+                    pass  # child evidence and combined review have passed; publisher below is shared
+                elif workflow == "macro":
                     data = policy.score_macro(facts)
                 elif workflow == "ai":
                     if not isinstance(current_ai_pct, (int, float)) or isinstance(current_ai_pct, bool) or not 0 <= current_ai_pct <= 100:
@@ -133,7 +145,7 @@ class Harness:
                         data.update(market_statistics=quant, forecast_horizon=parameters["forecast_horizon"],
                                     base_scenario=next(a["inference"] for a in data["role_outputs"]["hong_guan:initial"]["answers"] if a["question_id"] == "base_scenario"))
                 else:
-                    # Evidence alone is not a validated mixed execution/backtest.
+                    # Evidence alone cannot implement an unsupported workflow.
                     raise ValueError("workflow_execution_pending")
                 canonical(data)  # rejects NaN/Infinity before any artifact or state write
                 computed_hash = digest(data)
@@ -182,6 +194,7 @@ class Harness:
             known = {"future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
+                     "mixed_spec_required", "invalid_mixed_spec", "invalid_mixed_packet", "invalid_mixed_link", "mixed_incomplete",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
                      "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
                      "quant_spec_required", "outlook_spec_required", "invalid_quant_spec", "invalid_outlook_spec", "invalid_outlook_facts",
@@ -191,7 +204,7 @@ class Harness:
             code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
             if code in {"future_data", "scope_mismatch", "unverified_evidence", "role_packet_mismatch"}:
                 category = Failure.STATE_CONTAMINATION_FAILURE
-            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
+            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "mixed_spec_required", "mixed_incomplete", "invalid_mixed_link", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
                 category = Failure.PERMISSION_POLICY_FAILURE
             elif code == "semantic_review_failed":
                 category = Failure.SYNTHESIS_OR_UNKNOWN_FAILURE

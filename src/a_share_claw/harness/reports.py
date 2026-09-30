@@ -28,6 +28,8 @@ def build_report(request, run_id, plan, data, audit, prior, generated_at):
     elif workflow == "quant":
         report.update(frozen_specification=data["specification"], metrics=data["metrics"],
                       series_audit=data["series_audit"], limitations=data["limitations"], unknowns=data["unknowns"], risk_decision="NO_ACTION")
+    elif workflow == "mixed":
+        report.update(slice_status=data["slice_status"], slices=data["slices"], combined_gaps=data["combined_gaps"], risk_decision="NO_ACTION")
     else:
         report["risk_decision"] = data["risk_decision"]
         report["monitoring_triggers"] = data["monitoring_triggers"]

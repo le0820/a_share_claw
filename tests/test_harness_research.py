@@ -58,7 +58,10 @@ def role_reply(payload):
 def fixture_review(payload):
     entry = payload.json()
     candidate = entry["candidate"]
-    supported = all(a["inference"] == VIEWS[output["role"]] for output in candidate["role_outputs"].values() for a in output["answers"])
+    if candidate["schema_version"] == "mixed-output-v1":
+        supported = not candidate["combined_gaps"] and all(item["status"] == "succeeded" for item in candidate["slices"])
+    else:
+        supported = all(a["inference"] == VIEWS[output["role"]] for output in candidate["role_outputs"].values() for a in output["answers"])
     return {"candidate_hash": entry["candidate_hash"], "passed": supported, "findings": [] if supported else ["Unsupported interpretation"],
             "reviewer": "scripted_fixture_review", "version": "fixture-review-v1"}
 

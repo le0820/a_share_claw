@@ -39,6 +39,8 @@ def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | Non
         missing += ["research_spec"]
     if workflow == "outlook" and not (parameters or {}).get("quant_spec"):
         missing += ["outlook_spec"]
+    if workflow == "mixed" and not (parameters or {}).get("mixed_spec"):
+        missing += ["mixed_spec"]
     if workflow == "quant" and not (parameters or {}).get("quant_spec"):
         missing += ["universe", "window", "adjustment", "benchmark", "metric_definitions"]
     document = {
@@ -68,12 +70,17 @@ def freeze_plan(request: RunRequest, declared_plan: dict, parameters: dict | Non
 def trace_parameters(parameters):
     """Keep private investigation text in scoped artifacts, not trace metadata."""
     result = json.loads(canonical(parameters))
-    spec = result.get("research_spec")
-    if spec:
-        spec["subject"] = {"sha256": digest(spec["subject"]), "chars": len(spec["subject"])}
-        spec["debate_reason"] = {"sha256": digest(spec["debate_reason"]), "chars": len(spec["debate_reason"])}
-        for question in spec["questions"]:
-            question["question"] = {"sha256": digest(question["question"]), "chars": len(question["question"])}
+    def private_text(value):
+        if isinstance(value, dict):
+            for key, item in list(value.items()):
+                if key in {"subject", "debate_reason", "question"} and isinstance(item, str):
+                    value[key] = {"sha256": digest(item), "chars": len(item)}
+                else:
+                    private_text(item)
+        elif isinstance(value, list):
+            for item in value:
+                private_text(item)
+    private_text(result)
     return result
 
 

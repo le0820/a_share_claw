@@ -38,12 +38,13 @@ def add_harness_parser(sub):
                 command.add_argument("--research-spec", type=Path)
                 command.add_argument("--quant-spec", type=Path)
                 command.add_argument("--outlook-spec", type=Path)
+                command.add_argument("--mixed-spec", type=Path)
                 command.add_argument("--question")
             if name == "run":
                 command.add_argument("packet_file", type=Path)
                 command.add_argument("--mode", choices=["replay", "research", "official"], default="replay")
                 command.add_argument("--current-ai-pct", type=float, default=57.5)
-                command.add_argument("--model-executor", choices=["configured"], help="Use configured endpoint for company/industry roles and independent review")
+                command.add_argument("--model-executor", choices=["configured"], help="Use configured endpoint for research roles and independent review")
 
 
 def run_harness(args, config, storage):
@@ -108,6 +109,8 @@ def run_harness(args, config, storage):
                 if "capability" in obj:
                     facts.append(obj)
             workflow = next(row["detail"]["workflow"] for row in source["run_steps"] if row["stage"] == "route")
+            if workflow not in {"macro", "ai", "quant"}:
+                raise ValueError("This workflow has no offline replay executor")
             parameters = next((row["detail"] for row in source["run_steps"] if row["stage"] == "workflow_parameters"), {})
             request = RunRequest(scope, "Offline replay", source["request"]["as_of_date"], "replay", workflow, host="cli")
             outcome = engine.run(request, {"as_of_date": request.as_of_date, "facts": facts}, replay_of=args.run_id,
@@ -121,6 +124,7 @@ def run_harness(args, config, storage):
             research_spec = json.loads(args.research_spec.read_text()) if getattr(args, "research_spec", None) else None
             quant_spec = json.loads(args.quant_spec.read_text()) if getattr(args, "quant_spec", None) else None
             outlook_spec = json.loads(args.outlook_spec.read_text()) if getattr(args, "outlook_spec", None) else None
+            mixed_spec = json.loads(args.mixed_spec.read_text()) if getattr(args, "mixed_spec", None) else None
             request = RunRequest(scope, getattr(args, "question", None) or "Provider-independent " + args.workflow, args.date,
                                  "plan" if args.harness_command == "plan" else args.mode, args.workflow, host="cli")
         except (ValueError, OSError):
@@ -128,12 +132,12 @@ def run_harness(args, config, storage):
             return 2
         adapter = None
         if getattr(args, "model_executor", None):
-            if args.workflow not in {"company", "industry", "outlook"}:
+            if args.workflow not in {"company", "industry", "outlook", "mixed"}:
                 print(json.dumps({"ok": False, "error_code": "unsupported_model_workflow"}))
                 return 2
             from ..sdk_research import SDKResearchAdapter
             adapter = SDKResearchAdapter(config)
         outcome = engine.run(request, packet, current_ai_pct=getattr(args, "current_ai_pct", 57.5),
-                             research_spec=research_spec, research_adapter=adapter, quant_spec=quant_spec, outlook_spec=outlook_spec)
+                             research_spec=research_spec, research_adapter=adapter, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec)
     print(outcome.output)
     return 0 if outcome.status == RunStatus.SUCCEEDED else 2

@@ -41,7 +41,7 @@ The report includes classification/scope, dated source table, technical baseline
 
 ## Mixed and quantitative requests
 
-Mixed keeps macro and research slices independent. A WAIT_FOR_CLOSE or missing macro input must not suppress evidence work that can proceed independently. The final run identifies complete, waiting, blocked and failed slices; it cannot claim the combined task completed while a required slice is incomplete.
+Mixed keeps macro and research slices independent. A WAIT_FOR_CLOSE or missing macro input must not suppress evidence work that can proceed independently. The final run identifies complete, waiting, blocked and failed slices; it cannot claim the combined task completed while a required slice is incomplete. Children remain non-publishing research/replay runs, even when the parent is official. Only the parent may publish mixed state after every required slice, combined semantic review against the original request, and report/archive gate pass. Preserve evaluated partial report descriptors as staged progress when the combined request fails.
 
 Quant freezes symbols, window, frequency, unit, adjustment, benchmark and metric definitions before calculation. Missing coverage or an unimplemented computation yields an explicit gap, not an invented backtest. A market-history payload alone does not prove a quantitative study is complete.
 
