@@ -9,7 +9,7 @@
 | `nbs` 国家统计局 | `macro.release_index` 官方目录链接；`macro.release` 官方 HTML 发布正文与表格单元文本 | 无密钥 | 保留发布日期和原文；未建设新版国家数据网站的完整数值序列接口；页面修订历史不明，标记 unverified |
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位和日期；PDF/Excel 附件和完整标准化宏观序列尚未解析；不推算缺失数值 |
 | `tickflow` | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
-| `fred` | `macro.series`，在 FRED API 设置 ALFRED 实时区间查询指定 vintage | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；日期级时点验证，不代表盘中可用性 |
+| `fred` | `macro.series` 与 `macro.series_metadata`，在 FRED API 设置 ALFRED 实时区间查询指定 vintage | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts`，按 CIK 和 taxonomy:concept 请求公司事实 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
 `status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；原生插件结果尚未规范化接入，不能借取数成功自动恢复官方评分或仓位行动。
@@ -62,6 +62,19 @@ CLI 是本机个人模式；服务端集成必须由可信宿主构造 scope，�
 
 归档不上传 GitHub；代码、离线合成 fixture、测试与交接记录上传。运行数据、密钥、企业文件均不进入提交。
 
+## B 接入进展：FRED / SEC 精确来源选择
+
+`FRED` 1.1.0 新增 `macro.series_metadata`（params 仅 series_id），独立计划并归档同 vintage 的标题、原生单位、频率、季调和 last_updated。观察值与元数据必须来自同一 series/vintage；不把 last_updated 当作每个观测的原始发布日期。
+
+受信任宿主 `DataRun.select(requirement_id, selector, metadata_requirement_id=...)` 只读取本 run 已计划、已抓取的归档，分别核对结果与原始响应哈希，保存 `selection-<hash>.json`：
+
+- FRED selector 恰为 series_id/observation_date/units/frequency/seasonal_adjustment；metadata_requirement_id 必填。精确选一天，不按“最新值”回退，不重标单位、不补 null。
+- SEC selector 恰为 cik/concept/unit/period_start/period_end/filed/accession；period_start=null 表示时点项。保留原生 duration 和 accession，拒绝单季代替 YTD、单位缩放猜测与重复披露冲突。
+
+选择产物为 `source-selection-v1`，不是核心 FactPacket。`available_at=null` 并明确 vintage/filed 日期级精度，`core_admission_complete=false`、`official_output_allowed=false`。仍须完成精确发布时点、核心字段/单位映射及同 run 宿主接线；不能把来源选择通过写成已恢复评分。unverified 来源不通过该入口；NBS/PBC 数值/附件映射与行情身份/日历仍未完成，不暗用网页或其他供应商补数。
+
+本轮只使用离线来源 fixture 验证上述新增实现；本机 FRED_API_KEY、SEC_USER_AGENT、TICKFLOW_API_KEY 尚未配置，真实接口验收未完成。完整业务 case 留在五源接入之后。
+
 ## Agent 数据边界与兼容变化
 
 普通 chat 的七种路由已接核心框架编译/冻结/缺口门禁，模型调用没有插件、文件、MCP 或执行工具。旧六工具选源/取证循环已移除；五源由独立 data CLI/受信任宿主保留，B 完成核心需求到规范化事实映射后才接入自动取证。
@@ -86,6 +99,7 @@ CLI 是本机个人模式；服务端集成必须由可信宿主构造 scope，�
 ## 接口依据
 
 - [TickFlow 文档索引](https://docs.tickflow.org/llms.txt)：K 线与三表 REST 路径、参数和列式行情响应。
+- [FRED series metadata](https://fred.stlouisfed.org/docs/api/fred/series.html)：原生单位、频率、季调及 series last_updated。
 - [FRED observations](https://fred.stlouisfed.org/docs/api/fred/series_observations.html)：observation/realtime 日期与分页。
 - [SEC EDGAR APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces)：Company Facts、标准 taxonomy 与公平访问要求。
 - [国家统计局最新发布](https://www.stats.gov.cn/sj/zxfb/) 与 [人民银行调查统计](https://www.pbc.gov.cn/diaochatongjisi/116219/index.html)：官方发布页面。

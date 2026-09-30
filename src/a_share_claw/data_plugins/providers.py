@@ -147,9 +147,11 @@ class PBC(OfficialPublication):
 
 
 class FRED(Provider):
-    manifest = Manifest("fred", ("macro.series",), ("api.stlouisfed.org",), "FRED_API_KEY")
+    manifest = Manifest("fred", ("macro.series", "macro.series_metadata"), ("api.stlouisfed.org",), "FRED_API_KEY", version="1.1.0")
 
     def fetch(self, r: Requirement) -> Payload:
+        if r.capability == "macro.series_metadata":
+            return self._metadata(r)
         p = parameters(r, {"series_id", "start_date", "end_date", "limit"}, {"series_id", "start_date"})
         series = identifier(p["series_id"], r"[A-Za-z0-9_]{1,80}")
         start, end = iso_date(p["start_date"]), iso_date(p.get("end_date", r.as_of_date))
@@ -176,6 +178,26 @@ class FRED(Provider):
         return Payload({"series_id": series, "vintage_date": r.as_of_date, "observations": rows,
                         "units": "source_native", "transformation": "none"}, raw, url, "verified",
                        ["Cutoff is date-level/end-of-day, not intraday publication timing"])
+
+
+    def _metadata(self, r: Requirement) -> Payload:
+        p = parameters(r, {"series_id"}, {"series_id"})
+        series = identifier(p["series_id"], r"[A-Za-z0-9_]{1,80}")
+        url = "https://api.stlouisfed.org/fred/series"
+        raw = self.transport.get(url, {"api_key": self.credential(), "file_type": "json", "series_id": series,
+                                      "realtime_start": r.as_of_date, "realtime_end": r.as_of_date})
+        rows = json.loads(raw)["seriess"]
+        if not isinstance(rows,list) or len(rows)!=1 or rows[0].get("id")!=series:
+            raise DataError("invalid_schema", "Expected exactly the requested FRED series metadata")
+        row=rows[0]
+        if not iso_date(row["realtime_start"])<=r.as_of_date<=iso_date(row["realtime_end"]):
+            raise DataError("future_data", "Metadata vintage does not match the requested cutoff")
+        fields=("title","units","frequency","seasonal_adjustment","last_updated")
+        if any(not isinstance(row.get(key),str) or not row[key].strip() for key in fields):
+            raise DataError("invalid_schema", "Missing FRED series identity or units metadata")
+        return Payload({"series_id":series,"vintage_date":r.as_of_date,**{key:row[key] for key in fields}},raw,url,"verified",
+                       ["Series last_updated is not a per-observation original release timestamp",
+                        "Metadata preserves native units/frequency/seasonal adjustment; no rescaling or economic-series substitution"])
 
 
 class SEC(Provider):

@@ -185,6 +185,7 @@ class DataRun:
         self.directory = artifact_root / scope_id / self.run_id
         self.requirements: dict[str, Requirement] | None = None
         self.results: dict[str, dict] = {}
+        self._result_hashes: dict[str, str] = {}
         self._lock = asyncio.Lock()
 
     def list_providers(self) -> list[dict]:
@@ -228,7 +229,7 @@ class DataRun:
         if requirement_id in self.results:
             return self.results[requirement_id]
         r = self.requirements[requirement_id]
-        result = {"run_id": self.run_id, "requirement_id": requirement_id, "ok": False,
+        result = {"run_id": self.run_id, "requirement_id": requirement_id, "capability": r.capability, "ok": False,
                   "status": "gap", "error_code": None, "retryable": False, "data": None,
                   "provenance": {}, "fallback_status": "none", "truncated": False}
         started = time.monotonic()
@@ -260,8 +261,58 @@ class DataRun:
             result.update(error_code="provider_error", message="Provider failed; no fallback was attempted")
         result["usage"] = {"elapsed_ms": round((time.monotonic() - started) * 1000)}
         self._save(f"results/{requirement_id}.json", result)
+        self._result_hashes[requirement_id] = hashlib.sha256(json.dumps(result,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()
         self.results[requirement_id] = result
         return result
+
+    def select(self, requirement_id: str, selector: dict, *, metadata_requirement_id: str | None = None) -> dict:
+        """Trusted host selection from this run's archived evidence; never core admission."""
+        from .normalization import fred_observation, sec_fact
+        if not isinstance(selector,dict):
+            raise DataError("invalid_request", "Selection must be a typed object")
+        def archived(key):
+            if self.requirements is None or key not in self.requirements or key not in self.results:
+                raise DataError("plan_required", "Select only fetched requirements from this pinned run")
+            declared=self.requirements[key]
+            result=json.loads((self.directory / "results" / (key+".json")).read_text())
+            stored_hash=hashlib.sha256(json.dumps(result,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+            if stored_hash!=self._result_hashes.get(key):
+                raise DataError("hash_mismatch", "Archived normalized result was modified after acquisition")
+            if not result.get("ok"):
+                raise DataError(result.get("error_code") or "source_unavailable", "The requested source result is unavailable")
+            provenance=result.get("provenance",{})
+            if (result.get("run_id")!=self.run_id or result.get("requirement_id")!=key or
+                    result.get("capability")!=declared.capability or provenance.get("provider")!=declared.provider or
+                    provenance.get("as_of_date")!=declared.as_of_date):
+                raise DataError("source_mismatch", "Archived result differs from the frozen requirement")
+            artifact=provenance.get("artifact")
+            if not isinstance(artifact,str) or Path(artifact).name!=artifact:
+                raise DataError("invalid_schema", "Raw evidence path must remain in this run")
+            raw_path=self.directory / artifact
+            if raw_path.resolve().parent!=self.directory.resolve() or hashlib.sha256(raw_path.read_bytes()).hexdigest()!=provenance.get("sha256"):
+                raise DataError("hash_mismatch", "Raw evidence does not match the archived source hash")
+            return result
+        result=archived(requirement_id)
+        if result["capability"]=="macro.series":
+            keys={"series_id","observation_date","units","frequency","seasonal_adjustment"}
+            if set(selector)!=keys or metadata_requirement_id is None:
+                raise DataError("invalid_request", "FRED selection requires native units metadata and an exact observation date")
+            selection=fred_observation(result,archived(metadata_requirement_id),**selector)
+        elif result["capability"]=="company.facts":
+            keys={"cik","concept","unit","period_start","period_end","filed","accession"}
+            if set(selector)!=keys or metadata_requirement_id is not None:
+                raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
+            selection=sec_fact(result,**selector)
+        else:
+            raise DataError("mapping_unavailable", "This provider/capability lacks an accepted numeric mapping")
+        identity=hashlib.sha256(json.dumps({"requirement_id":requirement_id,"metadata_requirement_id":metadata_requirement_id,"selector":selector},sort_keys=True,allow_nan=False).encode()).hexdigest()
+        path=self.directory / ("selection-"+identity+".json")
+        if path.exists():
+            if json.loads(path.read_text())!=selection:
+                raise DataError("hash_mismatch", "A pinned source selection cannot change")
+        else:
+            self._save(path.name,selection)
+        return selection
 
     def summary(self) -> dict:
         gaps = [{"requirement_id": r.requirement_id, "required": r.required,

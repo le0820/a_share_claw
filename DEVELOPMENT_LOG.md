@@ -124,3 +124,9 @@ Python 3.11/3.12 全量离线检查各 **241 passed / 41 subtests**，含七路�
 最终本地 Python 3.11/3.12 回归各 **249 passed / 41 subtests**。这属于实施后的核心验证，未提前启动供应商或用户真实市场 case。行情主源授权仍需按当前 AGENTS.md 与原五源清单的冲突统一；现有 TickFlow 接口不构成主源授权。PR #2 未合并、Issue #1 未关闭。
 
 `6ed9fa3` 的 CI run 36772214802：Python 3.11 为 249 passed / 41 subtests；3.12 一项 mixed 晚到超时检查在回调前耗尽 0.3 秒，248 passed。随后改用回调启动事件控制测试时钟，在目标阶段确定触发超时，仍检查父子终态及禁止发布；生产预算/门禁未改。失败记录保留，不凭重跑冒称原运行通过。
+
+## B 事实接入第一步：FRED / SEC 来源选择（2026-09-30）
+
+E0 最小验收的最终 CI run 36772582916 两版均为 249 passed / 41 subtests，CLI smoke 成功。之后才开始本项 B 实现。FRED 新增同 vintage 元数据能力；DataRun.select 从本 run 归档绑定精确观测/单位/频率/季调，SEC 固定 unit/duration/filed/accession。raw 和结果分别核对哈希，不补 null、不静默改单位、不将 YTD 变单季。产物保留 available_at=null、日期级精度与 core_admission_complete=false，无发布权；尚未映射为核心 FactPacket。
+
+来源 fixture 相关检查 37 passed；本地 Python 3.11/3.12 全套各 258 passed / 41 subtests。真实 FRED/SEC/TickFlow 凭据未配置；NBS/PBC 数值/附件、行情主源统一、五源到核心自动事实映射及最终市场 case 继续未完成。数据选择进度不代表全部 B 完成，不提前执行真实市场 case。详见 DATA_PLUGINS.md。
