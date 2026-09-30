@@ -9,10 +9,10 @@
 | `nbs` 国家统计局 | `macro.release_index` 目录；`macro.release` 历史候选；`macro.release_snapshot` 当前官网版本 | 无密钥 | 保留明确发布时钟/精度和原文；固定正文指标支持月度/YTD 精确选择；完整数值序列/附件未完成；页面修订历史不明，标记 unverified |
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位与明确发布时钟；M2/M1/社融存量同比可精确选择；PDF/Excel 与完整序列未完成；不从累计量推算单月 |
 | `tickflow` | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
-| `fred` | `macro.series` 与 `macro.series_metadata`，在 FRED API 设置 ALFRED 实时区间查询指定 vintage | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
+| `fred` | `macro.series` / `macro.series_metadata` 历史查询；`macro.series_snapshot` / `macro.series_metadata_snapshot` 当前捕获 | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts` 公司事实；`company.filing_metadata` 精确 accession 的 recent filing 元数据 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
-`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照已有明确宿主交接；其他来源及日评分字段尚未自动接线，不能借取数成功恢复官方评分或仓位行动。
+`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照及 FRED PCE 原生月度指数已有明确宿主交接；SEC/行情及日评分字段尚未自动接线，不能借取数成功恢复官方评分或仓位行动。
 
 ## 配置与命令
 
@@ -71,7 +71,7 @@ CLI 是本机个人模式；服务端集成必须由可信宿主构造 scope，�
 - FRED selector 恰为 series_id/observation_date/units/frequency/seasonal_adjustment；metadata_requirement_id 必填。精确选一天，不按“最新值”回退，不重标单位、不补 null。
 - SEC selector 恰为 cik/concept/unit/period_start/period_end/filed/accession；period_start=null 表示时点项。保留原生 duration 和 accession，拒绝单季代替 YTD、单位缩放猜测与重复披露冲突。可选 metadata_requirement_id 只绑定本 run 独立计划的 company.filing_metadata，不能提供任意元数据对象。
 
-选择产物为 `source-selection-v1`，不是核心 FactPacket。`available_at=null` 并明确 vintage/filed 日期级精度，`core_admission_complete=false`、`official_output_allowed=false`。仍须完成精确发布时点、核心字段/单位映射及同 run 宿主接线；不能把来源选择通过写成已恢复评分。FRED/SEC 的 unverified 来源不通过该入口；NBS/PBC 下述正文候选选择保持 unverified，附件映射与行情身份/日历仍未完成，不暗用网页或其他供应商补数。
+历史查询选择产物为 `source-selection-v1`，不是核心 FactPacket。`available_at=null` 并明确 vintage/filed 日期级精度，`core_admission_complete=false`、`official_output_allowed=false`。仍须完成精确发布时点、核心字段/单位映射及同 run 宿主接线；不能把来源选择通过写成已恢复评分。FRED/SEC 的 unverified 来源不通过该入口；NBS/PBC 下述正文候选选择保持 unverified，附件映射与行情身份/日历仍未完成，不暗用网页或其他供应商补数。
 
 本轮只使用离线来源 fixture 验证上述新增实现；本机 FRED_API_KEY、SEC_USER_AGENT、TICKFLOW_API_KEY 尚未配置，真实接口验收未完成。完整业务 case 留在五源接入之后。
 
@@ -99,13 +99,27 @@ SEC 1.1.0 新增 `company.filing_metadata`，params 恰为 cik/accession，限�
 
 NBS/PBC 1.2.0 新增 `macro.release_snapshot`（params 仍为 url），只接受抓取当天的中国日期。它证明本次 HTTPS 响应看到的版本，available_at 使用归档 retrieved_at；原始 publication_date 和明确 publisher_available_at 单独保留。历史页面修订仍不明，historical_vintage_certified=false。旧 macro.release 继续 unverified，不从旧运行或旧候选提升资格；跨日捕获/历史 cutoff 拒绝。
 
-显式可信宿主用四字段 Scope 构造 DataRun，取证前调用 `plan_core_outlook(plan, outlook_spec, bindings)` 冻结来源与核心需求。bindings 恰为 fact_id/requirement_id/selector，当前只接 NBS/PBC 快照；CN、原生指标、percent、月度/YTD 起止须匹配全部非价格必需事实。核心价格派生项不由插件填充。核心规格哈希、source/core contract 和 raw/result/selection 各自绑定，不给模型改 source/单位/日期的工具。
+显式可信宿主用四字段 Scope 构造 DataRun，取证前调用 `plan_core_outlook(plan, outlook_spec, bindings)` 冻结来源与核心需求。NBS/PBC bindings 恰为 fact_id/requirement_id/selector；FRED 快照另需 metadata_requirement_id；CN、原生指标、percent、月度/YTD 起止须匹配全部非价格必需事实。核心价格派生项不由插件填充。核心规格哈希、source/core contract 和 raw/result/selection 各自绑定，不给模型改 source/单位/日期的工具。
 
 抓取后 `core_macro_evidence()` 产生 macro_release_facts 能力的 envelope，可由宿主与独立 price_history 一并交给核心。macro-release-facts-v2 / research-facts-v2 保留 availability 元数据、来源口径备注及两个时钟；核心再次核对 scope、冻结研究规格、capture/cutoff、原始发布日期和版本边界。来源归档仍不持发布权，核心评估/双报告/事务决定交付。当前快照不证明较早日期的页面版本，也不能写入抓取前的 frozen cutoff。计划可以声明未来 cutoff，但执行必须等该时点结束，不能以未来规格通过计算。
 
 JSON/Markdown 和角色 packet 均保留当前版本口径；旧 v1 发布时钟契约保持不变。新增合成端到端检查从来源计划/原始页走到核心统计、角色、评估和双报告，保持 NO_ACTION；两版回归各 324 passed / 41 subtests。真实来源样本验收以本机 data/harness_acceptance 的原始响应/哈希/归档为准；不能用上述合成成功宣告所有官网形态、五源自动取证或真实季度市场 case 已完成。
 
-显式宿主接线已实现；普通 chat 自动取证、FRED/SEC 到核心映射、行情主源授权/身份/日历及五源实际接口验收继续待补。该范围支持当前捕获的研究事实，不恢复历史正式日评分，也未执行用户市场 case。
+显式宿主接线已实现；普通 chat 自动取证、SEC 到核心映射、行情主源授权/身份/日历及五源实际接口验收继续待补。该范围支持当前捕获的研究事实，不恢复历史正式日评分，也未执行用户市场 case。
+
+## B 接入进展：FRED PCE 原生指数到核心计算
+
+FRED 1.2.0 新增两个显式当前捕获能力，保留旧历史查询的日期级边界。`macro.series_snapshot` 的 params 为 series_id/start_date/vintage_date，可选 end_date/limit；`macro.series_metadata_snapshot` 为 series_id/vintage_date。as_of_date 是当天中国日期，vintage_date 则由宿主明确指定当天 Chicago 日期。Chicago 是本适配器的来源日期政策；不是 per-observation 发布时钟，不暗自换 vintage。两个捕获实际跨来源午夜/中国日期时直接报缺口。
+
+元数据独立计划并归档，保留原生 title/units/frequency/seasonal_adjustment/last_updated/notes。精确选择使用同 run、同 series/vintage 的两个归档；available_at 取两个实际 retrieved_at 的较晚者。当前捕获资格不证明较早盘中的观测可得性，也不证明原始发布日期。`publication_date=null`、发布精度 unknown，series last_updated 不替代观测的 release date；历史 macro.series 仍 available_at=null，不进入这条当前交接。
+
+可信宿主的 `plan_core_outlook` 现在可绑定 PCEPI/PCEPILFE 原生月度指数，FRED binding 必须提供 planned metadata_requirement_id。固定核心映射要求 US、Index 2017=100、Monthly、Seasonally Adjusted、精确原生标题和每月第一天的 observation_date；标题/基期/季调变动返回缺口，不能把名义消费、季度序列或 percent 重标为价格指数。原生数据没有服务端变换。
+
+核心 `harness/macro_derivation.py` 持有版本化 PCE 计算：pce_mom/pce_yoy/core_pce_mom/core_pce_yoy 使用 `(current / comparison - 1) * 100`，不年化、不先四舍五入。research_spec 在抓取前必须同时声明目标月和上月/去年同月的精确 native_requirement；native fact_id 固定为 `fred.<series_id>.<YYYY-MM-01>`。比较月缺失、null、非正数、不同 vintage/run、错误单位/标题均阻断，不做最新值替代。插件不能绑定/填写核心计算项；角色只能消费核心已重算的目录。
+
+macro_metrics 独立归档保留公式、冻结输入契约、原始事实与依赖哈希，派生事实引用该归档；角色与 JSON/Markdown 保留原生值、计算引用、未知发布日期、当前版本说明。汇总 envelope 的 publication_date 明确标记 aggregate_snapshot_capture_date_not_original_release，不冒充个别观测发布日期。计算结果是同版本指数计算，可能与发布机构按精度处理后的 headline percent 不同。
+
+该范围是显式宿主研究交接；普通 chat 自动取证、历史 intraday/PIT、其他 FRED 指标、日评分字段和真实账户接口仍未完成。当前只以合成 JSON/时钟/价格/角色验证新增实现，未执行 8 月 PCE/三指数真实季度 case。五源与行情来源政策未闭环前继续等待完整业务 case。
 
 ## Agent 数据边界与兼容变化
 
@@ -125,13 +139,14 @@ JSON/Markdown 和角色 packet 均保留当前版本口径；旧 v1 发布时钟
 
 1. E0 最小核心验收已闭环，证据与范围见 E0_INFRA.md；一般语义质量、连续日更和 E1–E5 仍按后续边界推进。
 2. B 已有 FRED/SEC 精确来源选择及 NBS/PBC 固定正文候选；继续补核心字段/单位、精确时点/vintage 和同 run 接线。附件/完整序列按实际需求补，不冒称已覆盖。
-3. TickFlow 接口保留现有 unverified/历史拒绝门禁，真实样本与披露/PIT 通过后才考虑准入；行情主源遵守当前任务授权，接口存在不代表主源授权。FRED/SEC 同样需完成到核心 FactPacket 的映射和接线。
+3. TickFlow 接口保留现有 unverified/历史拒绝门禁，真实样本与披露/PIT 通过后才考虑准入；行情主源遵守当前任务授权，接口存在不代表主源授权。FRED PCE 当前研究映射已接线，实际接口仍待凭据验收；SEC 到核心映射继续待补。
 4. 取数仍只产生证据，发布权属于核心。五源完成后才运行用户指定的 PCE/中国经济/三指数季度展望 case；不足以支持每日评分的材料只生成研究报告与缺口。
 
 ## 接口依据
 
 - [TickFlow 文档索引](https://docs.tickflow.org/llms.txt)：K 线与三表 REST 路径、参数和列式行情响应。
 - [FRED series metadata](https://fred.stlouisfed.org/docs/api/fred/series.html)：原生单位、频率、季调及 series last_updated。
+- [FRED PCEPI](https://fred.stlouisfed.org/series/PCEPI) / [PCEPILFE](https://fred.stlouisfed.org/series/PCEPILFE)：固定原生月度价格指数身份；实际 API 样本仍待凭据。
 - [FRED observations](https://fred.stlouisfed.org/docs/api/fred/series_observations.html)：observation/realtime 日期与分页。
 - [SEC EDGAR APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces)：Company Facts、标准 taxonomy 与公平访问要求。
 - [国家统计局最新发布](https://www.stats.gov.cn/sj/zxfb/) 与 [人民银行调查统计](https://www.pbc.gov.cn/diaochatongjisi/116219/index.html)：官方发布页面。

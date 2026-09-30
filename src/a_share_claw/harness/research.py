@@ -101,11 +101,12 @@ def checked_snapshot_availability(fact, cutoff_date):
     """Current capture is a separate version clock, never the original release clock."""
     meta=fact.get("availability")
     keys={"basis","snapshot_as_of_date","historical_vintage_certified","publisher_available_at","publication_time_precision","selection_hash","source_run_id","source_notes"}
-    if (not isinstance(meta,dict) or set(meta)!=keys or meta["basis"]!="observed_current_snapshot" or
+    fred=isinstance(meta,dict) and "fred_series" in meta
+    if (not isinstance(meta,dict) or set(meta)!=keys|({"fred_series"} if fred else set()) or meta["basis"]!="observed_current_snapshot" or
             meta["historical_vintage_certified"] is not False or meta["snapshot_as_of_date"]!=cutoff_date or
             not isinstance(meta["selection_hash"],str) or not re.fullmatch(r"[a-f0-9]{64}",meta["selection_hash"]) or
             not isinstance(meta["source_run_id"],str) or not re.fullmatch(r"[a-f0-9]{32}",meta["source_run_id"]) or
-            not isinstance(meta["publication_time_precision"],str) or meta["publication_time_precision"] not in {"day","minute","second"}):
+            not isinstance(meta["publication_time_precision"],str) or meta["publication_time_precision"] not in ({"unknown"} if fred else {"day","minute","second"})):
         raise ValueError("invalid_snapshot_availability")
     notes=meta["source_notes"]
     if not isinstance(notes,list) or len(notes)>50 or any(not isinstance(note,str) for note in notes) or sum(len(note) for note in notes)>12000:
@@ -114,6 +115,15 @@ def checked_snapshot_availability(fact, cutoff_date):
         available=datetime.fromisoformat(fact["available_at"].replace("Z","+00:00"))
         if available.tzinfo is None or available.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()!=cutoff_date:
             raise ValueError("invalid_snapshot_availability")
+        if fred:
+            native=meta["fred_series"]
+            if (not isinstance(native,dict) or set(native)!={"series_id","title","vintage_date","frequency","seasonal_adjustment","last_updated","source_date_timezone"} or
+                    any(not isinstance(v,str) or not v.strip() for v in native.values()) or
+                    native["source_date_timezone"]!="America/Chicago" or fact["source"] not in {"fred","core_macro_v1"} or
+                    fact["publication_date"] is not None or meta["publisher_available_at"] is not None or
+                    available.astimezone(ZoneInfo("America/Chicago")).date().isoformat()!=validate_date(native["vintage_date"])):
+                raise ValueError("invalid_snapshot_availability")
+            return available
         published=validate_date(fact["publication_date"])
         if published>cutoff_date:
             raise ValueError("future_data")
@@ -138,19 +148,33 @@ def catalog(data, cutoff):
     keys = {"fact_id", "entity", "metric", "value", "unit", "source", "source_file", "publication_date", "observation_date", "data_period", "fallback_status"}
     for fact in data["facts"]:
         extra={"available_at","availability"} if data["schema_version"]=="research-facts-v2" and isinstance(fact,dict) and "availability" in fact else set()
-        if (not isinstance(fact, dict) or set(fact) != keys|extra or
-                any(not isinstance(fact[k], str) or not fact[k].strip() for k in keys - {"value"}) or
+        derived=isinstance(fact,dict) and fact.get("source")=="core_macro_v1"
+        unknown_release=bool(extra) and fact.get("publication_date") is None
+        if (not isinstance(fact, dict) or set(fact) != keys|extra|({"derivation"} if derived else set()) or
+                any(not isinstance(fact[k], str) or not fact[k].strip() for k in keys - {"value"} - ({"publication_date"} if unknown_release else set())) or
                 type(fact["value"]) not in {str, int, float} or fact["fact_id"] in facts):
             raise ValueError("invalid_research_facts")
         if fact["fallback_status"] != "none":
             raise ValueError("unverified_evidence")
-        if any(validate_date(fact[k]) > cutoff for k in ("publication_date", "observation_date")):
+        if any(validate_date(fact[k]) > cutoff for k in (("observation_date",) if unknown_release else ("publication_date", "observation_date"))):
             raise ValueError("future_data")
         if extra:
             checked_snapshot_availability(fact,cutoff)
         elif data["schema_version"]=="research-facts-v2" and fact["source"]!="core_quant_v1":
             raise ValueError("invalid_snapshot_availability")
+        if derived:
+            d=fact["derivation"]
+            if (not extra or not isinstance(d,dict) or set(d)!={"version","formula","input_fact_ids","input_hashes"} or
+                    d["version"]!="core-macro-v1" or d["formula"]!="(current / comparison - 1) * 100" or
+                    not isinstance(d["input_fact_ids"],list) or len(d["input_fact_ids"])!=2 or
+                    any(not isinstance(v,str) for v in d["input_fact_ids"]) or
+                    not isinstance(d["input_hashes"],list) or len(d["input_hashes"])!=2 or
+                    any(not isinstance(v,str) or not re.fullmatch(r"[a-f0-9]{64}",v) for v in d["input_hashes"]) or
+                    fact["availability"]["selection_hash"]!=digest(d)):
+                raise ValueError("invalid_research_facts")
         facts[fact["fact_id"]] = json.loads(canonical(fact))
+    from .macro_derivation import verify_calculations
+    verify_calculations(facts)
     return facts
 
 

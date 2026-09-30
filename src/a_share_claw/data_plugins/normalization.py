@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from ..harness.contracts import canonical, digest
 from .core import DataError, iso_date
@@ -30,12 +32,13 @@ def numeric(value):
 
 
 def fred_observation(result,metadata,*,series_id,observation_date,units,frequency,seasonal_adjustment):
-    data=checked_result(result,"fred","macro.series")
-    identity=checked_result(metadata,"fred","macro.series_metadata")
+    snapshot=result.get("capability")=="macro.series_snapshot"
+    data=checked_result(result,"fred","macro.series_snapshot" if snapshot else "macro.series")
+    identity=checked_result(metadata,"fred","macro.series_metadata_snapshot" if snapshot else "macro.series_metadata")
     if (data.get("series_id")!=series_id or identity.get("series_id")!=series_id or
             data.get("vintage_date")!=identity.get("vintage_date") or
             result["provenance"].get("as_of_date")!=metadata["provenance"].get("as_of_date") or
-            data.get("vintage_date")!=result["provenance"].get("as_of_date")):
+            not snapshot and data.get("vintage_date")!=result["provenance"].get("as_of_date")):
         raise DataError("source_mismatch", "Observation and metadata must use the same series and vintage")
     if any(identity.get(key)!=expected for key,expected in (("units",units),("frequency",frequency),("seasonal_adjustment",seasonal_adjustment))):
         raise DataError("unit_or_metric_mismatch", "Native series units, frequency or adjustment do not match the requirement")
@@ -46,10 +49,24 @@ def fred_observation(result,metadata,*,series_id,observation_date,units,frequenc
     row=rows[0]
     if not iso_date(row["realtime_start"])<=iso_date(data["vintage_date"])<=iso_date(row["realtime_end"]) or day>data["vintage_date"]:
         raise DataError("future_data", "Selected observation does not belong to the requested vintage")
-    return _selection("fred",{"series_id":series_id,"observation_date":day,"vintage_date":data["vintage_date"],
+    observation={"series_id":series_id,"observation_date":day,"vintage_date":data["vintage_date"],
         "value":numeric(row["value"]),"unit":units,"frequency":frequency,"seasonal_adjustment":seasonal_adjustment,
         "available_at":None,"availability_precision":"date_level_vintage_only",
-        "series_last_updated":identity["last_updated"]},[result,metadata])
+        "series_last_updated":identity["last_updated"],"series_title":identity["title"],"source_notes":[identity.get("notes","")]}
+    if snapshot:
+        cutoff=result["provenance"]["as_of_date"];captures=[]
+        for item,body in ((result,data),(metadata,identity)):
+            capture=datetime.fromisoformat(item["provenance"]["retrieved_at"].replace("Z","+00:00"))
+            if (capture.tzinfo is None or capture.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()!=cutoff or
+                    capture.astimezone(ZoneInfo("America/Chicago")).date().isoformat()!=body["vintage_date"] or
+                    body.get("snapshot_as_of_date")!=cutoff or body.get("availability_basis")!="observed_current_snapshot" or
+                    body.get("historical_vintage_certified") is not False or body.get("source_date_timezone")!="America/Chicago"):
+                raise DataError("future_data","Paired current series/identity must use the same capture dates and explicit vintage")
+            captures.append(capture)
+        observation.update(available_at=max(captures).isoformat(),publication_date=None,publisher_available_at=None,
+            publication_time_precision="unknown",eligibility="verified_current_snapshot",snapshot_as_of_date=cutoff,
+            availability_basis="observed_current_snapshot",historical_vintage_certified=False,source_date_timezone="America/Chicago")
+    return _selection("fred",observation,[result,metadata])
 
 
 def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession,metadata=None):

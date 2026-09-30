@@ -81,15 +81,20 @@ def body(workflow, data, level=2):
         result += statistics(data["market_statistics"], level)
     result += [heading + " 准入事实与核心派生值", ""]
     result += table(["fact_id", "类型", "对象/指标", "数值", "单位", "统计期", "发布/观测日", "来源文件"],
-                    [[f["fact_id"], "核心派生" if f["source"] == "core_quant_v1" else "来源事实",
+                    [[f["fact_id"], "核心派生" if f["source"] in {"core_quant_v1","core_macro_v1"} else "来源事实",
                       f["entity"] + "/" + f["metric"], f["value"], f["unit"], f["data_period"],
-                      f["publication_date"] + "/" + f["observation_date"], f["source_file"]] for f in data["confirmed_facts"]])
+                      (f["publication_date"] or "原始发布日期未知") + "/" + f["observation_date"], f["source_file"]] for f in data["confirmed_facts"]])
     snapshots=[f for f in data["confirmed_facts"] if "availability" in f]
     if snapshots:
         result += ["", "当前快照口径：以下数值是本次抓取看到的版本；原始发布日期与快照可得时间分别保留，不证明抓取前的历史页面版本。", ""]
         result += table(["事实", "当前快照可得时间", "原文发布时钟", "发布精度", "来源口径备注", "选择哈希"],
             [[f["fact_id"],f["available_at"],f["availability"]["publisher_available_at"],
               f["availability"]["publication_time_precision"],f["availability"]["source_notes"],f["availability"]["selection_hash"]] for f in snapshots])
+    derived_macro=[f for f in data["confirmed_facts"] if f["source"]=="core_macro_v1"]
+    if derived_macro:
+        result += [heading + " 核心月度指数变化计算", "", "原生同 vintage 指数计算，不是发布机构另行确认的同比/环比数值。原始观测发布日期未知；未采用 series last_updated 代替。", ""]
+        result += table(["事实","公式","原生输入事实","输入哈希"],
+            [[f["fact_id"],f["derivation"]["formula"],f["derivation"]["input_fact_ids"],f["derivation"]["input_hashes"]] for f in derived_macro])
     result += [heading + " 角色推断与事实引用", "", "以下文案已通过候选语义评估；引用存在本身不证明推断正确。", ""]
     unknowns = []
     phases = ["hong_guan:initial", "ge_yan:initial", "jia_zhi:initial", "qian_zhan:initial", "shen_du:initial", "qian_zhan:rebuttal", "shen_du:rebuttal", "ping_heng:final"]
@@ -118,8 +123,8 @@ def _render(report):
               "## 运行与数据口径", ""]
     result += table(["字段", "值"], [[k,report[k]] for k in ("run_id", "plan_id", "scope_key", "workflow", "as_of_date", "generated_at", "mode", "fallback_status", "policy_version")])
     result += ["JSON 报告哈希：" + digest(report), "", "## 来源表", ""]
-    result += table(["能力/切片", "来源", "文件", "发布时间", "观测日", "统计期", "捕获时间", "事实哈希"],
-        [[p["capability"] + ("/" + p["slice_id"] if "slice_id" in p else ""),p["source"],p["source_file"],p["publication_date"],
+    result += table(["能力/切片", "来源", "文件", "日期", "日期口径", "观测日", "统计期", "捕获时间", "事实哈希"],
+        [[p["capability"] + ("/" + p["slice_id"] if "slice_id" in p else ""),p["source"],p["source_file"],p["publication_date"],p.get("publication_date_basis","source_declared_date"),
           p["observation_date"],p["data_period"],p["source_timestamp"],p["sha256"]] for p in report["source_table"]])
     result += body(workflow, report["data"])
     result += ["## 授权历史比较", ""] + bullets([report["prior_comparison"]])

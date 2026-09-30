@@ -167,7 +167,7 @@ Issue #1 的五项 E0 最小契约/接线/验收已具备：统一类型、每�
 
 仅在 A 完成后推进 NBS、PBC、TickFlow、FRED、SEC 到核心 FactPacket 的映射。逐接口登记能力、真实字段、单位、统计期/披露日、修订 vintage、覆盖和不可得项。插件不能新增评分权重或把预计算 action 当事实。
 
-NBS/PBC 目前保留发布正文；数值和附件解析未完成。TickFlow 真实账户样本、三表披露/单位和历史 PIT 未验收；FRED/SEC 已有时点过滤，但尚未自动接入评分事实包。缺凭据或不支持的证券/指标继续返回缺口，不另接网页、旧 pipeline 或其他供应商补数。当前任务 AGENTS.md 的行情主源限制必须先落实；现有 TickFlow 接口的存在不构成主源授权。
+NBS/PBC 已有固定正文指标选择及当前快照到核心研究的显式交接，附件/完整序列未完成。FRED PCE 原生月度指数已有当前交接，核心按同 vintage 精确月度比较计算环比/同比；原始发布日期未知时保留 null，不用 last_updated 替代。TickFlow 真实账户样本、三表披露/单位和历史 PIT 未验收；SEC 到核心及普通 chat 自动取证、日评分输入仍待补。缺凭据或不支持的证券/指标继续返回缺口，不另接网页、旧 pipeline 或其他供应商补数。当前任务 AGENTS.md 的行情主源限制必须先落实；现有 TickFlow 接口的存在不构成主源授权。
 
 `data` 插件运行的 `official_output_allowed=false` 保持不变；它表示取数本身没有发布权。核心单独通过 evaluator、报告与原子发布门禁后才可允许 official。手工 FactPacket 的可运行性不等于插件到核心链路已验收。
 

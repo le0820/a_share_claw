@@ -5,6 +5,7 @@ import json
 import math
 import re
 from datetime import datetime, time, timezone
+from dataclasses import replace
 from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 from zoneinfo import ZoneInfo
@@ -183,9 +184,11 @@ class PBC(OfficialPublication):
 
 
 class FRED(Provider):
-    manifest = Manifest("fred", ("macro.series", "macro.series_metadata"), ("api.stlouisfed.org",), "FRED_API_KEY", version="1.1.0")
+    manifest = Manifest("fred", ("macro.series", "macro.series_metadata", "macro.series_snapshot", "macro.series_metadata_snapshot"), ("api.stlouisfed.org",), "FRED_API_KEY", version="1.2.0")
 
     def fetch(self, r: Requirement) -> Payload:
+        if r.capability in {"macro.series_snapshot", "macro.series_metadata_snapshot"}:
+            return self._snapshot(r)
         if r.capability == "macro.series_metadata":
             return self._metadata(r)
         p = parameters(r, {"series_id", "start_date", "end_date", "limit"}, {"series_id", "start_date"})
@@ -216,6 +219,24 @@ class FRED(Provider):
                        ["Cutoff is date-level/end-of-day, not intraday publication timing"])
 
 
+    def _snapshot(self, r: Requirement) -> Payload:
+        # Current capture and source vintage use separate explicitly pinned dates.
+        # Chicago is this adapter's source-date policy; not an intraday release clock.
+        metadata=r.capability=="macro.series_metadata_snapshot"
+        allowed={"series_id", "vintage_date"} if metadata else {"series_id","start_date","end_date","limit","vintage_date"}
+        required={"series_id","vintage_date"} if metadata else {"series_id","start_date","vintage_date"}
+        p=parameters(r,allowed,required);vintage=iso_date(p.pop("vintage_date"))
+        now=datetime.now(timezone.utc)
+        if (r.as_of_date!=now.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat() or
+                vintage!=now.astimezone(ZoneInfo("America/Chicago")).date().isoformat()):
+            raise DataError("historical_unavailable","Snapshot needs today's core date and explicit current Chicago vintage; historical queries use macro.series")
+        native=replace(r,capability="macro.series_metadata" if metadata else "macro.series",as_of_date=vintage,params=p)
+        payload=self._metadata(native) if metadata else self.fetch(native)
+        payload.data.update(snapshot_as_of_date=r.as_of_date,availability_basis="observed_current_snapshot",
+                            historical_vintage_certified=False,source_date_timezone="America/Chicago")
+        payload.warnings.append("Availability is this run's capture, not the series update or an original observation release clock")
+        return payload
+
     def _metadata(self, r: Requirement) -> Payload:
         p = parameters(r, {"series_id"}, {"series_id"})
         series = identifier(p["series_id"], r"[A-Za-z0-9_]{1,80}")
@@ -231,7 +252,10 @@ class FRED(Provider):
         fields=("title","units","frequency","seasonal_adjustment","last_updated")
         if any(not isinstance(row.get(key),str) or not row[key].strip() for key in fields):
             raise DataError("invalid_schema", "Missing FRED series identity or units metadata")
-        return Payload({"series_id":series,"vintage_date":r.as_of_date,**{key:row[key] for key in fields}},raw,url,"verified",
+        if "notes" in row and not isinstance(row["notes"],str):
+            raise DataError("invalid_schema","FRED notes must retain their native text")
+        return Payload({"series_id":series,"vintage_date":r.as_of_date,**{key:row[key] for key in fields},
+                        "notes":row.get("notes","")},raw,url,"verified",
                        ["Series last_updated is not a per-observation original release timestamp",
                         "Metadata preserves native units/frequency/seasonal adjustment; no rescaling or economic-series substitution"])
 

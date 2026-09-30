@@ -297,7 +297,7 @@ class DataRun:
                 raise DataError("hash_mismatch", "Raw evidence does not match the archived source hash")
             return result
         result=archived(requirement_id)
-        if result["capability"]=="macro.series":
+        if result["capability"] in {"macro.series","macro.series_snapshot"}:
             keys={"series_id","observation_date","units","frequency","seasonal_adjustment"}
             if set(selector)!=keys or metadata_requirement_id is None:
                 raise DataError("invalid_request", "FRED selection requires native units metadata and an exact observation date")

@@ -159,7 +159,8 @@ class Harness:
                             raise ValueError("outlook_spec_required")
                         quant = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
                         quant_archive = self._archive(session, "quant_metrics", quant)
-                        facts = outlook_facts(facts["macro_release_facts"], quant, quant_archive, cutoff)
+                        facts = outlook_facts(facts["macro_release_facts"], quant, quant_archive, cutoff, parameters["research_spec"],
+                            macro_archive=lambda payload:self._archive(session,"macro_metrics",payload))
                     if research_adapter is not None:
                         if role_runner is not None or semantic_reviewer is not None:
                             raise ValueError("conflicting_model_adapters")
