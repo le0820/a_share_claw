@@ -72,7 +72,10 @@ def fred_observation(result,metadata,*,series_id,observation_date,units,frequenc
 def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession,metadata=None):
     if any(not isinstance(v,str) or not v.strip() for v in (cik,concept,unit,accession)):
         raise DataError("invalid_request", "Company, concept, unit and accession must be explicit nonempty identifiers")
-    data=checked_result(result,"sec","company.facts")
+    snapshot=result.get("capability")=="company.facts_snapshot"
+    data=checked_result(result,"sec","company.facts_snapshot" if snapshot else "company.facts")
+    if snapshot and metadata is None:
+        raise DataError("invalid_request","Current SEC core facts require explicitly paired filing metadata")
     if data.get("cik")!=cik or concept in data.get("missing_concepts",[]):
         raise DataError("source_mismatch", "Requested company/concept is unavailable")
     end,filing=iso_date(period_end),iso_date(filed)
@@ -92,7 +95,7 @@ def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession,m
         "available_at":None,"availability_precision":"filed_date_only"}
     inputs=[result]
     if metadata is not None:
-        identity=checked_result(metadata,"sec","company.filing_metadata")
+        identity=checked_result(metadata,"sec","company.filing_metadata_snapshot" if snapshot else "company.filing_metadata")
         if (identity.get("cik")!=cik or identity.get("accession")!=accession or identity.get("filed")!=filing or
                 any(row.get("form")!=identity.get("form") for row in rows) or
                 metadata["provenance"].get("as_of_date")!=cutoff or end>iso_date(identity["report_date"])):
@@ -104,6 +107,25 @@ def sec_fact(result,*,cik,concept,unit,period_start,period_end,filed,accession,m
             acceptance_timestamp_declared=identity["acceptance_timestamp_declared"],
             availability_precision=identity["availability_precision"],public_dissemination_certified=False)
         inputs.append(metadata)
+        if snapshot:
+            captures=[]
+            for item,body in ((result,data),(metadata,identity)):
+                capture=datetime.fromisoformat(item["provenance"]["retrieved_at"].replace("Z","+00:00"))
+                if (capture.tzinfo is None or capture.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()!=cutoff or
+                        body.get("snapshot_as_of_date")!=cutoff or body.get("availability_basis")!="observed_current_snapshot" or
+                        body.get("historical_vintage_certified") is not False or item.get("run_id")!=result.get("run_id")):
+                    raise DataError("future_data","Paired current SEC captures must belong to one run and current core date")
+                captures.append(capture)
+            available=max(captures)
+            if datetime.fromisoformat(identity["acceptance_timestamp_declared"])>available:
+                raise DataError("future_data","Filing acceptance cannot follow its actual capture")
+            observation.update(available_at=available.isoformat(),publication_date=filing,publisher_available_at=None,
+                publication_time_precision="day",eligibility="verified_current_snapshot",snapshot_as_of_date=cutoff,
+                availability_basis="observed_current_snapshot",historical_vintage_certified=False,
+                source_notes=["Current API capture only; filed is a source date, acceptance is not public dissemination",
+                    "Exact native entity-wide XBRL concept/unit/duration/accession; no scaling, YTD subtraction or latest filing replacement"],
+                sec_filing={key:observation[key] for key in ("cik","concept","unit","period_start","period_end","filed","accession","form",
+                    "report_date","primary_document","acceptance_timestamp_raw","acceptance_timestamp_declared","public_dissemination_certified")})
     return _selection("sec",observation,inputs)
 
 

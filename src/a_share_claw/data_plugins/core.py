@@ -304,7 +304,7 @@ class DataRun:
             if set(selector)!=keys or metadata_requirement_id is None:
                 raise DataError("invalid_request", "FRED selection requires native units metadata and an exact observation date")
             selection=fred_observation(result,archived(metadata_requirement_id),**selector)
-        elif result["capability"]=="company.facts":
+        elif result["capability"] in {"company.facts","company.facts_snapshot"}:
             keys={"cik","concept","unit","period_start","period_end","filed","accession"}
             if set(selector)!=keys:
                 raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
@@ -351,6 +351,20 @@ class DataRun:
         self._core_contract_document=json.dumps(contract,sort_keys=True,ensure_ascii=False,allow_nan=False)
         self._save("core-contract.json",contract)
         return self.summary()
+
+    def plan_core_research(self, plan: dict, research_spec: dict, bindings: list[dict], *, cutoff_timestamp: str, workflow="company"):
+        from .sec_handoff import freeze_research_contract
+        if self.requirements is not None or self._core_contract_document is not None:
+            raise DataError("plan_required","Bind the core contract before the first source plan/fetch")
+        contract=freeze_research_contract(self,plan,research_spec,bindings,cutoff_timestamp,workflow)
+        self.plan(plan)
+        self._core_contract_document=json.dumps(contract,sort_keys=True,ensure_ascii=False,allow_nan=False)
+        self._save("core-contract.json",contract)
+        return self.summary()
+
+    def core_research_evidence(self):
+        from .sec_handoff import research_evidence
+        return research_evidence(self)
 
     def core_price_evidence(self):
         from .price_handoff import price_evidence

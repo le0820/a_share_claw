@@ -30,6 +30,10 @@ def freeze_outlook_contract(run, plan, outlook_spec, bindings):
                 not isinstance(b["requirement_id"],str) or b["requirement_id"] not in requirements or not isinstance(b["selector"],dict)):
             raise DataError("invalid_request","Each fixed core fact must bind exactly one planned source selection")
         seen.add(b["fact_id"]);r=requirements[b["requirement_id"]];target=expected[b["fact_id"]];sel=b["selector"]
+        if r.provider=="sec":
+            from .sec_handoff import checked_binding
+            dates.add(checked_binding(requirements,b,target))
+            continue
         if r.provider=="fred" and r.capability=="macro.series_snapshot":
             keys={"series_id","observation_date","units","frequency","seasonal_adjustment"}
             if (set(sel)!=keys or any(not isinstance(v,str) for v in sel.values()) or
@@ -51,7 +55,7 @@ def freeze_outlook_contract(run, plan, outlook_spec, bindings):
             dates.add(r.as_of_date)
             continue
         if r.provider not in {"nbs","pbc"} or r.capability!="macro.release_snapshot":
-            raise DataError("mapping_unavailable","This handoff supports explicit NBS/PBC pages and FRED PCE current snapshots only")
+            raise DataError("mapping_unavailable","This handoff supports NBS/PBC pages, FRED PCE and SEC native current snapshots only")
         if "metadata_requirement_id" in b:
             raise DataError("invalid_request","Native prose bindings do not accept a metadata requirement")
         if (set(sel)!={"metric","year","month","period_kind"} or type(sel["year"]) is not int or not 1<=sel["year"]<=9999 or
@@ -86,6 +90,12 @@ def macro_evidence(run):
     for binding in contract["bindings"]:
         selected=run.select(binding["requirement_id"],binding["selector"],metadata_requirement_id=binding.get("metadata_requirement_id"))
         obs=selected["observation"];source=selected["provenance"][0]
+        if selected["provider"]=="sec":
+            from .sec_handoff import fact_from_selection
+            facts.append(fact_from_selection(run,binding,selected,cutoff,contract["as_of_date"]))
+            sources.append({"fact_id":binding["fact_id"],"requirement_id":binding["requirement_id"],
+                "selection_hash":selected["selection_hash"],"input_hashes":selected["input_hashes"],"input_provenance":selected["provenance"],**source})
+            continue
         if (obs.get("eligibility")!="verified_current_snapshot" or obs.get("availability_basis")!="observed_current_snapshot" or
                 obs.get("historical_vintage_certified") is not False or source.get("as_of_date")!=contract["as_of_date"] or
                 source.get("provider") not in {"nbs","pbc","fred"}):

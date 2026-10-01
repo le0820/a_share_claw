@@ -180,3 +180,10 @@ NBS/PBC 已有固定正文指标选择及当前快照到核心研究的显式交
 ### 明确留给后续阶段的范围
 
 完整 ContextManifest/上下文压缩与长期记忆、通用宿主桥接、可靠 Cron/崩溃恢复、E3 的 30–50 固定任务与 ≥20 故障注入、四臂缓存性能对照及 E4/E5 proposal 审批/自提升继续按 Issue #1 推进。这些边界必须保留，不能为本次 case 扩张范围或标记完成。连续正式宏观日更和 AI 正式输入验收依赖 B；一次 case 通过也不替代连续服务观察。
+
+
+### B 当前原生公司事实交接（SEC）
+
+SEC 当前 facts/filing_metadata 独立配对捕获、冻结 CIK/concept/native unit/duration/accession 到核心 company/industry/outlook 已实现。核心不从 YTD、其他单位或最新披露猜测目标事实；filed/acceptance/capture 分别记录，公开传播/PIT 仍未认证。合成五源同 run 可验证核心独立计算与双报告，来源/研究均无正式状态或交易动作。
+
+该进展只关闭显式映射实现项：SEC/FRED 真实配置和接口、可信宿主自动取证、官方完整交易日历与季度覆盖仍未验收。完整季度 case 继续在五源真实接线闭环后执行；PR #2 保持 open，Issue #1 不关闭。`.env.example` 默认主源与最新 AGENTS/registry 同步为 easytdx；TickFlow 辅助能力仍默认禁用。

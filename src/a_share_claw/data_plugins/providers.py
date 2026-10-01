@@ -261,11 +261,16 @@ class FRED(Provider):
 
 
 class SEC(Provider):
-    manifest = Manifest("sec", ("company.facts", "company.filing_metadata"), ("data.sec.gov",), "SEC_USER_AGENT",version="1.1.0")
+    manifest = Manifest("sec", ("company.facts", "company.filing_metadata", "company.facts_snapshot", "company.filing_metadata_snapshot"), ("data.sec.gov",), "SEC_USER_AGENT",version="1.2.0")
 
     def fetch(self, r: Requirement) -> Payload:
-        if r.capability=="company.filing_metadata":
-            return self._filing_metadata(r)
+        snapshot=r.capability in {"company.facts_snapshot","company.filing_metadata_snapshot"}
+        if snapshot and r.as_of_date!=datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat():
+            raise DataError("historical_unavailable","Current SEC snapshots cannot backdate their capture")
+        if r.capability in {"company.filing_metadata","company.filing_metadata_snapshot"}:
+            payload=self._filing_metadata(r)
+            if snapshot:payload.data.update(self._snapshot_fields(r))
+            return payload
         p = parameters(r, {"cik", "concepts", "start_date"}, {"cik", "concepts"})
         cik = identifier(p["cik"], r"\d{1,10}").zfill(10)
         concepts = p["concepts"]
@@ -302,12 +307,18 @@ class SEC(Provider):
                 missing.append(concept)
         if not facts:
             raise DataError("no_results", "No requested facts were filed by the availability cutoff")
-        return Payload({"cik": cik, "facts": facts, "missing_concepts": missing}, raw, url,
+        return Payload({"cik": cik, "facts": facts, "missing_concepts": missing,
+                        **(self._snapshot_fields(r) if snapshot else {})}, raw, url,
                        "unverified" if missing else "verified",
                        ["Facts preserve duration, units and all eligible filings; do not sum duplicate vintages",
                         "Standard entity-wide XBRL facts only; custom tags/segments and complete statement layouts are not reconstructed",
                         "SEC filed date is a date-level cutoff, not intraday acceptance timing"])
 
+
+    @staticmethod
+    def _snapshot_fields(r):
+        return {"snapshot_as_of_date":r.as_of_date,"availability_basis":"observed_current_snapshot",
+                "historical_vintage_certified":False}
 
     def _contact(self):
         contact=self.credential()

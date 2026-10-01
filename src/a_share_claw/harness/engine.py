@@ -335,6 +335,9 @@ class Harness:
             if capability=="macro_release_facts" and item["data"].get("schema_version")=="macro-release-facts-v2":
                 if p.get("research_spec_hash")!=digest(plan["parameters"].get("research_spec")):
                     raise ValueError("research_fact_contract_mismatch")
+            if capability=="primary_documents" and item["data"].get("schema_version")=="research-facts-v2":
+                if p.get("research_spec_hash")!=digest(plan["parameters"].get("research_spec")):
+                    raise ValueError("research_fact_contract_mismatch")
             if capability=="price_history" and item["data"].get("schema_version")=="price-series-v2":
                 if p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
                     raise ValueError("price_contract_mismatch")
@@ -347,6 +350,14 @@ class Harness:
             if plan["workflow"] in {"quant", "outlook"} and plan["parameters"].get("quant_spec"):
                 if source_time > timestamp(plan["parameters"]["quant_spec"]["cutoff_timestamp"]):
                     raise ValueError("future_data")
+            if ((capability=="primary_documents" and item["data"].get("schema_version")=="research-facts-v2") or
+                    (capability=="macro_release_facts" and item["data"].get("schema_version")=="macro-release-facts-v2")):
+                for fact in item["data"].get("facts",[]):
+                    if "available_at" in fact and timestamp(fact["available_at"])>source_time:
+                        raise ValueError("future_data")
+                    if fact.get("source")=="sec":
+                        from .sec_facts import checked_capture_provenance
+                        checked_capture_provenance(fact,p)
             validate_values(item["data"], cutoff)
             if capability in MACRO_UNITS:
                 expected = MACRO_UNITS[capability]

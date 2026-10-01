@@ -102,7 +102,8 @@ def checked_snapshot_availability(fact, cutoff_date):
     meta=fact.get("availability")
     keys={"basis","snapshot_as_of_date","historical_vintage_certified","publisher_available_at","publication_time_precision","selection_hash","source_run_id","source_notes"}
     fred=isinstance(meta,dict) and "fred_series" in meta
-    if (not isinstance(meta,dict) or set(meta)!=keys|({"fred_series"} if fred else set()) or meta["basis"]!="observed_current_snapshot" or
+    sec=isinstance(meta,dict) and "sec_filing" in meta
+    if (fred and sec or not isinstance(meta,dict) or set(meta)!=keys|({"fred_series"} if fred else {"sec_filing"} if sec else set()) or meta["basis"]!="observed_current_snapshot" or
             meta["historical_vintage_certified"] is not False or meta["snapshot_as_of_date"]!=cutoff_date or
             not isinstance(meta["selection_hash"],str) or not re.fullmatch(r"[a-f0-9]{64}",meta["selection_hash"]) or
             not isinstance(meta["source_run_id"],str) or not re.fullmatch(r"[a-f0-9]{32}",meta["source_run_id"]) or
@@ -123,6 +124,12 @@ def checked_snapshot_availability(fact, cutoff_date):
                     fact["publication_date"] is not None or meta["publisher_available_at"] is not None or
                     available.astimezone(ZoneInfo("America/Chicago")).date().isoformat()!=validate_date(native["vintage_date"])):
                 raise ValueError("invalid_snapshot_availability")
+            return available
+        if sec:
+            from .sec_facts import checked_filing
+            if meta["publisher_available_at"] is not None or meta["publication_time_precision"]!="day":
+                raise ValueError("invalid_snapshot_availability")
+            checked_filing(fact,meta["sec_filing"],available,cutoff_date)
             return available
         published=validate_date(fact["publication_date"])
         if published>cutoff_date:

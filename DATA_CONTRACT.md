@@ -35,7 +35,7 @@ Model access alone is sufficient to develop the research framework, but it does 
 | Requested index daily levels | easy-tdx, pinned SDK 1.20.4 | Explicit current index snapshots with native identity; core checks frozen calendar/coverage and computes statistics; historical publication/revision vintage is not certified |
 | Auxiliary quote/bars/three statements | TickFlow, disabled by default | Current raw interfaces remain unverified; not the primary market source or core price handoff |
 | US macro observations | FRED with explicit realtime vintage | Historical selection stays date-level; separately planned current series/metadata captures can supply native PCE index levels; original observation release dates unknown |
-| US corporate facts | SEC Company Facts | Filed/end cutoff validated; preserve units, durations and accession IDs; missing concepts remain gaps |
+| US corporate facts | SEC Company Facts + exact recent filing metadata | Current paired captures can hand off native CIK/concept/unit/duration/accession facts; filed/acceptance are separate from capture/public availability; historical selection stays unadmitted, missing concepts remain gaps |
 
 The latest owner AGENTS instruction makes easy-tdx the primary market source and forbids TickFlow as primary. The default five active sources are NBS/PBC/easy-tdx/FRED/SEC; the retained TickFlow adapter requires explicit host enablement and stays auxiliary. No AkShare, Tavily, QVeris or generic web fallback is available to the Agent. Legacy scripts below describe the retained manual pipeline, not the plugin-only Agent path. All five-source runs are research-only until validated inputs are integrated into the deterministic scoring/evaluation gate.
 

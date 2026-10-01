@@ -11,9 +11,9 @@
 | `easytdx` | `market.index_catalog` 国际指数目录；`market.index_daily_snapshot` 原生指数日线当前版本 | 宿主解释器安装固定 easy-tdx 1.20.4 | 固定指数身份、无复权、原生点位；SDK 在隔离子进程取数，只连声明主机；核心复核冻结日历/窗口；不是历史 PIT 认证 |
 | `tickflow`（辅助、默认禁用） | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
 | `fred` | `macro.series` / `macro.series_metadata` 历史查询；`macro.series_snapshot` / `macro.series_metadata_snapshot` 当前捕获 | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
-| `sec` | `company.facts` 公司事实；`company.filing_metadata` 精确 accession 的 recent filing 元数据 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
+| `sec` | `company.facts` / `company.filing_metadata` 历史选择；`company.facts_snapshot` / `company.filing_metadata_snapshot` 当前配对快照 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
-`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照、FRED PCE 原生指数和 easy-tdx 指数日线已有明确宿主研究交接；SEC、普通 chat 自动取证及日评分字段尚未接线，不能借取数成功恢复官方评分或仓位行动。
+`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照、FRED PCE 原生指数和 easy-tdx 指数日线已有明确宿主研究交接；SEC 当前原生公司事实亦已显式交接；普通 chat 自动取证及日评分字段尚未接线，不能借取数成功恢复官方评分或仓位行动。
 
 ## 配置与命令
 
@@ -136,7 +136,17 @@ SDK 延迟在隔离子进程导入，固定 easy-tdx==1.20.4，父进程不导�
 
 price-series-v2 保留 current_snapshot 与原生身份，每行 available_at 使用实际归档捕获时间，publication_date 明确是快照日期；不制造历史收盘的原始可得时点或复权 vintage。核心重新核对 scope、quant_spec_hash、capture/cutoff、完整冻结日历和类型，JSON/Markdown 记录当前版本限制。price-series-v1 的旧契约不变；当前研究保持 NO_ACTION、没有来源发布权。
 
-已实现后再以合成 SDK JSON/时钟/价格/角色检查三指数到核心统计和双报告，以及同 run NBS/PBC+价格到展望。实际短窗口只证明当前接口/身份/字段，不证明历史 PIT、官方日历、跨源数值一致性或完整季度 case。完整业务仍等 FRED/SEC 实际凭据、SEC 核心映射及自动取证闭环。
+已实现后再以合成 SDK JSON/时钟/价格/角色检查三指数到核心统计和双报告，以及同 run NBS/PBC+价格到展望。实际短窗口只证明当前接口/身份/字段，不证明历史 PIT、官方日历、跨源数值一致性或完整季度 case。完整业务仍等 FRED/SEC 实际配置/接口验收及自动取证闭环。
+
+## B 接入进展：SEC 当前快照到核心原生研究事实
+
+SEC 1.2.0 增加 `company.facts_snapshot` / `company.filing_metadata_snapshot`，参数分别复用 facts/metadata。只接受抓取当天中国日期；两份原生响应须同 run、同 CIK/accession/form/filed，capture 取较晚 retrieved_at。filed 保留来源日期，acceptance 原字符串/声明时区保持，publisher_available_at=null、public_dissemination_certified=false；不将接收时钟当公开传播时间，不证明抓取前修订/PIT。旧 company.facts/filing_metadata 选择仍 available_at=null，不提升历史归档。
+
+可信宿主用 `plan_core_research(plan, research_spec, bindings, cutoff_timestamp=..., workflow="company")`（或 industry）在取数前冻结四字段 Scope 和全部事实；`core_research_evidence()` 输出 research-facts-v2 / primary_documents。bindings 恰为 fact_id/requirement_id/metadata_requirement_id/selector，metadata 必须独立计划。目标 entity 恰为 CIK+十位编号，metric 为原生 taxonomy:concept，unit 保留原生单位，data_period 是明确 start/end（时点项只用 end）；不猜 ticker、缩放、YTD 减法或同比。`harness.sec_facts.native_requirement(selector, fact_id)` 构造相同核心契约。
+
+plan_core_outlook 亦支持该 SEC binding，与 NBS/PBC/FRED/easy-tdx 可共用一个冻结 source run。核心重新核对研究规格、scope、捕获/归档时钟、原生披露字段与单位/统计期；文件/结果/契约哈希在 handoff 重核。双报告及角色 packet 保留 sec_filing，Markdown 明确接收/传播区别。来源 select 的 core_admission_complete=false 保持；实际业务 evaluator 和报告门禁负责准入，不因 handoff 取得发布权。
+
+本项实施后用合成原生 JSON/时钟/角色验证公司交付、比较期、时点项、SEC+宏观展望，以及五源同 run→核心 PCE/价格计算→研究双报告。定向检查暴露的捕获时钟不一致缺口已修复，原失败保留。未调用真实 SEC/FRED 接口或模型，也不是季度业务 case。真实配置、跨设备 SDK 安装、宿主自动取证和完整日历/季度覆盖仍待闭环。
 
 ## Agent 数据边界与兼容变化
 
@@ -156,7 +166,7 @@ price-series-v2 保留 current_snapshot 与原生身份，每行 available_at �
 
 1. E0 最小核心验收已闭环，证据与范围见 E0_INFRA.md；一般语义质量、连续日更和 E1–E5 仍按后续边界推进。
 2. B 已有 FRED/SEC 精确来源选择及 NBS/PBC 固定正文候选；继续补核心字段/单位、精确时点/vintage 和同 run 接线。附件/完整序列按实际需求补，不冒称已覆盖。
-3. easy-tdx 主源已按最新授权统一；指数接口与显式核心价格交接已有实现，完整日历/季度覆盖和端到端实际运行仍需验收。TickFlow 仅为默认禁用的辅助接口，保持 unverified/历史拒绝门禁。FRED PCE 当前研究映射已接线，实际接口仍待凭据验收；SEC 到核心映射继续待补。
+3. easy-tdx 主源已按最新授权统一；指数接口与显式核心价格交接已有实现，完整日历/季度覆盖和端到端实际运行仍需验收。TickFlow 仅为默认禁用的辅助接口，保持 unverified/历史拒绝门禁。FRED PCE 当前研究映射已接线，实际接口仍待凭据验收；SEC 当前原生映射已接线，真实接口仍待验收。
 4. 取数仍只产生证据，发布权属于核心。五源完成后才运行用户指定的 PCE/中国经济/三指数季度展望 case；不足以支持每日评分的材料只生成研究报告与缺口。
 
 ## 接口依据

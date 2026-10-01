@@ -92,6 +92,10 @@ def body(workflow, data, level=2):
         result += table(["事实", "当前快照可得时间", "原文发布时钟", "发布精度", "来源口径备注", "选择哈希"],
             [[f["fact_id"],f["available_at"],f["availability"]["publisher_available_at"],
               f["availability"]["publication_time_precision"],f["availability"]["source_notes"],f["availability"]["selection_hash"]] for f in snapshots])
+    filings=[f for f in snapshots if "sec_filing" in f["availability"]]
+    if filings:
+        result += ["SEC 披露口径：filed 为来源日期；acceptance 为来源声明的接收时钟，不认证公开传播时间或历史版本。原生单位和统计期未缩放或推算。", ""]
+        result += table(["事实", "原生披露身份"],[[f["fact_id"],f["availability"]["sec_filing"]] for f in filings])
     derived_macro=[f for f in data["confirmed_facts"] if f["source"]=="core_macro_v1"]
     if derived_macro:
         result += [heading + " 核心月度指数变化计算", "", "原生同 vintage 指数计算，不是发布机构另行确认的同比/环比数值。原始观测发布日期未知；未采用 series last_updated 代替。", ""]
