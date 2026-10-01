@@ -241,6 +241,8 @@ uv run python run_ai_position.py --date "$AS_OF_DATE" --current-ai-pct 57.5
 
 参阅 [DATA_PLUGINS.md](DATA_PLUGINS.md) 配置五源和查看 JSON 计划例子：
 
+主行情 SDK 是可选 market extra：使用 `uv sync --locked --extra dev --extra market` 安装固定官方原件；宿主审核的日历归档可先生成明确会话，再冻结核心价格规格。干净双版本安装已有本地证据；完整实际行情覆盖和真实业务 case 仍待验收。
+
 ```bash
 uv sync --locked --extra dev
 uv run --locked python -m a_share_claw data plugins

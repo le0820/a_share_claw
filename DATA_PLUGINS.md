@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | `nbs` 国家统计局 | `macro.release_index` 目录；`macro.release` 历史候选；`macro.release_snapshot` 当前官网版本 | 无密钥 | 保留明确发布时钟/精度和原文；固定正文指标支持月度/YTD 精确选择；完整数值序列/附件未完成；页面修订历史不明，标记 unverified |
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位与明确发布时钟；M2/M1/社融存量同比可精确选择；PDF/Excel 与完整序列未完成；不从累计量推算单月 |
-| `easytdx` | `market.index_catalog` 国际指数目录；`market.index_daily_snapshot` 原生指数日线当前版本 | 宿主解释器安装固定 easy-tdx 1.20.4 | 固定指数身份、无复权、原生点位；SDK 在隔离子进程取数，只连声明主机；核心复核冻结日历/窗口；不是历史 PIT 认证 |
+| `easytdx` | `market.index_catalog` 国际指数目录；`market.index_daily_snapshot` 原生指数日线当前版本 | 可选 market extra 锁定 easy-tdx 1.20.4 | 固定指数身份、无复权、原生点位；SDK 在隔离子进程取数，只连声明主机；核心复核冻结日历/窗口；不是历史 PIT 认证 |
 | `tickflow`（辅助、默认禁用） | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
 | `fred` | `macro.series` / `macro.series_metadata` 历史查询；`macro.series_snapshot` / `macro.series_metadata_snapshot` 当前捕获 | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts` / `company.filing_metadata` 历史选择；`company.facts_snapshot` / `company.filing_metadata_snapshot` 当前配对快照 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
@@ -106,7 +106,7 @@ NBS/PBC 1.2.0 新增 `macro.release_snapshot`（params 仍为 url），只接受
 
 JSON/Markdown 和角色 packet 均保留当前版本口径；旧 v1 发布时钟契约保持不变。新增合成端到端检查从来源计划/原始页走到核心统计、角色、评估和双报告，保持 NO_ACTION；两版回归各 324 passed / 41 subtests。真实来源样本验收以本机 data/harness_acceptance 的原始响应/哈希/归档为准；不能用上述合成成功宣告所有官网形态、五源自动取证或真实季度市场 case 已完成。
 
-显式宿主接线已实现；普通 chat 自动取证、SEC 到核心映射、完整行情日历/真实业务链路及五源实际接口验收继续待补。该范围支持当前捕获的研究事实，不恢复历史正式日评分，也未执行用户市场 case。
+显式宿主接线及 SEC 映射已实现；普通 chat 默认绑定、实际行情覆盖/真实业务链路及五源真实接口验收继续待补。该范围支持当前捕获的研究事实，不恢复历史正式日评分，也未执行用户市场 case。
 
 ## B 接入进展：FRED PCE 原生指数到核心计算
 
@@ -130,13 +130,30 @@ macro_metrics 独立归档保留公式、冻结输入契约、原始事实与依
 
 独立接口验收已从当前原生目录发现 market=12、A_IXIC / 纳斯达克综合，另有 A_NDX / 纳斯达克100；不将后者当综合指数。三个指数的短窗口返回及原生身份已成功保存，范围见本机验收记录；这不是完整 Q3 数据覆盖或季度展望验收。
 
-SDK 延迟在隔离子进程导入，固定 easy-tdx==1.20.4，父进程不导入/运行供应商评分或交易策略。子进程不继承 API 凭据、代理或 SDK 主机覆盖，EASY_TDX_CONFIG_DIR 使用临时目录，不改用户全局配置；只连接固定 MAC/MAC_EX 主机，禁 SDK 自动重连/任意选源，60 秒总预算、20 MB 解码输出上限。raw 格式明确为 decoded_sdk_response，不冒称已保存原始 TCP wire bytes。宿主须在运行插件的解释器安装该固定 SDK；缺少依赖返回 not_configured，不换版本/源。当前本机已有 SDK 可验收，但线上新环境安装/索引解析失败，core 依赖锁保持原状，不宣告跨设备安装已通过。
+SDK 延迟在隔离子进程导入，固定 easy-tdx==1.20.4，父进程不导入/运行供应商评分或交易策略。子进程不继承 API 凭据、代理或 SDK 主机覆盖，EASY_TDX_CONFIG_DIR 使用临时目录，不改用户全局配置；只连接固定 MAC/MAC_EX 主机，禁 SDK 自动重连/任意选源，60 秒总预算、20 MB 解码输出上限。raw 格式明确为 decoded_sdk_response，不冒称已保存原始 TCP wire bytes。宿主须在运行插件的解释器安装该固定 SDK；缺少依赖返回 not_configured，不换版本/源。可选 market extra 固定官方 PyPI CDN wheel 与 SHA256，uv.lock 同时固定兼容 pandas 2.3.3；普通核心安装不导入 SDK。包索引/仓库直连 404 和初次构建失败保留在验收记录，不能用浏览缓存宣告安装成功。本机干净 Python 3.11/3.12 安装及隔离导入已通过；CI 亦安装该 extra 并验证导入，其他宿主仍须实际验收。
 
 受信任宿主在抓取前调用 plan_core_quant(plan, quant_spec, bindings)，bindings 恰为 symbol/requirement_id；或在 plan_core_outlook 中附 price_bindings，使宏观与行情同 run 冻结。源需求必须覆盖 anchor、窗口和全部声明会话，identity/unit/currency/adjustment/timezone 必须匹配。core_price_evidence 复核 frozen contract、raw/result 哈希，拒绝缺交易日、重复日期或市场尚未收盘。供应商不返回统计分数，收益率/波动/回撤仍由核心计算。
 
 price-series-v2 保留 current_snapshot 与原生身份，每行 available_at 使用实际归档捕获时间，publication_date 明确是快照日期；不制造历史收盘的原始可得时点或复权 vintage。核心重新核对 scope、quant_spec_hash、capture/cutoff、完整冻结日历和类型，JSON/Markdown 记录当前版本限制。price-series-v1 的旧契约不变；当前研究保持 NO_ACTION、没有来源发布权。
 
 已实现后再以合成 SDK JSON/时钟/价格/角色检查三指数到核心统计和双报告，以及同 run NBS/PBC+价格到展望。实际短窗口只证明当前接口/身份/字段，不证明历史 PIT、官方日历、跨源数值一致性或完整季度 case。完整业务仍等 FRED/SEC 实际配置/接口验收及自动取证闭环。
+
+## 宿主日历与行情依赖准备
+
+安装固定行情适配依赖，随后保持同一已同步环境：
+
+```bash
+uv sync --locked --extra dev --extra market
+uv run --no-sync python -m a_share_claw data plugins
+```
+
+market 为可选依赖；固定官方 CDN 原件与发布哈希，不能改用未核对的镜像或当前最新 SDK。SDK 自带的评分/策略仍不进入核心。
+
+可信宿主可调用 `harness.calendar.session_calendar(rules_file, window_start, window_end, reference=aware_datetime)` 准备 quant-spec-v1 的 calendar_source/market_timezone/anchor/sessions。exchange-calendar-rules-v1 恰含 schema_version、exchange、market_timezone、coverage_start/end、regular_close（HH:MM）、closed_dates、special_closes（日期→提前收盘 HH:MM）、source_documents、review_status=host_reviewed、reviewed_at。每份 source_documents 恰含 url、同目录相对 source_file、sha256、nullable publication_date、retrieved_at；原始文件哈希、审核/捕获时钟、覆盖和相对路径均核对。
+
+工具只按已审核的周一至周五/明确休市/提前收盘规则构造会话，用市场 ZoneInfo 保留 DST 和最后一个实际前期收盘锚点；不足覆盖、零会话或档案变更直接拒绝。将返回字段合并入宿主 asset，再交核心冻结；不增加第六个行情插件、不让模型选择假日或访问文件。calendar_source 保留规则哈希、档案路径与来源 URL/raw 哈希，原规格及报告沿用该字段。
+
+哈希只证明档案完整性，host_reviewed 不认证来源真实性、历史 PIT 或意外停市。宿主仍须审核完整年度/区间公告和后续临时通知，不能只列工作日或从返回行情反推应有日历。本次归档的 2026 Q3 官方计划会话仅是宿主约束准备，未取季度价格、未执行业务 case；实际 bar 覆盖仍须在取数交接时逐日验收。
 
 ## B 接入进展：SEC 当前快照到核心原生研究事实
 

@@ -17,17 +17,17 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.12.19'
-      - run: uv sync --locked --extra dev --python ${{ matrix.python }}
+      - run: uv sync --locked --extra dev --extra market --python ${{ matrix.python }}
       - name: Offline tests (no model or source credentials)
         env:
           ASCLAW_DATA_PROVIDERS: ''
-        run: uv run --locked pytest -q --junitxml=test-results.xml
+        run: uv run --no-sync pytest -q --junitxml=test-results.xml
       - name: Model-free CLI smoke
         run: |
-          uv run --locked python -m a_share_claw data plugins
-          uv run --locked python -m a_share_claw data plan examples/data-plan.json
-          uv run --locked python -m a_share_claw harness plan --workflow macro --date 2026-07-13
-          uv run --locked python -m a_share_claw trace --list
+          uv run --no-sync python -m a_share_claw data plugins
+          uv run --no-sync python -m a_share_claw data plan examples/data-plan.json
+          uv run --no-sync python -m a_share_claw harness plan --workflow macro --date 2026-07-13
+          uv run --no-sync python -m a_share_claw trace --list
       - uses: actions/upload-artifact@v4
         if: always()
         with:

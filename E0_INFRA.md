@@ -194,3 +194,12 @@ SEC 当前 facts/filing_metadata 独立配对捕获、冻结 CIK/concept/native 
 核心冻结框架后可使用显式 evidence_adapter 自动补齐缺失的 company/industry/quant/outlook 能力；先校验已有证据，按绑定加载来源、逐次记录预算/ToolResult，再交给原核心计算、角色、评估和双报告。source run 与唯一 core run 用 scope/plan_id/core_run_id 关联；来源不获得正式发布权。固定 clock、取消、缺口、无凭据和覆盖不足仍阻断，普通 chat 无取证工具。
 
 该范围是绑定式宿主执行，不代表默认聊天具备 URL/披露自动发现或所有平台已部署。实施后合成检查与 CLI 缺口验证不等于真实五源验收。FRED/SEC 配置及真实接口、官方完整日历/季度覆盖、新设备 SDK 安装仍须补齐，随后执行用户完整市场展望 case；PR #2 继续 open、不合并。
+
+
+### B 的安装与日历准备边界
+
+固定 easy-tdx 官方 wheel/SHA256 已纳入可选 market extra 与 uv.lock，兼容 pandas 2.3.3；本机干净 Python 3.11/3.12 安装、隔离导入和全套实施后检查通过。CI 同步锁定的 dev/market 环境后运行离线检查与 CLI。索引/仓库 404、初次 Hatch 直接依赖构建失败及首次冷导入超时保留，不将后续成功覆盖失败；其他宿主不是由本机成功自动验收。
+
+provider-free 的宿主日历准备函数已实现，规则和官方 raw 文档哈希、明确覆盖/休市/提前收盘、DST 及前期锚点在冻结价格规格前校验。本机 data/harness_acceptance 保存三交易所 2026 Q3 计划会话（沪深各 65、Nasdaq 64）及官方公告；这些是宿主准备元数据，不是季度价格或业务展望。日历完整性依赖宿主审核，意外停市/历史修订不认证，实际每个 bar 的覆盖仍未验收。
+
+FRED/SEC 本地配置与真实接口、实际季度行情覆盖及最终市场展望 case 仍未完成。先闭环五源验收，再运行真实 case；PR #2 保持 open、未合并，Issue #1 不关闭。

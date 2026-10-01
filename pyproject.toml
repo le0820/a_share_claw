@@ -16,6 +16,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+market = [
+  "easy-tdx @ https://files.pythonhosted.org/packages/06/4e/445c233278e59528366868bf0b91ea0bdda5b397770b76ca49bba9cf3b14/easy_tdx-1.20.4-py3-none-any.whl#sha256=b45794c11f871607f4661cf17d926f1c5e1896ede84742b42ae874422b74fdef",
+]
 dev = [
   "pytest>=8.0",
   "requests>=2.32",
@@ -26,3 +29,6 @@ a-share-claw = "a_share_claw.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/a_share_claw"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
