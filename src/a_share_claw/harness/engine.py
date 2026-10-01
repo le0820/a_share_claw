@@ -56,7 +56,7 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None):
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None, evidence_adapter=None):
         session = RunSession(self.storage, request, control)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
@@ -129,6 +129,23 @@ class Harness:
                 if workflow in {"macro", "ai"} and (request.mode == "official" or require_official_close) and cutoff == market_now.date().isoformat() and market_now.hour < 15:
                     raise ValueError("WAIT_FOR_CLOSE")
                 session.checkpoint()
+                if evidence_adapter is not None:
+                    from .acquisition import acquire
+                    quant_cutoff=parameters.get("quant_spec",{}).get("cutoff_timestamp")
+                    if clock is None and quant_cutoff and (timestamp(quant_cutoff)-datetime.now(timezone.utc)).total_seconds()>session.remaining:
+                        raise ValueError("WAIT_FOR_CUTOFF")
+                    packet=acquire(self,session,policy,plan,packet,evidence_adapter,output)
+                    if clock is None:
+                        # The core clock must include acquisition elapsed time. A
+                        # fixed host clock is never advanced to admit future facts.
+                        if quant_cutoff:
+                            import time
+                            while datetime.now(timezone.utc)<timestamp(quant_cutoff):
+                                session.checkpoint()
+                                time.sleep(max(0,min(.05,(timestamp(quant_cutoff)-datetime.now(timezone.utc)).total_seconds())))
+                        session.evaluation_clock=datetime.now(timezone.utc)
+                        reference=session.evaluation_clock
+                        session.step("post_acquisition_clock",{"evaluation_timestamp":reference.isoformat(),"frozen_cutoff_timestamp":quant_cutoff})
                 if workflow == "mixed":
                     data, provenance = execute_mixed(self, session, plan, packet, reference, output,
                                                     role_runner, semantic_reviewer, research_adapter)
@@ -222,7 +239,7 @@ class Harness:
                              category=Failure.CONTEXT_TRUNCATION_FAILURE, code=str(exc)))
             output["error_code"] = str(exc)
         except (ValueError, KeyError, TypeError) as exc:
-            known = {"future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
+            known = {"source_acquisition_not_authorized","invalid_source_batch","source_contract_mismatch","WAIT_FOR_CUTOFF","future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
                      "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
@@ -236,7 +253,7 @@ class Harness:
             code = text if text in known or text.startswith(("missing_required_field:", "insufficient_coverage:")) else "invalid_schema"
             if code in {"future_data", "scope_mismatch", "unverified_evidence", "role_packet_mismatch"}:
                 category = Failure.STATE_CONTAMINATION_FAILURE
-            elif code in {"policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "mixed_spec_required", "mixed_incomplete", "invalid_mixed_link", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
+            elif code in {"source_acquisition_not_authorized","source_contract_mismatch","WAIT_FOR_CUTOFF","policy_changed", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "plan_changed", "workflow_execution_pending", "research_spec_required", "role_executor_required", "semantic_review_required", "model_configuration_required", "model_replay_not_supported", "conflicting_model_adapters", "quant_spec_required", "outlook_spec_required", "mixed_spec_required", "mixed_incomplete", "invalid_mixed_link", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs", "quant_operation_not_implemented", "window_not_closed", "price_before_close"}:
                 category = Failure.PERMISSION_POLICY_FAILURE
             elif code == "semantic_review_failed":
                 category = Failure.SYNTHESIS_OR_UNKNOWN_FAILURE
@@ -309,7 +326,7 @@ class Harness:
             if task.done(): task.exception()  # retrieve any worker failure without replacing cancellation
             raise
 
-    def _evidence(self, session, policy, plan, packet, cutoff):
+    def _evidence(self, session, policy, plan, packet, cutoff, *, record=True):
         if packet is None:
             return {}, []
         if not isinstance(packet, dict) or set(packet) != {"as_of_date", "facts"} or packet["as_of_date"] != cutoff or not isinstance(packet["facts"], list):
@@ -381,8 +398,9 @@ class Harness:
                     raise ValueError("future_data")
             facts[capability] = json.loads(canonical(item["data"]))
             sources.append({"capability": capability, **p})
-            self._archive(session, capability, item)
-            session.step("evidence", {"capability": capability, "sha256": p["sha256"], "fallback_status": "none"})
+            if record:
+                self._archive(session, capability, item)
+                session.step("evidence", {"capability": capability, "sha256": p["sha256"], "fallback_status": "none"})
         return facts, sources
 
     def _archive(self, session, name, obj):

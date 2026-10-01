@@ -187,3 +187,10 @@ NBS/PBC 已有固定正文指标选择及当前快照到核心研究的显式交
 SEC 当前 facts/filing_metadata 独立配对捕获、冻结 CIK/concept/native unit/duration/accession 到核心 company/industry/outlook 已实现。核心不从 YTD、其他单位或最新披露猜测目标事实；filed/acceptance/capture 分别记录，公开传播/PIT 仍未认证。合成五源同 run 可验证核心独立计算与双报告，来源/研究均无正式状态或交易动作。
 
 该进展只关闭显式映射实现项：SEC/FRED 真实配置和接口、可信宿主自动取证、官方完整交易日历与季度覆盖仍未验收。完整季度 case 继续在五源真实接线闭环后执行；PR #2 保持 open，Issue #1 不关闭。`.env.example` 默认主源与最新 AGENTS/registry 同步为 easytdx；TickFlow 辅助能力仍默认禁用。
+
+
+### B 显式可信宿主来源执行
+
+核心冻结框架后可使用显式 evidence_adapter 自动补齐缺失的 company/industry/quant/outlook 能力；先校验已有证据，按绑定加载来源、逐次记录预算/ToolResult，再交给原核心计算、角色、评估和双报告。source run 与唯一 core run 用 scope/plan_id/core_run_id 关联；来源不获得正式发布权。固定 clock、取消、缺口、无凭据和覆盖不足仍阻断，普通 chat 无取证工具。
+
+该范围是绑定式宿主执行，不代表默认聊天具备 URL/披露自动发现或所有平台已部署。实施后合成检查与 CLI 缺口验证不等于真实五源验收。FRED/SEC 配置及真实接口、官方完整日历/季度覆盖、新设备 SDK 安装仍须补齐，随后执行用户完整市场展望 case；PR #2 继续 open、不合并。

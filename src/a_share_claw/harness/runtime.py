@@ -83,6 +83,25 @@ class RunSession:
             envelope_json=canonical(redact(envelope)), recorded_at=now())
         return envelope
 
+    def source_tool(self,name,arguments,callback,payload):
+        """Host-only source callback; trace hashes facts instead of copying native rows."""
+        from .research import bounded_call
+        self.checkpoint();self.tool_count+=1
+        if self.tool_count>self.request.max_tool_calls:raise TimeoutError("budget_exceeded")
+        started=time.monotonic()
+        try:
+            obj=bounded_call(callback,payload,self.remaining,self.control)
+            result=obj if isinstance(obj,ToolResult) else ToolResult.from_legacy(obj)
+        except TimeoutError:raise
+        except (ValueError,TypeError,KeyError):result=ToolResult(False,"error","invalid_schema")
+        except Exception:result=ToolResult(False,"error","provider_error",retryable=True)
+        envelope=result.json();self.checkpoint()
+        envelope["usage"]={**envelope["usage"],"latency_ms":round((time.monotonic()-started)*1000,3),"output_chars":len(canonical(result.data))}
+        traced={**envelope,"data":{"sha256":digest(result.data),"chars":len(canonical(result.data))}}
+        self.repository.append("tool_calls",self.run_id,self.request.scope,tool_name=name,arguments_hash=digest(redact(arguments)),
+            permission="trusted_host_source",envelope_json=canonical(redact(traced)),recorded_at=now())
+        return envelope
+
     def finish(self, output, status=RunStatus.SUCCEEDED, *, action="NO_ACTION", official=False, state=None):
         with self.control.lock:
             if status == RunStatus.SUCCEEDED and self.failure is None:

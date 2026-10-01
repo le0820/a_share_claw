@@ -18,7 +18,7 @@ The team model belongs to the Harness, not Telegram or a particular model SDK. A
 5. Validate sources, date availability, coverage and permission; compute and synthesize only from admitted evidence. Required gaps block official conclusions, while the framework and gap report remain useful outputs.
 6. Apply risk gates and evaluators before official publication or state promotion. Record unresolved gaps and fallback explicitly.
 
-Framework formation sets up the investigation; it does not preselect the final conclusion. Data plugins cannot rewrite the research criteria to fit their available fields. The plugin plan/gap runtime is implemented as documented in `DATA_PLUGINS.md`; automatic template compilation and unified evaluators remain pending under Issue #1.
+Framework formation sets up the investigation; it does not preselect the final conclusion. Data plugins cannot rewrite the research criteria to fit their available fields. The core compiles and freezes frameworks with independent evaluation; explicit trusted hosts can bind and acquire missing facts after that freeze as documented in `DATA_PLUGINS.md`. Ordinary chat has no acquisition tools or automatic source bindings; complete Issue #1 benchmarks and broader host integrations remain unfinished.
 
 ## Team
 

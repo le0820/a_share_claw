@@ -13,7 +13,7 @@
 | `fred` | `macro.series` / `macro.series_metadata` 历史查询；`macro.series_snapshot` / `macro.series_metadata_snapshot` 当前捕获 | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts` / `company.filing_metadata` 历史选择；`company.facts_snapshot` / `company.filing_metadata_snapshot` 当前配对快照 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
-`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照、FRED PCE 原生指数和 easy-tdx 指数日线已有明确宿主研究交接；SEC 当前原生公司事实亦已显式交接；普通 chat 自动取证及日评分字段尚未接线，不能借取数成功恢复官方评分或仓位行动。
+`status=ok` 仅代表该能力的取数/时点检查通过，不代表整体投研评估通过。`unverified`、`gap` 都留在缺口报告中。所有插件取证运行的 `official_output_allowed=false`：它们不持有发布权。核心已有独立评分/报告/事务门禁；NBS/PBC 当前快照、FRED PCE 原生指数和 easy-tdx 指数日线已有明确宿主研究交接；SEC 当前原生公司事实亦已显式交接；显式可信宿主的缺失能力取证已接线；普通 chat 默认绑定及日评分字段尚未接线，不能借取数成功恢复官方评分或仓位行动。
 
 ## 配置与命令
 
@@ -148,9 +148,33 @@ plan_core_outlook 亦支持该 SEC binding，与 NBS/PBC/FRED/easy-tdx 可共用
 
 本项实施后用合成原生 JSON/时钟/角色验证公司交付、比较期、时点项、SEC+宏观展望，以及五源同 run→核心 PCE/价格计算→研究双报告。定向检查暴露的捕获时钟不一致缺口已修复，原失败保留。未调用真实 SEC/FRED 接口或模型，也不是季度业务 case。真实配置、跨设备 SDK 安装、宿主自动取证和完整日历/季度覆盖仍待闭环。
 
+## B 接入进展：可信宿主冻结需求自动取证
+
+`data_plugins.adapter.PluginEvidenceAdapter(artifact_root, configuration)` 由可信宿主显式注入 `Harness.run/run_async(..., evidence_adapter=...)`，或 InvestmentAgent 的 run_core_result/run_core_result_async。普通 run_result/chat 不接受该参数，也不开放 source/MCP/Bash/file 工具。configuration 恰含 source_plan、bindings、price_bindings、cutoff_timestamp；使用上述精确原生 bindings，source_plan 不得夹带未绑定需求，已有能力的 source requirements 会跳过。
+
+核心先加载政策、编译/独立审核框架、冻结 plan，再只读准入已有 packet；已有能力还须通过同一事实身份/完整覆盖检查。不完整或错误的已有能力直接阻断，不能静默替换；完全已具备时零来源调用。缺失能力才生成一个 scope/plan_id/core_run_id 绑定的 source batch，registry/config 快照只实例化所需且显式启用的来源。未启用与缺凭据分别保留 provider_unavailable/not_configured，不转其他网站。当前仅支持 research 的 company/industry/quant/outlook；replay/official/mixed/日评分的自动来源映射未开放。
+
+每次源请求使用核心预算与统一 ToolResult，工具 trace 只保存归档来源和事实哈希，不复制原生数值/正文。源侧保存原始/result/contract/host-core-link；核心仍拥有同一个编译→取证→计算→角色→评估→双报告 run_id，源 run_id 通过显式 link 关联。整个 batch 超出剩余调用数时取数前停止。源 gap/unverified/truncated 阻断 handoff；即使各 fetch 成功，缺日历会话/单位/时点也不能交付研究报告。
+
+没有显式 host clock 时，核心在取证后更新实际 evaluation_clock；固定 host clock 永不放宽。quant/outlook 的截止时钟仍须在取数前冻结：可设一个剩余运行预算内的近未来边界，抓取完成后在该边界前只等待，不再扩大取证范围；超过预算返回 WAIT_FOR_CUTOFF、零源调用，抓取晚于边界则失败。不会用运行起点错误拒绝随后实际发生的捕获，也不回填历史可得时点。
+
+取消/超时终止核心，晚到回调不能继续后续需求、进入角色或发布。正在执行的供应商 I/O 可能在原 scope/source run 留下迟到取证文件；这不是核心可交付 artifact 或正式状态，库级取消不等于强杀外部 SDK/网络进程。
+
+显式 CLI 入口（不需要人工拼接已取到的 packet）：
+
+```bash
+uv run --locked python -m a_share_claw harness run --workflow outlook --date YYYY-MM-DD \
+  --mode research --outlook-spec HOST_SPEC.json --source-contract HOST_SOURCE_CONTRACT.json \
+  --model-executor configured
+```
+
+可同时给已有 packet_file，只补缺失能力。HOST_SOURCE_CONTRACT 必须由可信宿主按原生身份准备；用户文字或模型输出不能直接变成来源 URL/计划。没有模型 executor 的 quant 路径仍可独立计算。完整自动 URL/披露发现、普通 chat 默认业务绑定、所有宿主部署尚未验收。
+
+本项实现后再验证合成五源/模型回调、实际 CLI 的零插件缺口、来源加载范围、预算/取消、核心报告和真实时钟经过取证的顺序。未联网、未调用实际模型、不是完整季度 case；FRED/SEC 实际接口、跨设备 SDK 安装、官方会话日历和季度覆盖继续待闭环。
+
 ## Agent 数据边界与兼容变化
 
-普通 chat 的七种路由已接核心框架编译/冻结/缺口门禁，模型调用没有插件、文件、MCP 或执行工具。旧六工具选源/取证循环已移除；五源由独立 data CLI/受信任宿主保留，B 完成核心需求到规范化事实映射后才接入自动取证。
+普通 chat 的七种路由已接核心框架编译/冻结/缺口门禁，模型调用没有插件、文件、MCP 或执行工具。旧六工具选源/取证循环已移除；五源由独立 data CLI/显式可信宿主保留；上述绑定式自动取证已接线，普通 chat 默认请求仍只编译框架和报告缺口。
 
 - 不再向 Agent 提供通用网页搜索、任意 URL、MCP、QVeris、Bash、Codex 子工具、任意文件读写、旧取数流水线。
 - 即使旧配置启用了 Bash/Codex/MCP，也不能重开这些入口。

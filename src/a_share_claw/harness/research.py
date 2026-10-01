@@ -233,11 +233,7 @@ def checked_reply(reply, request, spec, facts, previous):
     return json.loads(canonical(reply))
 
 
-def execute_research(session, plan, admitted, runner, reviewer, archive):
-    spec = plan["parameters"].get("research_spec")
-    if spec is None:
-        raise ValueError("research_spec_required")
-    facts = catalog(admitted["primary_documents"], session.request.as_of_date)
+def match_facts(spec,facts,*,questions=True):
     expected = {v["fact_id"]: v for v in spec["required_facts"]}
     if not expected.keys() <= facts.keys():
         raise ValueError("insufficient_coverage:research_facts")
@@ -250,9 +246,17 @@ def execute_research(session, plan, admitted, runner, reviewer, archive):
                 (target["value_type"] == "number" and type(fact["value"]) not in {int, float}) or
                 (target["value_type"] == "text" and type(fact["value"]) is not str)):
             raise ValueError("research_fact_contract_mismatch")
-    required = {v for q in spec["questions"] for v in q["required_fact_ids"]}
+    required = {v for q in spec["questions"] for v in q["required_fact_ids"]} if questions else set()
     if not required <= facts.keys():
         raise ValueError("insufficient_coverage:research_facts")
+
+
+def execute_research(session, plan, admitted, runner, reviewer, archive):
+    spec = plan["parameters"].get("research_spec")
+    if spec is None:
+        raise ValueError("research_spec_required")
+    facts = catalog(admitted["primary_documents"], session.request.as_of_date)
+    match_facts(spec,facts)
     if runner is None:
         raise ValueError("role_executor_required")
     packet = {"plan_id": plan["plan_id"], "scope_key": session.request.scope.key,

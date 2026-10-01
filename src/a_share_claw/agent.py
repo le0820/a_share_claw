@@ -75,7 +75,7 @@ class InvestmentAgent:
         return outcome
 
     def run_core_result(self, context: ConversationContext, message: str, *, as_of_date: str,
-                        packet: dict, workflow: str, research_spec: dict | None = None, outlook_spec: dict | None = None, mixed_spec: dict | None = None, mode="research", compile_framework=False, planning_constraints=None):
+                        packet: dict | None = None, workflow: str, research_spec: dict | None = None, outlook_spec: dict | None = None, mixed_spec: dict | None = None, mode="research", compile_framework=False, planning_constraints=None, evidence_adapter=None):
         """Synchronous trusted host entry; reviewed facts never come from chat prose."""
         from .harness.engine import Harness
         from .sdk_research import SDKResearchAdapter
@@ -90,12 +90,12 @@ class InvestmentAgent:
         return engine.run(request, packet, research_spec=research_spec,
                           research_adapter=adapter, outlook_spec=outlook_spec, mixed_spec=mixed_spec,
                           framework_adapter=adapter if compile_framework else None,
-                          planning_constraints=planning_constraints)
+                          planning_constraints=planning_constraints,evidence_adapter=evidence_adapter)
 
     async def run_core_result_async(self, context: ConversationContext, message: str, *, as_of_date,
                                     packet=None, workflow=None, mode="research", compile_framework=True,
                                     planning_constraints=None, research_spec=None, quant_spec=None,
-                                    outlook_spec=None, mixed_spec=None, wall_clock_seconds=120):
+                                    outlook_spec=None, mixed_spec=None, wall_clock_seconds=120, evidence_adapter=None):
         """Trusted asynchronous host; cancellation drains the same core run before returning."""
         from .harness.engine import Harness
         from .sdk_research import SDKResearchAdapter
@@ -105,7 +105,7 @@ class InvestmentAgent:
         return await Harness(self.config.root_dir,self.storage,self.config.data_dir/"harness_runs",self.config.market_timezone).run_async(
             request,packet,research_spec=research_spec,quant_spec=quant_spec,outlook_spec=outlook_spec,mixed_spec=mixed_spec,
             research_adapter=adapter,framework_adapter=adapter if compile_framework else None,
-            planning_constraints=planning_constraints)
+            planning_constraints=planning_constraints,evidence_adapter=evidence_adapter)
 
     def plan_core_result(self, context: ConversationContext, message: str, *, as_of_date=None, workflow=None, planning_constraints=None):
         """Tool-free framework proposal and independent review; never acquisition."""
