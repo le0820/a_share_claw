@@ -1,0 +1,69 @@
+# 开发交接：E0、五源与月度历史 case
+
+记录日期：2026-10-01。此文件是下一会话的定向交接入口；当前实现以实际 Git HEAD、README 与代码为准，历史验收按以下锚点读取。不要把本纪要当作新业务输入事实。
+
+## 分支与继续工作
+
+- `main`：完成开发、来源验收和业务 case 后的合并线。PR #2 已于 2026-10-01 合并，提交 `e06ffb2c15d3ac35c8907b993ea22c0b94a2bc90`。
+- `docs/portable-harness-data-plugins`：用户指定的原 PR #2 开发分支；`develop` 为同内容的同步镜像。只在原开发分支提交，再同步 develop，避免两条开发线各自产生不同修改。
+- 本机主 checkout：`/Users/yifanshen/a_share_claw`（main）。开发 worktree：`/Users/yifanshen/.codex/worktrees/e0-infrastructure/a_share_claw`（原 PR #2 分支）。路径可能随机器变化，先运行 `git worktree list`。
+- 合并后两条开发引用快进至 main；新开发前先核查 `git status --short`、`git branch -vv`、`git log -1`。不要强推、全局 clean 或覆盖下一会话的未提交工作。
+- 此次明确撤销 main 旧的 README/IDENTITY 修改及未提交的 CODEX_BASELINE_TEAM/DEVELOPMENT_PLAN/EVALUATION_HARNESS 文档。`.env`、本机数据和研究报告保留；不能把未提交旧文档作为实现依据。
+
+## 已接受的设计决定
+
+1. infra 先负责生命周期、冻结契约、计算、风控、评估、归档与正式发布。开发顺序：验收与未完成边界 → 按需求接入五源 → 整合业务 case。
+2. 默认事实源是 NBS/PBC/easy-tdx/BEA/SEC；FRED 显式可选、TickFlow 默认禁用。BEA 公开发布与历史表替代本次 PCE 的 FRED 路径；SEC 公开读取所需联系标识已在本机环境配置，不需要把联系值或密钥写入仓库。
+3. 模型没有工具、MCP 或 handoff。显式可信宿主使用 PluginEvidenceAdapter 按冻结规格取证；普通 chat 当前只完成框架/缺口，自动来源绑定待完成。外部宿主还须约束自身工具权限。
+4. 月度新发布与历史事实一起分析。`research_spec.monthly_history` 每组 2–13 个连续月份，绑定指标、实体、单位和 basis；声明历史规格时须覆盖其要求的月度事实，并在基准情景/监控中引用。
+5. 同比差值是百分点变化，不是环比；累计同比不是单月增速。不同发布版本仅比较公布值，不能认证修订统一的历史趋势。两个相邻月份不能认证持续趋势；旧单期规格只能交付单期观察。
+6. 来源成功不等于核心证据准入，独立模型审查通过不等于一般文案准确。research/replay 保持 NO_ACTION/official_output_allowed=false；正式模式只有核心全部门禁与状态事务可授权。
+7. L2 disabled/null，Composite = L1 × 4/7 + L3 × 3/7；AI 为独立叠加层，不替代 L2。缺必需事实不能生成中性分数。传统个人正式状态仍停于 20260713，未恢复连续正式日更。
+
+## 已交付与验收范围
+
+| 范围 | 实现与验收 | 未完成边界 |
+| --- | --- | --- |
+| E0 最小五项 | 核心 FailureCategory/RunStatus/EvalResult/ToolResult；Agent run_id；route/context/state scope；事务 migration/授权 trace repository；CLI trace 摘要/full/list | 完整 Issue #1 保持 open；旧 MCP/ToolRuntime 全量迁移、完整 ContextManifest/记忆、自提升控制面未完成 |
+| 核心业务 | 冻结计划、确定性宏观/AI、研究角色、quant/outlook/mixed、取消与预算、双格式报告、授权读取、正式事务门禁 | 合成/限定真实验收不是全部业务认证；无回测或交易执行 |
+| 五源 | 本次能力的官方响应、精确字段/期间/单位、哈希与核心交接；SEC 指定概念配对，三指数 Q3 全覆盖 | 不等于所有概念/标的覆盖、历史 PIT 或五源直接填满正式日评分 |
+| 月度历史 | 30 条原生宏观事实、15 组 7/8 月对照，核心计算和报告引用 | 自动月更、跨运行缓存重验、修订一致长历史尚未完成 |
+| 最终 Q4 case | 原始 8 次来源调用；最终同 Scope 事实复用，0 次新来源请求、1 次 Tencent hy3 独立 SDK 审查；宿主逐条修订复核后定稿 | SDK 曾误放行因果越界和自造阈值；无人复核文案未验收。无目标点位、概率、日评分或交易建议 |
+
+代码锚点：`20403b57b53a8736d80809779bbd3d9ef819e5ba`；PR #2 最终提交：`ba661ddaf2fbf8b5ce0f924f47719789e10563d9`。最终 [CI 36831251887](https://github.com/le0820/a_share_claw/actions/runs/36831251887) Python 3.11/3.12 各 479 passed / 41 subtests，locked 安装、CLI、JUnit 均通过。CI 是无模型/来源凭据的离线检查；真实取证与人工文案验收另存本机。后续提交的 CI 应单独核实，不继承这些计数作为新验收。
+
+## 本机证据索引（默认忽略，不在 GitHub 代码仓库）
+
+按实际问题只读所需 acceptance 或审查记录；不要启动时递归加载原始响应或完整 trace。
+
+- `data/harness_acceptance/core_acceptance_3b7cb95/acceptance.json`：E0 最小锚点。
+- `data/harness_acceptance/quarter_sources_c1b4ab9/acceptance.json`：NBS/PBC 与三指数 Q3 来源/覆盖。
+- `data/harness_acceptance/bea_sec_frozen_handoff_20261001_verified/acceptance.json`：BEA/SEC 冻结核心交接。
+- `data/harness_acceptance/monthly_history_sources_20261001_v2/acceptance.json`：7/8 月宏观来源与历史对照。
+- `data/harness_acceptance/quarter_business_case_with_history_20261001/final-case-boundary.json`：最终 case 与 PR #2 的验收锚点；其中 local_main_checkout_preserved 是当时操作记录，已被此次显式撤销旧修改的指令取代。
+- 同目录 `review_revision4/acceptance.json`、`manual-review.json`、`statistics-independent-check.json`：最终验收与独立数值复核。此前失败/被拒版本保留用于问题追踪，不能交付为最终报告。
+- 可读报告：`data/research/output/q4_market_outlook_2026_asof_20261001.md`；SHA256 `7d82711e114bc99d6c1ce896054518eb12fa40e99c8a394edcc7ffccf91efe17`。
+- 最终 run_id：`208a8eaacdf74077ad34be2e2e901016`；实际 Scope 与规格在该目录 frozen-host-contract.json 中。不要改用默认 chat Scope 读取，或把另一 Scope 的文件直接拼进 packet。
+
+本次 as_of_date 为 2026-10-01 捕获边界，不是 9 月 30 日历史 PIT。美国 PCE 采用同一 8 月发布版本的历史表：7→8 月 headline/core YoY 均持平，MoM 0.1→0.3% / 0.1→0.2%；不能混入年度更新前旧 7 月发布值。完整 Q3 要求 6 月 30 日锚点 + 纳指 64 个交易日、创业板/科创 50 各 65 个交易日。收益为本地价格口径，未含 FX、分红或费用。
+
+## 下一阶段最小范围
+
+README 待办表是推进顺序。下一项建议收口普通 chat 的可信宿主来源配置：先确定协议/未完成边界，再复用既有显式宿主适配器，补足必要源能力，最后验收真实整合请求与缺源拒绝。不要重新开放旧六工具/Bash，或先写一批镜像实现的测试。
+
+月度复用后续需明确 Scope 授权、版本/修订、发布日期、缺月、重复执行、恢复及历史重验策略；现有同 Scope 单次复用不等于跨会话缓存已实现。一般语义质量、固定故障评测、完整长期记忆、可靠 Cron、正式日更、回测和 E4/E5 各有独立退出条件。
+
+## 新会话可复制提示
+
+> 继续开发 le0820/a_share_claw。先读取 README.md、IDENTITY.md、DATA_CONTRACT.md 和已授权状态，再定向读取 SESSION_HANDOFF.md；核查 git status/worktree/当前 HEAD。PR #2 已完成 E0 最小五项、选定五源能力和经宿主人工复核的月度历史 Q4 case，完整 Issue #1 仍未完成。开发分支为 docs/portable-harness-data-plugins，develop 仅同步镜像，开发验收后经 PR 合并 main。请先确认下一阶段最小范围与未完成边界，再实施接口闭环，最后验收整合 case。模型无直接工具权限；数据插件只填事实，研究保持 NO_ACTION，不绕过 Scope/日期/版本/发布门禁。下一项以 README 待办为准，若本机证据不存在则明确说明，不能继承未核验的完成声明。
+
+验证入口（不含真实源或模型凭据）：
+
+```bash
+uv sync --locked --extra dev --extra market
+uv run --no-sync python -m a_share_claw data plugins
+uv run --no-sync python -m a_share_claw harness plan --workflow macro --date 2026-07-13
+ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
+```
+
+真实网络/模型验收须显式使用已授权环境配置并保留来源快照；不要把密钥、联系值、私人状态或原始会话提交到仓库。
