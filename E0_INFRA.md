@@ -14,7 +14,7 @@
 | SQLite migration / 最小 trace repository | 已完成事务、校验和、授权查询及终态接线 | 旧库保留、失败回滚、隔离及正式状态不回退 | proposals 仅预留，非 E4 控制面 |
 | CLI trace 摘要 | 已完成 trace / --full / --list | 授权摘要、阶段/工具/模型/产物/评估读取 | 回放仅支持明确实现的核心计算，不是全部 SDK 会话重演 |
 
-E0 最小验收锚点为本机 `data/harness_acceptance/core_acceptance_3b7cb95/acceptance.json`；后续变更的实现、来源与 CI 证据按各自提交记录，不将合成事实验收冒称真实数据验收。月度历史实现提交 `20403b5` 的离线 CI 为 [36830134360](https://github.com/le0820/a_share_claw/actions/runs/36830134360)：双 Python 均为479 passed、41 subtests，locked依赖与CLI检查通过。最终文档提交的CI需再单独核验。检查通过证明其覆盖的行为，不证明一般模型准确率、业务完整性或连续服务。
+E0 最小验收锚点为本机 `data/harness_acceptance/core_acceptance_3b7cb95/acceptance.json`；后续变更的实现、来源与 CI 证据按各自提交记录，不将合成事实验收冒称真实数据验收。月度历史实现提交 `20403b5` 的离线 CI 为 [36830134360](https://github.com/le0820/a_share_claw/actions/runs/36830134360)：双 Python 均为479 passed、41 subtests，locked依赖与CLI检查通过。PR #2 最终提交 `ba661dd` 的 [CI 36831251887](https://github.com/le0820/a_share_claw/actions/runs/36831251887) 也已双版本通过相同检查，合并提交为 `e06ffb2`（2026-10-01）。检查通过证明其覆盖的行为，不证明一般模型准确率、业务完整性或连续服务。
 
 推进顺序及退出条件：
 
@@ -23,7 +23,7 @@ E0 最小验收锚点为本机 `data/harness_acceptance/core_acceptance_3b7cb95/
 3. **C / 当前捕获的整合研究 case 已完成。** 最初8条来源请求提供30条宏观原生事实、15组7/8月历史对照及三指数完整Q3。最终 `208a8eaacdf74077ad34be2e2e901016` 复用同Scope已校验事实，0次来源请求、1次Tencent hy3独立SDK审查；角色文案由Codex可信宿主修订定稿，经人工逐条复核。核心数值独立重算、全部13个阶段产物哈希、原生来源哈希、授权JSON/Markdown读取、NO_ACTION和正式状态SHA不变均通过。最终本机记录位于 `quarter_business_case_with_history_20261001/review_revision4`，可读报告为 `data/research/output/q4_market_outlook_2026_asof_20261001.md`。这不证明无人复核的SDK角色文案可靠，也不生成日评分或交易动作。
 
 
-**合并前最小范围**：当前选定能力的 B 和经宿主复核的 C 已闭环；确认最终提交 Python 3.11/3.12 CI、PR 描述与保留边界后，可按本轮最小范围合并。**后续 PR 范围**：E1 旧工具迁移、E2 完整上下文/记忆、E3 固定评测与故障归因指标、E4/E5 提案控制面、回测、可靠调度/恢复、连续正式日更及其他宿主部署。普通 chat 的默认来源绑定仍未实现；当前只承诺显式可信宿主入口，不能宣称任意聊天自动完成业务。
+**已合并最小范围**：当前选定能力的 B 和经宿主复核的 C 已闭环；最终双版本 CI、PR 描述与保留边界已核验，PR #2 已合并。**后续 PR 范围**：E1 旧工具迁移、E2 完整上下文/记忆、E3 固定评测与故障归因指标、E4/E5 提案控制面、回测、可靠调度/恢复、连续正式日更及其他宿主部署。普通 chat 的默认来源绑定仍未实现；当前只承诺显式可信宿主入口，不能宣称任意聊天自动完成业务。
 
 ## 已实现
 

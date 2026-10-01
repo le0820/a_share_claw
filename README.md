@@ -9,7 +9,7 @@
 
 `宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **开发顺序**：E0 验收与未完成边界闭环 → 五个事实接口接入与来源验收 → 整合业务 case。当前 E0 最小清单已验收；五源所需能力的真实来源、冻结核心交接和完整 Q3 覆盖已验收；月度任务已加入 7/8 月历史事实对照，含历史输入的整合 Q4 条件展望已通过宿主复核定稿、核心计算与独立 SDK 审查，进入 PR #2 合并检查。无人复核模型文案、历史缓存和自动月更仍未验收。当前状态和阶段退出条件以 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口) 为准。
+> **开发顺序**：E0 验收与未完成边界闭环 → 五个事实接口接入与来源验收 → 整合业务 case。当前 E0 最小清单已验收；五源所需能力的真实来源、冻结核心交接和完整 Q3 覆盖已验收；月度任务已加入 7/8 月历史事实对照，含历史输入的整合 Q4 条件展望已通过宿主复核定稿、核心计算与独立 SDK 审查，已随 [PR #2](https://github.com/le0820/a_share_claw/pull/2) 合并到 main（2026-10-01）。无人复核模型文案、历史缓存和自动月更仍未验收。当前状态和阶段退出条件以 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口) 为准。
 
 核心已有运行、冻结规划、确定性评分/风控、研究执行、统一报告和事务发布门禁。固定合成事实及有限真实模型检查只证明其验收范围；完整 Issue #1、一般语义质量、回测和连续正式日更仍未完成。插件只填充事实；默认五源为 NBS/PBC/easy-tdx/BEA/SEC；FRED 保留为显式可选，TickFlow 默认禁用。插件能力、真实接口边界及配置见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。
 
@@ -22,6 +22,106 @@
 宿主适配和数据插件是两个独立扩展点；接入新宿主不需要重写投研框架，更换数据源不改变指标定义、评分权重或风控阈值。目标宿主清单表示设计兼容目标，逐个集成与端到端验收仍待完成。
 
 完整边界、运行契约、热插拔语义和实施顺序见 [HARNESS_DESIGN.md](HARNESS_DESIGN.md)。数据时点、来源和替换限制以 [DATA_CONTRACT.md](DATA_CONTRACT.md) 为准。
+
+## 当前框架与运行图
+
+以下三图描述已实现的核心与显式可信宿主路径。普通 chat 当前只交付规划和缺口；图中的取证流程须由宿主显式配置。角色是投研职责，不表示六个常驻自主 Agent。
+
+### 1. 项目框架图
+
+```mermaid
+flowchart TB
+    U[用户请求] --> H[可信宿主：CLI / Telegram / 显式库调用]
+    H --> Core
+    subgraph Core[Harness 核心]
+        direction LR
+        C[Scope / run_id / 路由 / 冻结计划] --> W[证据门禁 / 确定性计算 / 角色分析]
+        W --> E[硬门禁 / 独立审查 / 归档与发布]
+    end
+    subgraph Data[宿主取证与事实插件]
+        direction LR
+        A[宿主按冻结需求补缺口] --> P[NBS / PBC / easy-tdx / BEA / SEC]
+        P --> S[原始快照 / 规范化事实 / 来源绑定]
+    end
+    Core -->|冻结需求| Data
+    Data -->|FactPacket| Core
+    Core <--> M[模型适配：结构化分析；无工具 / MCP / handoff]
+    Core -->|research / replay| N[授权 JSON / Markdown 报告；NO_ACTION]
+    Core -->|official 且全部门禁通过| T[事务更新 scoped 状态 / 历史 / 终态]
+    Core -.运行 / 工具 / 模型 / 评估证据.-> Q[(SQLite trace 与版本化迁移)]
+```
+
+### 2. 数据流转图
+
+```mermaid
+flowchart LR
+    subgraph Input[1. 需求与取证]
+        direction TB
+        P[问题 / 日期 / Scope / 模式；冻结指标与窗口] --> X{已有授权证据充分}
+        X -->|缺口| A[宿主取所需五源；保存原始响应与哈希]
+        A --> F[原生字段 / 单位 / 版本；绑定计划与 Scope]
+        X -->|充分| F
+    end
+    subgraph Compute[2. 核心准入与分析]
+        direction TB
+        G{权限 / 日期 / 覆盖 / 哈希门禁} -->|通过| D[评分 / 量化 / 月度历史计算]
+        D --> E{共享事实包角色分析与独立审查}
+        G -->|失败| Z[记录缺口或失败；禁止正式发布]
+        E -->|失败| Z
+    end
+    subgraph Output[3. 产物与状态]
+        direction TB
+        V[验证并归档 JSON / Markdown 与计算哈希] --> W{归档及正式模式门禁}
+        W -->|研究成功| Y[授权研究报告：NO_ACTION]
+        W -->|正式成功| S[(事务写入 scoped 状态与历史)]
+        W -->|失败| Z2[记录失败；保持正式状态]
+    end
+    Input -->|FactPacket| Compute
+    Compute -->|准入与审查均通过| Output
+```
+
+月度任务同时冻结当前发布与历史事实。核心计算相邻公布率的百分点变化，并保留版本限制；同比变化不能冒充环比，累计同比不能冒充单月增速。两个月对照仅证明相邻变化。不同发布版本不认证修订一致的历史趋势或历史 PIT。
+
+### 3. 模型查询—分析—宿主工具调用—决策过程
+
+```mermaid
+sequenceDiagram
+    actor U as 用户
+    participant H as 可信宿主
+    participant C as Harness 核心
+    participant M as 无工具模型
+    participant P as 五源事实插件
+    participant V as 独立审查
+    participant S as 归档与 SQLite
+    U->>H: 提交问题、日期和输出模式
+    H->>C: 映射授权 Scope，创建 run_id
+    opt 显式启用模型辅助规划
+        C->>M: 原始问题与受保护的宿主约束
+        M-->>C: 结构化框架、问题与事实需求
+        C->>V: 框架覆盖与约束审查
+        V-->>C: 通过或阻止
+    end
+    C->>C: 冻结计划、指标、窗口和预算；核验已有证据
+    alt 仅规划或缺少必需宿主配置
+        C-->>H: 框架与明确缺口；无业务完成声明
+    else 显式可信宿主研究取证
+        C->>H: 仅请求冻结计划中的缺口
+        H->>P: 执行允许的能力与精确参数
+        P-->>H: 原始快照与 ToolResult；禁止自行正式发布
+        H-->>C: 审核并绑定来源的 FactPacket
+        C->>C: 时点、权限、覆盖、哈希门禁；确定性计算
+        C->>M: 同一不可变事实包与角色问题
+        M-->>C: 事实引用、分析、假设与未知项
+        C->>V: 同一候选报告与原始请求
+        V-->>C: 语义审查结果；不能覆盖硬门禁
+        C->>S: 验证、归档 JSON / Markdown 与 trace
+        C-->>H: 授权读取的研究结果；NO_ACTION
+    end
+    Note over C,S: official 使用审核事实的独立核心门禁；全部通过才事务发布，否则保持正式状态
+    H-->>U: 报告或缺口、run_id、日期与来源边界
+```
+
+“分析”指可审计的结构化结论、假设、引用和评估，不表示保存模型内部思维链。插件的 `official_output_allowed=false` 限制插件自身发布；核心重新核验后，只有显式 official 模式可以获得正式发布权。当前来源自动获取仅用于受支持的 research 工作流，不直连正式日评分。
 
 ## 当前边界
 
@@ -49,7 +149,7 @@
 | 1. 宿主适配 | 本地 CLI/Telegram 基础已具备；通用适配未完成 | 所有入口提交统一请求，使用同一核心门禁 | 无 Telegram 配置也能运行；外部宿主与 CLI 对同一输入产生一致的契约检查和 trace；身份/权限显式映射 |
 | 2. 模型接入 | 独立 OpenAI 兼容端点基础已具备；宿主模型适配未完成 | 支持宿主提供模型或独立模型 URL 两种模式 | 核心不绑定模型 SDK；模型名、凭据引用、超时与预算明确；模型不可替代硬门禁 |
 | 3. 投研执行平面 | **进行中** | 将策略、数据契约、研究路由和受约束工具闭环 | 宏观与产业研究均按日期、来源、fallback 输出；正式宏观日更恢复；AI P0/P1 只有在正式数据可用时写入状态 |
-| 4. 数据插件与证据工作台 | 五源接口与入口限制已实现；归一化事实到核心评分的自动接入未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
+| 4. 数据插件与证据工作台 | 五源接口与入口限制已实现；显式研究交接已验收；默认 chat 绑定与正式评分自动接入未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
 | 5. 短期上下文管理 | 未完成 | 管理每个会话的上下文生命周期和 token 预算 | 有保留窗口、摘要/压缩、恢复策略、上下文预算和回归测试；不会因历史无限增长而失控 |
 | 6. 长期记忆与隔离 | 未完成 | 只在允许的主体边界内检索、写入和注入记忆 | 采用 `workspace + principal + session + agent_key` 核心作用域，入口映射原 platform/user/chat；隔离、保留/删除和注入均有端到端测试 |
 | 7. 任务与 Cron 调度 | 未完成 | 可靠地创建、执行、重试、观测和取消一次性/周期性投研任务 | 支持明确时区与 cron/固定周期语义，具备幂等、失败重试、并发/错过执行策略、状态查询与通知验收 |
@@ -108,6 +208,29 @@ tests/                      # 现有单元与路由回归测试
 `src/a_share_claw/` 是唯一运行实现；根目录 `a_share_claw/` 仅是兼容启动 shim。运行数据是审计证据，默认不作为代码提交物。
 
 以上是当前目录，不代表核心/宿主/数据插件已经物理拆分。目标模块划分和兼容迁移见 [HARNESS_DESIGN.md](HARNESS_DESIGN.md)。
+
+## 待办与下一会话入口
+
+开发基线为原 PR #2 分支 `docs/portable-harness-data-plugins`；`develop` 是同步镜像，不作为第二条独立开发线。开发、来源验收和业务 case 通过后，经 PR 合并到 `main`，再快进同步两个开发引用；不强推或直接在 main 开发。
+
+| 顺序 | 待办 / 当前状态 | 依赖与最小验收 |
+| --- | --- | --- |
+| 已完成 | E0 最小五项 → 五源选定能力 → 含历史的 Q4 case | PR #2 已合并；Python 3.11/3.12 各 479 passed / 41 subtests；真实 case 经宿主复核，保持 NO_ACTION |
+| 下一步 | 普通 chat 的可信来源配置与自动取证闭环 | 复用现有显式宿主适配器；先冻结规格，后取缺口；真实请求报告与无凭据/缺数据的正确阻止均验收，不给模型开放工具 |
+| 随后 | E2：历史事实复用、月度更新与上下文生命周期 | 明确按 Scope/日期/版本重验和授权；跨运行/跨会话不能直接拼包；验收修订、缺月、跨主体、重复月更及恢复 |
+| 并行质量工作 | E1 旧 ToolRuntime/MCP 结果迁移；E3 固定评测与故障归因 | 按实际迁移/质量缺口收口；覆盖因果越界、编造阈值、单位与版本误读；独立模型审查通过不替代人工质量验收 |
+| 后续 | 五源补足日评分/AI 所需输入，恢复连续正式日更 | 当前来源仍不足以覆盖全部旧评分字段；缺必需数据不评分，L2 保持禁用；连续产物、状态事务和可审计回滚验收 |
+| 后续 | 可靠调度/崩溃恢复、更多宿主、回测、E4/E5 改进控制面 | 依赖上述边界闭环；逐项单独验收，不因 E0 最小完成关闭 Issue #1 |
+
+### 本会话纪要（2026-09-30—2026-10-01）
+
+- 用户确定：先完成 infra 的验收和边界，再接五源事实接口，最后跑整合业务 case；插件不能决定评分、风控或正式发布。
+- 默认源确定为 NBS / PBC / easy-tdx / BEA / SEC；SEC 联系配置仅保存在本机 `.env`，无密钥或配置值提交。FRED 仅显式可选，TickFlow 默认禁用。
+- 本次整合了美国 8 月 PCE、中国 8 月发布及 7 月历史对照、纳斯达克综合/创业板/科创 50 完整 Q3，交付 Q4 条件展望。BEA 使用同一 8 月版本的 7/8 月历史比较表，不能混入年度更新前的 7 月旧值。
+- 最终 case `208a8eaacdf74077ad34be2e2e901016` 为可信宿主定稿 + Tencent hy3 独立 SDK 审查；曾出现审查误放行，故无人复核文案仍未验收。正式状态未更新。
+- PR #2 已合并；本轮撤销五项旧的未提交修改并同步分支，保留 `.env`、原始响应、失败记录和最终报告。具体证据、风险边界及新会话提示见 [SESSION_HANDOFF.md](SESSION_HANDOFF.md)。
+
+新会话先读 README / IDENTITY / DATA_CONTRACT 和授权状态，再按任务需要读取 [SESSION_HANDOFF.md](SESSION_HANDOFF.md)、[E0_INFRA.md](E0_INFRA.md) 或运行协议；不要整包加载历史会话、报告与 trace。
 
 ## 快速开始（开发验证）
 
@@ -190,11 +313,11 @@ uv run python -m a_share_claw harness plan --workflow industry --date 2026-07-13
 uv run python -m a_share_claw harness plan --workflow outlook --date 2026-07-14 --question "形成条件市场展望框架" --planning-constraints constraints.json --model-executor configured
 ```
 
-constraints.json 固定实际仓位或量化/预测窗口等宿主条件，详见 [框架编译](E0_INFRA.md#模型辅助框架编译)。成功 plan 仅表示 framework_only，缺口与必需能力仍须填充。同步宿主 plan_core_result 可规划；run_core_result(..., compile_framework=True, planning_constraints=...) 可在同一 run 内编译后消费宿主审核的事实包。普通 chat 已接核心异步规划/缺口入口；自动取证的规范化事实映射仍属于后续五源接入。
+constraints.json 固定实际仓位或量化/预测窗口等宿主条件，详见 [框架编译](E0_INFRA.md#模型辅助框架编译)。成功 plan 仅表示 framework_only，缺口与必需能力仍须填充。同步宿主 plan_core_result 可规划；run_core_result(..., compile_framework=True, planning_constraints=...) 可在同一 run 内编译后消费宿主审核的事实包。普通 chat 已接核心异步规划/缺口入口；显式可信宿主可用 PluginEvidenceAdapter 完成已声明能力的取证和交接，普通聊天的默认来源配置仍待接线。
 
-`spec.json` 字段见 [E0_INFRA.md](E0_INFRA.md#显式-sdk-研究执行入口)。未指定 executor 的 plan 不调用模型，也不会自动连接端点。配置端点必须显式给出 provider/base URL/model name/API key，不回落到 SDK 全局默认客户端。模型无取数/文件/MCP 工具，输出仍经过核心校验与发布门禁。普通 chat 的自由文案不能构造审核事实包；插件自动映射仍待接线。
+`spec.json` 字段见 [E0_INFRA.md](E0_INFRA.md#显式-sdk-研究执行入口)。未指定 executor 的 plan 不调用模型，也不会自动连接端点。配置端点必须显式给出 provider/base URL/model name/API key，不回落到 SDK 全局默认客户端。模型无取数/文件/MCP 工具，输出仍经过核心校验与发布门禁。普通 chat 的自由文案不能构造审核事实包；显式宿主使用审核绑定，普通聊天的自动配置仍待接线。
 
-异步宿主 `run_core_result_async(..., packet=..., workflow=..., compile_framework=True)` 使用同一核心 run；取消会传播至当前模型和 mixed 子运行，核心记录终态后才结束等待。数值规格在 planning_constraints 中固定。普通 run_result 不接受事实包或 official 模式；当前自动回复是核心冻结计划及明确缺口，五源映射完成前不调用来源。旧模型选源/六工具循环与 SDK 全局默认客户端路径已移除，取源 CLI 保留独立研究边界。详见 [异步入口验收](E0_INFRA.md#异步宿主与普通-chat-核心入口)。
+异步宿主 `run_core_result_async(..., packet=..., workflow=..., compile_framework=True)` 使用同一核心 run；取消会传播至当前模型和 mixed 子运行，核心记录终态后才结束等待。数值规格在 planning_constraints 中固定。普通 run_result 不接受事实包或 official 模式；当前自动回复是核心冻结计划及明确缺口，默认来源绑定完成前不调用来源。旧模型选源/六工具循环与 SDK 全局默认客户端路径已移除，取源 CLI 保留独立研究边界。详见 [异步入口验收](E0_INFRA.md#异步宿主与普通-chat-核心入口)。
 
 价格统计使用独立规格与 price_history，不使用日评分固定标的：
 
@@ -206,9 +329,9 @@ uv run python -m a_share_claw harness plan --workflow mixed --date 2026-07-13 --
 uv run python -m a_share_claw harness run mixed-facts.json --workflow mixed --date 2026-07-13 --mixed-spec mixed-spec.json --mode research --model-executor configured
 ```
 
-成功运行会归档 report.json 与 report.md；任一渲染/验证/归档失败都不能发布。`harness report RUN_ID --format markdown --date YYYY-MM-DD` 在读取前检查授权作用域、成功终态、必需 evaluator、JSON/Markdown 哈希和归档绑定，并从正式历史事务决定 published/research；文件中的 staged 标记不自行变成正式发布。`--format json` 返回同一读取结果的结构化内容。同步宿主可用 `InvestmentAgent.read_core_report(context, run_id, as_of_date=...)`；异步宿主可用 run_core_result_async；普通 chat 已接核心规划与缺口门禁，五源事实映射尚未接线。
+成功运行会归档 report.json 与 report.md；任一渲染/验证/归档失败都不能发布。`harness report RUN_ID --format markdown --date YYYY-MM-DD` 在读取前检查授权作用域、成功终态、必需 evaluator、JSON/Markdown 哈希和归档绑定，并从正式历史事务决定 published/research；文件中的 staged 标记不自行变成正式发布。`--format json` 返回同一读取结果的结构化内容。同步宿主可用 `InvestmentAgent.read_core_report(context, run_id, as_of_date=...)`；异步宿主可用 run_core_result_async；普通 chat 已接核心规划与缺口门禁，默认来源绑定尚未接线；显式可信宿主的冻结来源交接已验收。
 
-以上文件由受信任宿主提供，字段见 [价格统计与宏观展望](E0_INFRA.md#独立价格统计与宏观展望)。月度新发布分析必须同时冻结历史对照（research_spec.monthly_history），按指标、国家、月份、单位和版本匹配；历史缺失时不交付趋势判断。现有无历史规格保留为单期事实研究入口，不表示月度更新验收完成。历史比较不调用模型做数值计算；详情见 DATA_PLUGINS.md 的月度历史事实包段落。统计与展望输出保持 NO_ACTION，不生成缺少输入的日度分数。季度日历和数据身份仍需来源验收；已声明的短窗口不能冒充完整季度。
+以上文件由受信任宿主提供，字段见 [价格统计与宏观展望](E0_INFRA.md#独立价格统计与宏观展望)。月度新发布分析必须同时冻结历史对照（research_spec.monthly_history），按指标、国家、月份、单位和版本匹配；历史缺失时不交付趋势判断。现有无历史规格保留为单期事实研究入口，不表示月度更新验收完成。历史比较不调用模型做数值计算；详情见 DATA_PLUGINS.md 的月度历史事实包段落。统计与展望输出保持 NO_ACTION，不生成缺少输入的日度分数。本次三指数 Q3 日历和原生数据身份已验收；其他标的/期间必须重新验收，短窗口不能冒充完整季度。
 
 以下旧命令仅供人工维护，仍包含五源以外的旧供应商。Agent 不得调用；迁移为插件输入前，不属于五源 Harness 的正式输出路径。历史计算回归保留，日期与风控约束不变：
 
@@ -243,7 +366,7 @@ uv run python run_ai_position.py --date "$AS_OF_DATE" --current-ai-pct 57.5
 
 参阅 [DATA_PLUGINS.md](DATA_PLUGINS.md) 配置五源和查看 JSON 计划例子：
 
-主行情 SDK 是可选 market extra：使用 `uv sync --locked --extra dev --extra market` 安装固定官方原件；宿主审核的日历归档可先生成明确会话，再冻结核心价格规格。干净双版本安装和三指数完整 Q3 逐日覆盖已有本地证据；BEA/SEC 公开接口已实际取数和精确选择；冻结核心交接与整合业务 case 尚待本轮完成。
+主行情 SDK 是可选 market extra：使用 `uv sync --locked --extra dev --extra market` 安装固定官方原件；宿主审核的日历归档可先生成明确会话，再冻结核心价格规格。干净双版本安装和三指数完整 Q3 逐日覆盖已有本地证据；BEA/SEC 公开接口已实际取数和精确选择；冻结核心交接和含月度历史的整合业务 case 已在选定范围内验收；不代表任意源能力或无人复核模型文案已验收。
 
 ```bash
 uv sync --locked --extra dev
@@ -257,8 +380,8 @@ uv run --locked python -m a_share_claw data fetch examples/data-plan.json
 ## 当前已知技术债务
 
 - 旧 `SQLiteSession` 历史保留，但不再注入新 Agent 运行，避免携入未验证网页/工具证据；可验证跨轮上下文尚待实现。
-- 现有长期记忆是按 `user_id` 的文件追加和 SQLite 查询；它尚未满足按 `platform + user + chat + agent_key` 的严格隔离要求。
-- 新的环境无关作用域需要从现有 platform/user/chat 映射，并保留历史会话数据；当前隔离机制仍需迁移与验证。
+- 旧长期记忆按 user_id 追加文件和查询 SQLite，尚未迁移到核心四字段 Scope；不得将其自动注入新运行。
+- 现行入口已映射四字段 Scope 并验证核心隔离；旧记忆、跨运行缓存和其他宿主的认证映射仍待迁移与验收。
 - 现有 `Scheduler` 是 host 进程内的 SQLite polling loop，只支持一次性或秒级周期；它不是完成态的 cron 服务。
 - `loop-engineer`、离线评测、变更审批和策略自提升控制面尚未开始建设。
 - 插件取数入口已实现；旧 fetch/compute/report 的输入迁移、跨运行缓存/回放和正式状态提升仍未完成。
