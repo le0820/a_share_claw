@@ -130,7 +130,7 @@ macro_metrics 独立归档保留公式、冻结输入契约、原始事实与依
 
 `easytdx` 1.0.0 只提供本次捕获的指数事实：market.index_catalog（空 params）用于国际指数原生目录，保持 unverified/discovery；market.index_daily_snapshot params 恰为 symbol/provider_code/start_date/end_date/count，count 1..600。as_of_date 必须为捕获当天中国日期，历史请求直接拒绝。固定语义身份为 399006.SZ / 创业板指、000688.SH / 科创50、COMP.NASDAQ / NASDAQ Composite；unit=index_points、adjustment=none，币种/市场时区明确。provider_code 必须显式指定，国际代码先查目录再形成需求；QQQ/NDX、含糊名称、其他指数和重复/非法 OHLC 不准入。
 
-独立接口验收已从当前原生目录发现 market=12、A_IXIC / 纳斯达克综合，另有 A_NDX / 纳斯达克100；不将后者当综合指数。三个指数的短窗口返回及原生身份已成功保存，范围见本机验收记录；这不是完整 Q3 数据覆盖或季度展望验收。
+独立接口验收已从当前原生目录发现 market=12、A_IXIC / 纳斯达克综合，另有 A_NDX / 纳斯达克100；不将后者当综合指数。原先短窗口身份/字段验收保留；后续 c1b4ab9 实现基线的独立实际验收已取得完整 Q3 与锚点，逐日匹配审核日历并准备核心价格交接，范围见 E0_INFRA.md；尚未执行整合季度展望。
 
 SDK 延迟在隔离子进程导入，固定 easy-tdx==1.20.4，父进程不导入/运行供应商评分或交易策略。子进程不继承 API 凭据、代理或 SDK 主机覆盖，EASY_TDX_CONFIG_DIR 使用临时目录，不改用户全局配置；只连接固定 MAC/MAC_EX 主机，禁 SDK 自动重连/任意选源，60 秒总预算、20 MB 解码输出上限。raw 格式明确为 decoded_sdk_response，不冒称已保存原始 TCP wire bytes。宿主须在运行插件的解释器安装该固定 SDK；缺少依赖返回 not_configured，不换版本/源。可选 market extra 固定官方 PyPI CDN wheel 与 SHA256，uv.lock 同时固定兼容 pandas 2.3.3；普通核心安装不导入 SDK。包索引/仓库直连 404 和初次构建失败保留在验收记录，不能用浏览缓存宣告安装成功。本机干净 Python 3.11/3.12 安装及隔离导入已通过；CI 亦安装该 extra 并验证导入，其他宿主仍须实际验收。
 
@@ -209,7 +209,7 @@ uv run --locked python -m a_share_claw harness run --workflow outlook --date YYY
 
 1. E0 最小核心验收已闭环，证据与范围见 E0_INFRA.md；一般语义质量、连续日更和 E1–E5 仍按后续边界推进。
 2. B 已有 FRED/SEC 精确来源选择及 NBS/PBC 固定正文候选；继续补核心字段/单位、精确时点/vintage 和同 run 接线。附件/完整序列按实际需求补，不冒称已覆盖。
-3. easy-tdx 主源已按最新授权统一；指数接口与显式核心价格交接已有实现，完整日历/季度覆盖和端到端实际运行仍需验收。TickFlow 仅为默认禁用的辅助接口，保持 unverified/历史拒绝门禁。FRED PCE 当前研究映射已接线，实际接口仍待凭据验收；SEC 当前原生映射已接线，真实接口仍待验收。
+3. easy-tdx 主源已按最新授权统一；指数接口、明确日历、实际完整 Q3 覆盖与显式核心价格交接已验收，端到端实际业务运行仍未验收。TickFlow 仅为默认禁用的辅助接口，保持 unverified/历史拒绝门禁。FRED PCE 当前研究映射已接线，实际接口仍待凭据验收；SEC 当前原生映射已接线，真实接口仍待验收。
 4. 取数仍只产生证据，发布权属于核心。五源完成后才运行用户指定的 PCE/中国经济/三指数季度展望 case；不足以支持每日评分的材料只生成研究报告与缺口。
 
 ## 接口依据
