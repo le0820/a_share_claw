@@ -98,6 +98,9 @@ class Storage:
             )
             self._conn.commit()
 
+            from .harness.trace import migrate
+            migrate(self._conn)
+
     def _archive_incompatible_schema(self) -> None:
         if not self._table_exists("conversations"):
             return

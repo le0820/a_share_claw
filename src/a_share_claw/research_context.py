@@ -15,6 +15,7 @@ class ResearchWorkflow(str, Enum):
     MIXED = "mixed"
     MACRO = "macro"
     QUANT = "quant"
+    OUTLOOK = "outlook"
     COMPANY = "company"
     INDUSTRY = "industry"
 
@@ -37,63 +38,11 @@ class ResearchContextBundle:
 
 BASE_CONTEXT_FILES = ("AGENTS.md", "README.md", "IDENTITY.md", "DATA_CONTRACT.md")
 
-COMMON_TOOL_NAMES = frozenset(
-    {
-        "get_a_share_quote",
-        "get_macro_series",
-        "web_search",
-        "fetch_url",
-        "read_text_file",
-        "remember",
-        "recall_memories",
-        "schedule_task",
-        "list_tasks",
-        "cancel_task",
-    }
-)
-_RESEARCH_READ_TOOLS = {
-    "get_system_state",
-    "get_compiled_rule",
-    "get_operation_manual",
-    "get_market_session_status",
-    "inspect_data_audit",
-}
+# Fail-closed Agent allowlist. Legacy web/MCP/bash/pipeline/file tools are not exposed.
+COMMON_TOOL_NAMES = frozenset({"list_data_plugins", "plan_data", "fetch_data", "data_gap_report"})
 WORKFLOW_TOOL_NAMES = {
-    ResearchWorkflow.GENERAL: COMMON_TOOL_NAMES | {"write_text_file", "run_bash"},
-    ResearchWorkflow.MIXED: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {
-        "run_macro_pipeline",
-        "run_ai_strategy",
-        "generate_daily_report",
-        "search_industry_research",
-        "write_text_file",
-        "assess_deepresearch_evidence",
-        "qveris_readonly_call",
-    },
-    ResearchWorkflow.MACRO: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {"run_macro_pipeline", "run_ai_strategy", "generate_daily_report"},
-    ResearchWorkflow.QUANT: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {"run_macro_pipeline", "run_ai_strategy", "write_text_file"},
-    ResearchWorkflow.COMPANY: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {
-        "search_industry_research",
-        "write_text_file",
-        "assess_deepresearch_evidence",
-        "qveris_readonly_call",
-    },
-    ResearchWorkflow.INDUSTRY: COMMON_TOOL_NAMES
-    | _RESEARCH_READ_TOOLS
-    | {
-        "run_ai_strategy",
-        "search_industry_research",
-        "write_text_file",
-        "assess_deepresearch_evidence",
-        "qveris_readonly_call",
-    },
+    workflow: COMMON_TOOL_NAMES | {"get_compiled_rule", "get_market_session_status"}
+    for workflow in ResearchWorkflow
 }
 
 _MACRO_SCORING_TERMS = (
@@ -267,15 +216,21 @@ def classify_research_workflow(message: str) -> ResearchWorkflow:
 
 def classify_research_route(message: str) -> ResearchRouteDecision:
     normalized = message.casefold()
-    has_macro_scoring = _contains_any(normalized, _MACRO_SCORING_TERMS)
+    scoring_text = re.sub(r"nasdaq\s*composite(?:\s+index)?", "", normalized)
+    has_macro_scoring = _contains_any(scoring_text, _MACRO_SCORING_TERMS)
     has_deepresearch = _contains_any(normalized, _COMPANY_STRONG_TERMS) or _contains_any(
         normalized,
         _INDUSTRY_STRONG_TERMS,
     )
+    has_outlook = not has_deepresearch and _contains_any(normalized, ("市场展望", "宏观展望", "market outlook"))
+    if has_macro_scoring and has_outlook:
+        return ResearchRouteDecision(ResearchWorkflow.MIXED, "macro_plus_outlook")
     if has_macro_scoring and has_deepresearch:
         return ResearchRouteDecision(ResearchWorkflow.MIXED, "macro_plus_deepresearch")
     if has_macro_scoring:
         return ResearchRouteDecision(ResearchWorkflow.MACRO, "macro_scoring_or_data_audit")
+    if has_outlook:
+        return ResearchRouteDecision(ResearchWorkflow.OUTLOOK, "conditional_macro_outlook")
     if _contains_any(normalized, _QUANT_TERMS):
         return ResearchRouteDecision(ResearchWorkflow.QUANT, "quant_method_or_metric")
 
@@ -334,6 +289,8 @@ def build_research_context(
     config: AppConfig,
     context: ConversationContext,
     message: str,
+    *,
+    include_state: bool = True,
 ) -> ResearchContextBundle:
     route = classify_research_route(message)
     workflow = route.workflow
@@ -351,7 +308,10 @@ def build_research_context(
         sections.append(_render_section(relative, content))
 
     state_path, state_scope = resolve_system_state_path(config, context)
-    if state_path is None:
+    if not include_state:
+        state_scope = "withheld_plugin_only"
+        sections.append("## Data boundary\nLegacy portfolio state is withheld: it has no plugin provenance.")
+    elif state_path is None:
         sections.append(
             "## system_state\n"
             "Global portfolio state was withheld because this runtime is not configured as a single-user context."
@@ -374,16 +334,17 @@ def build_research_context(
                     + "\n".join(f"- {path}" for path in external_sources)
                 )
 
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.MACRO, ResearchWorkflow.QUANT}:
+    if include_state and workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.MACRO, ResearchWorkflow.QUANT}:
         _append_file_section(config.root_dir, config.pipeline_dir / "OPERATIONS.md", sections, loaded, missing)
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if (not include_state and workflow != ResearchWorkflow.GENERAL) or workflow in {
+            ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY, ResearchWorkflow.OUTLOOK}:
         content = _read_text(config.research_operations_path)
         label = _relative_label(config.root_dir, config.research_operations_path)
         if content is None:
             missing.append(label)
         else:
             loaded.append(label)
-            sections.append(_render_section(label, _industry_operations_index(content)))
+            sections.append(_render_section(label, content))
 
     if missing:
         guideline = config.root_dir / "GUIDELINE.md"
@@ -402,21 +363,18 @@ def build_research_context(
     )
     if workflow is ResearchWorkflow.MIXED:
         header += (
-            "\nactive_slices: macro, deepresearch. Keep their evidence and outputs separate. "
-            "For the macro slice, inspect_data_audit is preflight only: obey the host market-session "
-            "gate, wait before the current A-share close, and run run_macro_pipeline(stage=\"full\") "
-            "after close when exact outputs are missing. Continue the deepresearch slice even while "
-            "the same-day official macro run is waiting for close."
+            "\nactive_slices: macro, deepresearch. Keep evidence and outputs separate. "
+            "The official macro slice waits for the host close gate. "
+            "Continue the deepresearch slice while independent evidence work is possible. "
+            "Do not announce combined completion while a required slice remains waiting or blocked."
         )
-    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY}:
+    if workflow in {ResearchWorkflow.MIXED, ResearchWorkflow.COMPANY, ResearchWorkflow.INDUSTRY, ResearchWorkflow.OUTLOOK}:
         header += (
-            "\nBefore collecting evidence, call get_operation_manual with "
-            'workflow="industry" and section="执行协议". Follow its '
-            "PLAN -> TOOL_CALL -> ACTION -> TEAM_SYNTHESIS state machine. "
-            "Use Tavily/QVeris MCP tools when present and record any fallback explicitly. "
-            "After Tavily search and QVeris discover -> inspect, call assess_deepresearch_evidence. "
-            "Raw QVeris call is hidden; qveris_readonly_call is available only after a "
-            "NEED_QVERIS_CALL checkpoint, and every call must be followed by a new checkpoint."
+            "\nFollow the versioned research execution protocol: "
+            "PLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE -> EVALUATE -> ARCHIVE -> PUBLISH. "
+            "All roles use the same scoped packet/version and cite admitted facts; "
+            "debate only after evidence admission and only for genuine two-sided uncertainty. "
+            "Missing protocol or required evidence blocks completion; no fallback to archived SOPs."
         )
     if missing:
         sections.append("## Missing required context\n" + "\n".join(f"- {item}" for item in missing))
@@ -492,26 +450,6 @@ def _external_state_source_paths(root: Path, state_path: Path) -> tuple[str, ...
         except ValueError:
             external.append(raw_path)
     return tuple(external)
-
-
-def _industry_operations_index(content: str) -> str:
-    contract_match = re.search(
-        r"(?ms)^## Active Contract\s*$\n(.*?)(?=^## )",
-        content,
-    )
-    contract = contract_match.group(1).strip() if contract_match else ""
-    headings = [
-        match.group(0).strip()
-        for match in re.finditer(r"(?m)^#{2,4}\s+.+$", content)
-        if "每日评分解读流程" not in match.group(0)
-    ]
-    return (
-        "## Active Contract\n"
-        f"{contract}\n\n"
-        "## Operation section index\n"
-        "Load a detailed section with get_operation_manual only when the active research step requires it.\n\n"
-        + "\n".join(headings)
-    )
 
 
 def _render_section(label: str, content: str) -> str:

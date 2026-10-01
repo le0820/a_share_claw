@@ -28,14 +28,15 @@ class ResearchContextTest(unittest.TestCase):
             "# Macro Operations\nmacro-operation-marker\n",
             encoding="utf-8",
         )
-        (root / "data" / "deepresearch").mkdir(parents=True)
-        (root / "data" / "deepresearch" / "OPERATIONS.md").write_text(
+        (root / "src" / "a_share_claw").mkdir(parents=True)
+        (root / "src" / "a_share_claw" / "RESEARCH_OPERATIONS.md").write_text(
             "# Industry Operations\n\n"
             "## Active Contract\nindustry-contract-marker\n\n"
-            "## 标准作业流程\nprivate-industry-body\n\n"
-            "### Phase 1: 信息收集\nphase-details\n",
+            "## Execution protocol\nPLAN -> EVIDENCE_GATE -> EVALUATE\n",
             encoding="utf-8",
         )
+        (root / "data" / "deepresearch").mkdir(parents=True)
+        (root / "data" / "deepresearch" / "OPERATIONS.md").write_text("private-industry-body")
         (root / "data" / "state").mkdir(parents=True)
         (root / "data" / "state" / "system_state.json").write_text(
             '{"as_of_date":"20260713","portfolio_secret":"owner-only"}',
@@ -80,8 +81,8 @@ class ResearchContextTest(unittest.TestCase):
             self.assertEqual(bundle.state_scope, "withheld_multi_user")
             self.assertNotIn("owner-only", bundle.instructions)
             self.assertIn("industry-contract-marker", bundle.instructions)
-            self.assertIn("### Phase 1: 信息收集", bundle.instructions)
-            self.assertNotIn("phase-details", bundle.instructions)
+            self.assertIn("PLAN -> EVIDENCE_GATE -> EVALUATE", bundle.instructions)
+            self.assertNotIn("private-industry-body", bundle.instructions)
 
     def test_realistic_workflow_classification(self) -> None:
         cases = {
@@ -133,46 +134,10 @@ class ResearchContextTest(unittest.TestCase):
                     self.assertEqual(classify_research_workflow(message), expected)
 
     def test_workflow_tool_routes_are_bounded(self) -> None:
-        macro = tool_names_for_workflow(ResearchWorkflow.MACRO)
-        mixed = tool_names_for_workflow(ResearchWorkflow.MIXED)
-        quant = tool_names_for_workflow(ResearchWorkflow.QUANT)
-        company = tool_names_for_workflow(ResearchWorkflow.COMPANY)
-        industry = tool_names_for_workflow(ResearchWorkflow.INDUSTRY)
-        general = tool_names_for_workflow(ResearchWorkflow.GENERAL)
-
-        self.assertIn("run_macro_pipeline", macro)
-        self.assertIn("run_ai_strategy", macro)
-        self.assertIn("generate_daily_report", macro)
-        self.assertNotIn("write_text_file", macro)
-
-        self.assertIn("run_macro_pipeline", mixed)
-        self.assertIn("run_ai_strategy", mixed)
-        self.assertIn("generate_daily_report", mixed)
-        self.assertIn("search_industry_research", mixed)
-        self.assertIn("assess_deepresearch_evidence", mixed)
-        self.assertIn("qveris_readonly_call", mixed)
-        self.assertIn("write_text_file", mixed)
-        self.assertNotIn("run_bash", mixed)
-
-        self.assertIn("run_macro_pipeline", quant)
-        self.assertIn("run_ai_strategy", quant)
-        self.assertIn("write_text_file", quant)
-        self.assertNotIn("generate_daily_report", quant)
-
-        for research_tools in (company, industry):
-            self.assertIn("search_industry_research", research_tools)
-            self.assertIn("get_system_state", research_tools)
-            self.assertIn("inspect_data_audit", research_tools)
-            self.assertIn("assess_deepresearch_evidence", research_tools)
-            self.assertIn("qveris_readonly_call", research_tools)
-            self.assertNotIn("run_macro_pipeline", research_tools)
-
-        self.assertNotIn("run_ai_strategy", company)
-        self.assertIn("run_ai_strategy", industry)
-
-        for bounded in (mixed, macro, quant, company, industry):
-            self.assertNotIn("run_bash", bounded)
-        self.assertIn("run_bash", general)
+        expected = {"list_data_plugins", "plan_data", "fetch_data", "data_gap_report",
+                    "get_compiled_rule", "get_market_session_status"}
+        for workflow in ResearchWorkflow:
+            self.assertEqual(set(tool_names_for_workflow(workflow)), expected)
 
     def test_quant_and_company_load_their_required_operations(self) -> None:
         with TemporaryDirectory() as raw:
@@ -187,12 +152,11 @@ class ResearchContextTest(unittest.TestCase):
 
             company = build_research_context(config, context, "个股调研：分析000333最新财报")
             self.assertEqual(company.workflow, ResearchWorkflow.COMPANY)
-            self.assertIn("data/deepresearch/OPERATIONS.md", company.loaded_files)
+            self.assertIn("src/a_share_claw/RESEARCH_OPERATIONS.md", company.loaded_files)
             self.assertIn("routing_reason: explicit_company_research_object", company.instructions)
-            self.assertIn('section="执行协议"', company.instructions)
-            self.assertIn("PLAN -> TOOL_CALL -> ACTION -> TEAM_SYNTHESIS", company.instructions)
-            self.assertIn("assess_deepresearch_evidence", company.instructions)
-            self.assertIn("NEED_QVERIS_CALL", company.instructions)
+            self.assertIn("PLAN -> EVIDENCE_GATE -> COMPUTE_OR_SYNTHESIZE", company.instructions)
+            self.assertNotIn("qveris_readonly_call", company.instructions)
+            self.assertNotIn("get_operation_manual", company.instructions.split("## Loaded file:")[0])
 
             mixed = build_research_context(
                 config,
@@ -201,7 +165,7 @@ class ResearchContextTest(unittest.TestCase):
             )
             self.assertEqual(mixed.workflow, ResearchWorkflow.MIXED)
             self.assertIn("src/pipeline/OPERATIONS.md", mixed.loaded_files)
-            self.assertIn("data/deepresearch/OPERATIONS.md", mixed.loaded_files)
+            self.assertIn("src/a_share_claw/RESEARCH_OPERATIONS.md", mixed.loaded_files)
             self.assertIn("active_slices: macro, deepresearch", mixed.instructions)
             self.assertIn("Continue the deepresearch slice", mixed.instructions)
 
