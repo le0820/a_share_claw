@@ -2,6 +2,28 @@
 
 开发基线：`docs/portable-harness-data-plugins`，2026-09-30。核心负责运行、契约、评分和风控；插件只提供事实。本文不表示 Issue #1 的 E1–E5 或全部投研业务已经完成。
 
+## 当前验收结论与阶段入口
+
+本表以实现基线 `3ca3620`、Issue #1 的 E0 五项清单和本机版本化验收记录为准；下方各阶段记录保留原版本结论，不能将旧缺口或旧检查数量当作当前状态。本次仅收口文档与交付边界，没有运行新测试或真实市场 case。
+
+| E0 最小项 | 实现 / 接线 | 已有验收证据 | 保留边界 |
+| --- | --- | --- | --- |
+| FailureCategory / RunStatus / EvalResult / ToolResult | 已完成核心与现行入口接线 | 契约、失败传播及正确拒绝记录 | 旧 ToolRuntime / MCP 全面 envelope 迁移属 E1 |
+| 每次 InvestmentAgent.run 的 run_id | 已完成，兼容入口经 run_result 建立记录 | 正常、异常、超时、取消及限定真实模型运行 | 不等于可靠调度与崩溃恢复 |
+| route / context loaded-missing / state scope | 已完成最小记录与核心硬门禁 | 缺协议/政策时停止；作用域、未来状态与研究/正式隔离 | 完整 ContextManifest、压缩和长期记忆属 E2 |
+| SQLite migration / 最小 trace repository | 已完成事务、校验和、授权查询及终态接线 | 旧库保留、失败回滚、隔离及正式状态不回退 | proposals 仅预留，非 E4 控制面 |
+| CLI trace 摘要 | 已完成 trace / --full / --list | 授权摘要、阶段/工具/模型/产物/评估读取 | 回放仅支持明确实现的核心计算，不是全部 SDK 会话重演 |
+
+E0 最小验收锚点为本机 `data/harness_acceptance/core_acceptance_3b7cb95/acceptance.json`；后续变更的实现、来源与 CI 证据按各自提交记录，不将合成事实验收冒称真实数据验收。最新实现的离线 CI 记录为 [36807759082](https://github.com/le0820/a_share_claw/actions/runs/36807759082)。检查通过证明其覆盖的行为，不证明一般模型准确率、业务完整性或连续服务。
+
+推进顺序及退出条件：
+
+1. **A / E0 最小核心已验收，可进入 B。** 核心拥有冻结框架、运行生命周期、评分/风控、评估与发布事务。完整 Issue #1 和策略收益验证仍未完成，不以五项完成关闭 Issue。
+2. **B / 五源接入部分验收，继续补齐。** NBS/PBC/easy-tdx/FRED/SEC 均已有固定原生映射和显式可信宿主接线；NBS/PBC 仅有已归档月份的实际页面证据，easy-tdx 仅有短窗口原生身份/字段、双版本安装和计划日历准备，FRED/SEC 实际接口尚未验收。退出条件是各源实际响应、单位/期间/可得时点、原始与规范化哈希、核心绑定、必要覆盖和失败边界均有同版本记录；缺凭据或缺覆盖保持未完成。插件不能提供策略、评分、风险阈值或发布权。
+3. **C / 整合业务 case 未启动。** B 的退出条件满足后，才冻结并运行 8 月 PCE、中国 8 月经济及三指数 Q3 → Q4 展望。交付须包含原始事实、核心派生指标、基准情景、来源/日期/缺口、单 run trace 与双报告；research 保持 NO_ACTION，不更新正式仓位。该 case 不补成缺数据的日度评分。
+
+**合并前最小范围**：按用户目标闭环 B，再完成 C 的可审计交付及缺口结论，更新 PR 的验收状态后评估合并；当前 PR #2 不合并。**后续 PR 范围**：E1 旧工具迁移、E2 完整上下文/记忆、E3 固定评测与故障归因指标、E4/E5 提案控制面、回测、可靠调度/恢复、连续正式日更及其他宿主部署。普通 chat 的默认来源绑定仍未实现；当前只承诺显式可信宿主入口，不能宣称任意聊天自动完成业务。
+
 ## 已实现
 
 - `harness/contracts.py`：七类 FailureCategory、RunStatus、EvalResult、ToolResult、PromptCacheTrace、RunRequest/RunOutcome 与四字段 Scope。
