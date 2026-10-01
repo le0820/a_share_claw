@@ -168,7 +168,7 @@ class Registry:
     def snapshot(self, env: Mapping[str, str] | None = None,
                  transport_factory: Callable[[Manifest], Transport] = Transport) -> dict[str, Provider]:
         settings = dict(os.environ if env is None else env)
-        enabled = {x.strip() for x in settings.get("ASCLAW_DATA_PROVIDERS", "nbs,pbc,easytdx,fred,sec").split(",") if x.strip()}
+        enabled = {x.strip() for x in settings.get("ASCLAW_DATA_PROVIDERS", "nbs,pbc,easytdx,bea,sec").split(",") if x.strip()}
         with self._lock:
             return {key: factory(settings, transport_factory(factory.manifest))
                     for key, factory in self._factories.items() if key in enabled}
@@ -310,6 +310,11 @@ class DataRun:
                 raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
             metadata=archived(metadata_requirement_id) if metadata_requirement_id is not None else None
             selection=sec_fact(result,metadata=metadata,**selector)
+        elif result["capability"] == "macro.pce_release_snapshot":
+            from .bea import reported_observation
+            if set(selector)!={"metric","year","month","period_kind"} or metadata_requirement_id is not None:
+                raise DataError("invalid_request","BEA requires an exact native monthly rate selector")
+            selection=reported_observation(result,**selector)
         elif result["capability"] in {"macro.release","macro.release_snapshot"}:
             keys={"metric","year","month","period_kind"}
             if set(selector)!=keys or metadata_requirement_id is not None:

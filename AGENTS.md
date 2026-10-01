@@ -39,7 +39,7 @@ The system has one team model:
 - Every official output must state `as_of_date`, source files, release dates when known, and whether fallback data was used.
 - Never answer a date-specific market question with data later than the requested date unless the user explicitly asks for a live update.
 - No silent fallback. If exact data is missing, either stop or label a stale fallback explicitly.
-- Primary fact acquisition follows the owner's latest source rule: NBS, PBC, easy-tdx, FRED and SEC. TickFlow is disabled by default and cannot be the primary market source; its retained auxiliary adapter has no core price promotion path. Legacy fetch/MCP/Bash/file tools must not be re-exposed as a shortcut. See `DATA_PLUGINS.md` for capability limitations.
+- Primary fact acquisition follows the owner's latest source rule: NBS, PBC, easy-tdx, BEA and SEC; FRED is retained only as an explicitly enabled optional adapter. TickFlow is disabled by default and cannot be the primary market source; its retained auxiliary adapter has no core price promotion path. Legacy fetch/MCP/Bash/file tools must not be re-exposed as a shortcut. See `DATA_PLUGINS.md` for capability limitations.
 - Do not revive creative writing scripts or identities.
 - Treat cross-session and cross-user context leakage as a bug.
 

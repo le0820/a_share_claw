@@ -53,7 +53,7 @@ class PluginEvidenceAdapter:
         else:
             from . import default_registry
             settings=dict(self.settings)
-            enabled={k.strip() for k in settings.get("ASCLAW_DATA_PROVIDERS","nbs,pbc,easytdx,fred,sec").split(",") if k.strip()}
+            enabled={k.strip() for k in settings.get("ASCLAW_DATA_PROVIDERS","nbs,pbc,easytdx,bea,sec").split(",") if k.strip()}
             settings["ASCLAW_DATA_PROVIDERS"]=",".join(sorted(wanted & enabled))
             providers=(self.registry or default_registry()).snapshot(settings)
         run=DataRun(providers,self.artifact_root,scope)

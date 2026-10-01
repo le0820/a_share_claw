@@ -34,6 +34,15 @@ def freeze_outlook_contract(run, plan, outlook_spec, bindings):
             from .sec_handoff import checked_binding
             dates.add(checked_binding(requirements,b,target))
             continue
+        if r.provider=="bea" and r.capability=="macro.pce_release_snapshot":
+            from .bea import native_requirement as bea_requirement
+            if (set(b)!={"fact_id","requirement_id","selector"} or set(sel)!={"metric","year","month","period_kind"} or
+                    sel["period_kind"]!="month" or r.params.get("year")!=sel["year"] or r.params.get("month")!=sel["month"]):
+                raise DataError("invalid_request","BEA binding requires the exact planned monthly reported rate")
+            if target!=bea_requirement(sel["metric"],sel["year"],sel["month"],b["fact_id"]):
+                raise DataError("research_fact_contract_mismatch","BEA reported percent cannot fill raw index or recomputed rate requirements")
+            dates.add(r.as_of_date)
+            continue
         if r.provider=="fred" and r.capability=="macro.series_snapshot":
             keys={"series_id","observation_date","units","frequency","seasonal_adjustment"}
             if (set(sel)!=keys or any(not isinstance(v,str) for v in sel.values()) or
@@ -55,7 +64,7 @@ def freeze_outlook_contract(run, plan, outlook_spec, bindings):
             dates.add(r.as_of_date)
             continue
         if r.provider not in {"nbs","pbc"} or r.capability!="macro.release_snapshot":
-            raise DataError("mapping_unavailable","This handoff supports NBS/PBC pages, FRED PCE and SEC native current snapshots only")
+            raise DataError("mapping_unavailable","This handoff supports NBS/PBC pages, BEA reported PCE, FRED indices and SEC native current snapshots only")
         if "metadata_requirement_id" in b:
             raise DataError("invalid_request","Native prose bindings do not accept a metadata requirement")
         if (set(sel)!={"metric","year","month","period_kind"} or type(sel["year"]) is not int or not 1<=sel["year"]<=9999 or
@@ -98,7 +107,7 @@ def macro_evidence(run):
             continue
         if (obs.get("eligibility")!="verified_current_snapshot" or obs.get("availability_basis")!="observed_current_snapshot" or
                 obs.get("historical_vintage_certified") is not False or source.get("as_of_date")!=contract["as_of_date"] or
-                source.get("provider") not in {"nbs","pbc","fred"}):
+                source.get("provider") not in {"nbs","pbc","fred","bea"}):
             raise DataError("unverified_evidence","Historical unverified pages cannot be promoted by handoff")
         if timestamp(obs["available_at"])>cutoff:
             raise DataError("future_data","Snapshot was captured after the frozen core availability cutoff")
@@ -114,7 +123,7 @@ def macro_evidence(run):
                 "last_updated":obs["series_last_updated"],"source_date_timezone":obs["source_date_timezone"]}
             entity,metric,period,day=native["entity"],native["metric"],native["data_period"],native["observation_end"]
         else:
-            entity,metric,period,day="CN",obs["metric"],obs["period_start"]+"/"+obs["period_end"],obs["period_end"]
+            entity,metric,period,day="US" if selected["provider"]=="bea" else "CN",obs["metric"],obs["period_start"]+"/"+obs["period_end"],obs["period_end"]
         fact={"fact_id":binding["fact_id"],"entity":entity,"metric":metric,"value":obs["value"],"unit":obs["unit"],
             "data_period":period,"observation_date":day,
             "publication_date":obs["publication_date"],"source":selected["provider"],"source_file":str(run.directory/source["artifact"]),

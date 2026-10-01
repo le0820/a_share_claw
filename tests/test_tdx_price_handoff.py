@@ -69,7 +69,7 @@ def prepared(tmp,scope,*,plan=None,spec=None,transport=None):
 
 def test_latest_market_policy_selects_easytdx_and_keeps_tickflow_auxiliary():
     registry=default_registry();active=registry.snapshot({})
-    assert set(active)=={"nbs","pbc","easytdx","fred","sec"} and "tickflow" not in active
+    assert set(active)=={"nbs","pbc","easytdx","bea","sec"} and "tickflow" not in active
     assert set(registry.snapshot({"ASCLAW_DATA_PROVIDERS":"tickflow"}))=={"tickflow"}
     assert registry.snapshot({"ASCLAW_DATA_PROVIDERS":""})=={}
 

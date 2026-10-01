@@ -161,7 +161,7 @@ def test_tickflow_columnar_bars_and_explicit_adjustment(tmp_path):
 
 def test_snapshot_hot_removal_and_credential_changes_do_not_mutate_active_run():
     registry = default_registry()
-    env = {"FRED_API_KEY": "old"}
+    env = {"FRED_API_KEY": "old", "ASCLAW_DATA_PROVIDERS": "fred"}
     before = registry.snapshot(env)
     registry.unregister("fred")
     env["FRED_API_KEY"] = "new"
