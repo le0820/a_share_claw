@@ -12,6 +12,7 @@
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位与明确发布时钟；M2/M1/社融存量同比可精确选择；PDF/Excel 与完整序列未完成；不从累计量推算单月 |
 | `easytdx` | `market.index_catalog` 国际指数目录；`market.index_daily_snapshot` 原生指数日线当前版本 | 可选 market extra 锁定 easy-tdx 1.20.4 | 固定指数身份、无复权、原生点位；SDK 在隔离子进程取数，只连声明主机；核心复核冻结日历/窗口；不是历史 PIT 认证 |
 | `tickflow`（辅助、默认禁用） | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
+| `bea` | `macro.pce_release_snapshot` 八月等明确月度 PCE 发布 | 无账户、无密钥 | 只读官方发布 URL；固定完整/核心、环比/同比原生 percent；保留发布时钟和当前捕获，不重构价格指数，不认证历史修订 vintage |
 | `fred` | `macro.series` / `macro.series_metadata` 历史查询；`macro.series_snapshot` / `macro.series_metadata_snapshot` 当前捕获 | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts` / `company.filing_metadata` 历史选择；`company.facts_snapshot` / `company.filing_metadata_snapshot` 当前配对快照 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
@@ -22,11 +23,13 @@
 在本机未提交的 `.env` 中设置需要的来源，不必一次配置全部：
 
 ```dotenv
-ASCLAW_DATA_PROVIDERS=nbs,pbc,easytdx,fred,sec
+ASCLAW_DATA_PROVIDERS=nbs,pbc,easytdx,bea,sec
 TICKFLOW_API_KEY=
 FRED_API_KEY=
 SEC_USER_AGENT=
 ```
+
+默认五源现为 NBS/PBC/easytdx/BEA/SEC。FRED 仍注册，但须显式加入 ASCLAW_DATA_PROVIDERS 才启用。SEC 是公开财报读取，不需要财报报送账户、认证或 API key；SEC_USER_AGENT 仅为应用名称和真实联系邮箱。
 
 空 `ASCLAW_DATA_PROVIDERS` 表示零来源，仍可规划。密钥和 SEC 联系信息不会出现在清单、请求计划或 provenance。HTTP 插件传输默认直连，不继承企业设备的代理；只接受声明的 HTTPS 主机，禁止跳转，30 秒连接超时、最多三次尝试、20 MB 响应上限。easy-tdx 另走明确固定的 TCP 行情协议，见下述隔离边界；不把 TCP 取数伪装为 HTTPS 原文。SEC 单进程最多约五次请求/秒；多进程部署需在宿主额外共享限流。
 
@@ -222,3 +225,9 @@ uv run --locked python -m a_share_claw harness run --workflow outlook --date YYY
 - [FRED observations](https://fred.stlouisfed.org/docs/api/fred/series_observations.html)：observation/realtime 日期与分页。
 - [SEC EDGAR APIs](https://www.sec.gov/search-filings/edgar-application-programming-interfaces)：Company Facts、标准 taxonomy 与公平访问要求。
 - [国家统计局最新发布](https://www.stats.gov.cn/sj/zxfb/) 与 [人民银行调查统计](https://www.pbc.gov.cn/diaochatongjisi/116219/index.html)：官方发布页面。
+
+## B 接入：BEA 替代 PCE 默认入口与 SEC 简化配置
+
+按用户授权将默认 FRED 槽位换为 BEA；其他 FRED rates/market adapter 没有用 BEA 补齐。BEA 1.0.0 的 params 恰为 url/year/month，官方 Personal Income and Outlays 标题、URL 月份、明确发布时钟、完整/核心及环比/同比原文必须一致。同比/环比使用四个固定 *_reported 原生百分比身份，不填 FRED 原始指数或 core-macro-v1 计算项；核心计算、权重、风险及发布权不改。冻结的 source/core binding 先于抓取，当前抓取资格不认证较早盘中的页面版本。
+
+本机独立实际取数与选择已通过：BEA 八月四项原生百分比；SEC Apple Assets 的精确 CIK/unit/end/filed/accession 与同 run 披露元数据。来源记录位于 data/harness_acceptance/bea_sec_sources_20261001_network/；初始受限网络失败、BEA 通用 News Release 标题形态拒绝及修正后的成功分开保留。SEC 联系邮箱只在本机忽略的 .env，不进入代码、计划或 provenance。本轮 Python 3.11/3.12 各 463 passed / 41 subtests；覆盖 BEA 来源/时间/单位/冲突/哈希拒绝及核心角色、双报告 NO_ACTION 交接。以上独立检查尚未执行整合季度 case。

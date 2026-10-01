@@ -11,7 +11,7 @@
 
 > **开发顺序**：E0 验收与未完成边界闭环 → 五个事实接口接入与来源验收 → 整合业务 case。当前 E0 最小清单已验收；五源原生映射与显式宿主接线已有实现，真实来源/完整季度覆盖仍未验收完；8 月宏观与三指数 Q3 → Q4 展望 case 未启动，PR #2 暂不合并。当前状态和阶段退出条件以 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口) 为准。
 
-核心已有运行、冻结规划、确定性评分/风控、研究执行、统一报告和事务发布门禁。固定合成事实及有限真实模型检查只证明其验收范围；完整 Issue #1、一般语义质量、回测和连续正式日更仍未完成。插件只填充事实；主行情为 easy-tdx，TickFlow 默认禁用。插件能力、真实接口边界及配置见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。
+核心已有运行、冻结规划、确定性评分/风控、研究执行、统一报告和事务发布门禁。固定合成事实及有限真实模型检查只证明其验收范围；完整 Issue #1、一般语义质量、回测和连续正式日更仍未完成。插件只填充事实；默认五源为 NBS/PBC/easy-tdx/BEA/SEC；FRED 保留为显式可选，TickFlow 默认禁用。插件能力、真实接口边界及配置见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。
 
 ## 顶层设计
 
@@ -243,7 +243,7 @@ uv run python run_ai_position.py --date "$AS_OF_DATE" --current-ai-pct 57.5
 
 参阅 [DATA_PLUGINS.md](DATA_PLUGINS.md) 配置五源和查看 JSON 计划例子：
 
-主行情 SDK 是可选 market extra：使用 `uv sync --locked --extra dev --extra market` 安装固定官方原件；宿主审核的日历归档可先生成明确会话，再冻结核心价格规格。干净双版本安装和三指数完整 Q3 逐日覆盖已有本地证据；FRED/SEC 实际接口与整合业务 case 仍待验收。
+主行情 SDK 是可选 market extra：使用 `uv sync --locked --extra dev --extra market` 安装固定官方原件；宿主审核的日历归档可先生成明确会话，再冻结核心价格规格。干净双版本安装和三指数完整 Q3 逐日覆盖已有本地证据；BEA/SEC 公开接口已实际取数和精确选择；冻结核心交接与整合业务 case 尚待本轮完成。
 
 ```bash
 uv sync --locked --extra dev
