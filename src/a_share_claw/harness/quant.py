@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import math
 import statistics
+import re
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -77,13 +78,15 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
     cutoff = timestamp(spec["cutoff_timestamp"])
     if cutoff > reference or cutoff.astimezone(ZoneInfo(market_timezone)).date().isoformat() > as_of_date:
         raise ValueError("future_data")
-    if (not isinstance(data, dict) or set(data) != {"schema_version", "series"} or data["schema_version"] != "price-series-v1" or
+    if (not isinstance(data, dict) or set(data) != {"schema_version", "series"} or data["schema_version"] not in {"price-series-v1","price-series-v2"} or
             not isinstance(data["series"], list)):
         raise ValueError("price_contract_mismatch")
+    current_snapshot=data["schema_version"]=="price-series-v2"
     expected = {a["symbol"]: a for a in spec["assets"]}
     received, prices, metadata = {}, {}, {}
     for series in data["series"]:
         keys = {"symbol", "name", "unit", "currency", "adjustment", "market_timezone", "frequency", "source", "source_file", "source_timestamp", "publication_date", "rows"}
+        if current_snapshot:keys=keys|{"current_snapshot"}
         if not isinstance(series, dict) or set(series) != keys or series["symbol"] not in expected or series["symbol"] in received:
             raise ValueError("price_contract_mismatch")
         symbol = series["symbol"]
@@ -94,6 +97,19 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
                 series["publication_date"] > timestamp(series["source_timestamp"]).astimezone(ZoneInfo(series["market_timezone"])).date().isoformat() or
                 timestamp(series["source_timestamp"]) > cutoff):
             raise ValueError("price_contract_mismatch")
+        if current_snapshot:
+            meta=series["current_snapshot"];captured=timestamp(series["source_timestamp"])
+            if (not isinstance(meta,dict) or set(meta)!={"basis","snapshot_as_of_date","historical_vintage_certified","source_run_id","raw_sha256","sdk_version","native_identity","raw_format"} or
+                    meta["basis"]!="observed_current_snapshot" or meta["historical_vintage_certified"] is not False or
+                    meta["snapshot_as_of_date"]!=as_of_date or captured.astimezone(ZoneInfo(market_timezone)).date().isoformat()!=as_of_date or
+                    meta["sdk_version"]!="1.20.4" or meta["raw_format"]!="decoded_sdk_response" or
+                    not isinstance(meta["source_run_id"],str) or not re.fullmatch(r"[a-f0-9]{32}",meta["source_run_id"]) or
+                    not isinstance(meta["raw_sha256"],str) or not re.fullmatch(r"[a-f0-9]{64}",meta["raw_sha256"]) or
+                    not isinstance(meta["native_identity"],dict) or
+                    type(meta["native_identity"].get("market")) is not int or
+                    any(not isinstance(meta["native_identity"].get(k),str) or not meta["native_identity"][k].strip() for k in ("code","name")) or
+                    series["publication_date"]!=captured.astimezone(ZoneInfo(series["market_timezone"])).date().isoformat()):
+                raise ValueError("price_contract_mismatch")
         sessions = [asset["anchor"], *asset["sessions"]]
         if not isinstance(series["rows"], list) or len(series["rows"]) != len(sessions):
             raise ValueError("insufficient_coverage:price_sessions")
@@ -104,6 +120,8 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
             if type(row["close"]) not in {int, float} or not math.isfinite(row["close"]) or row["close"] <= 0:
                 raise ValueError("invalid_market_history")
             available = timestamp(row["available_at"])
+            if current_snapshot and available!=timestamp(series["source_timestamp"]):
+                raise ValueError("price_contract_mismatch")
             if available > cutoff or available > timestamp(series["source_timestamp"]):
                 raise ValueError("future_data")
             if available < timestamp(session["close_at"]):
@@ -115,6 +133,8 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
                             "session_count": len(asset["sessions"]), "calendar_source": asset["calendar_source"],
                             "coverage_status": "complete_against_declared_calendar", "input_hash": digest(series),
                             "source": series["source"], "source_file": series["source_file"], "publication_date": series["publication_date"]}
+        if current_snapshot:
+            metadata[symbol]["current_snapshot"]=json.loads(canonical(series["current_snapshot"]))
     if received.keys() != expected.keys():
         raise ValueError("insufficient_coverage:price_assets")
     benchmark = spec["benchmark"]

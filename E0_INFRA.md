@@ -159,15 +159,15 @@ Python 3.11/3.12 全量离线检查各 **241 passed / 41 subtests**，覆盖七�
 3. **报告与发布。** 事实、推断、缺口和来源分别可追溯；报告和归档成功后才能发布。正式状态读取方接到带 scope 的 SQLite 状态，旧全局 JSON 不自动注入。报告失败、缺证据、unverified、越界日期均只交付 NO_ACTION，不能提升半成品。
 4. **验收闭环。** 每项保存对应版本、输入约束、run_id、trace/evaluator/产物证据和结论；“已实现”“已接线”“已验收”分开记录。正确拒绝可验收为 gate 成功，不能记为研究任务完成。核心缺口未关闭前，不进入 B。
 
-Issue #1 的五项 E0 最小契约/接线/验收已具备：统一类型、每请求 run_id、实际 route/context/scope、事务迁移与 scoped trace、CLI 摘要。A 的运行/评分/发布/状态与合成事实业务门禁已有证据；真实模型只完成上述有限质量复核。完整 ContextManifest/E1 旧工具标准化/E3 benchmark 不属于本次 E0 完成声明，Issue #1 仍 open。最终提交 CI 通过且代码哈希绑定后可进入 B；B 的行情主源冲突须按用户最新授权先统一，不因核心验收替任何来源授权。PR #2 暂不合并。
+Issue #1 的五项 E0 最小契约/接线/验收已具备：统一类型、每请求 run_id、实际 route/context/scope、事务迁移与 scoped trace、CLI 摘要。A 的运行/评分/发布/状态与合成事实业务门禁已有证据；真实模型只完成上述有限质量复核。完整 ContextManifest/E1 旧工具标准化/E3 benchmark 不属于本次 E0 完成声明，Issue #1 仍 open。最终提交 CI 通过且代码哈希绑定后可进入 B；B 的主行情源已按用户最新 AGENTS 统一为 easy-tdx；TickFlow 默认禁用且只保留辅助接口，不因核心验收提升来源资格。PR #2 暂不合并。
 
 当前 company/industry/outlook 可通过核心库回调或显式 CLI/宿主 SDK 入口执行；quant 的 price_statistics 可离线计算/回放，其他策略回测明确返回 quant_operation_not_implemented。mixed 已具备独立切片与父运行统一发布；普通 chat 已接核心框架编译/冻结/缺口门禁，未接 B 的来源映射；旧 core_evaluation_pending 取证循环已移除。宏观展望使用独立事实和指标模板，不借日评分标的或缺失评分生成动作。
 
 ### B. 然后接入初步规划的五个事实接口
 
-仅在 A 完成后推进 NBS、PBC、TickFlow、FRED、SEC 到核心 FactPacket 的映射。逐接口登记能力、真实字段、单位、统计期/披露日、修订 vintage、覆盖和不可得项。插件不能新增评分权重或把预计算 action 当事实。
+仅在 A 完成后推进 NBS、PBC、easy-tdx、FRED、SEC（依据最新主源规则替换 TickFlow 主源角色） 到核心 FactPacket 的映射。逐接口登记能力、真实字段、单位、统计期/披露日、修订 vintage、覆盖和不可得项。插件不能新增评分权重或把预计算 action 当事实。
 
-NBS/PBC 已有固定正文指标选择及当前快照到核心研究的显式交接，附件/完整序列未完成。FRED PCE 原生月度指数已有当前交接，核心按同 vintage 精确月度比较计算环比/同比；原始发布日期未知时保留 null，不用 last_updated 替代。TickFlow 真实账户样本、三表披露/单位和历史 PIT 未验收；SEC 到核心及普通 chat 自动取证、日评分输入仍待补。缺凭据或不支持的证券/指标继续返回缺口，不另接网页、旧 pipeline 或其他供应商补数。当前任务 AGENTS.md 的行情主源限制必须先落实；现有 TickFlow 接口的存在不构成主源授权。
+NBS/PBC 已有固定正文指标选择及当前快照到核心研究的显式交接，附件/完整序列未完成。FRED PCE 原生月度指数已有当前交接，核心按同 vintage 精确月度比较计算环比/同比；原始发布日期未知时保留 null，不用 last_updated 替代。easy-tdx 指数当前接口/核心价格交接已有实现与独立短窗口验收，完整官方日历/季度覆盖及跨设备依赖安装未验收；TickFlow 仅辅助，三表披露/单位和历史 PIT 未验收；SEC 到核心及普通 chat 自动取证、日评分输入仍待补。缺凭据或不支持的证券/指标继续返回缺口，不另接网页、旧 pipeline 或其他供应商补数。当前任务 AGENTS.md 的行情主源限制已落实至默认注册快照、文档和核心 price handoff；现有 TickFlow 接口的存在不构成主源授权。
 
 `data` 插件运行的 `official_output_allowed=false` 保持不变；它表示取数本身没有发布权。核心单独通过 evaluator、报告与原子发布门禁后才可允许 official。手工 FactPacket 的可运行性不等于插件到核心链路已验收。
 

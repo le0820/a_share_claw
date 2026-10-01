@@ -76,4 +76,4 @@ Required sections:
 - No hidden date fallback.
 - No future data for historical questions.
 - No trade suggestion without source/date clarity.
-- TickFlow is the explicitly selected market/financial plugin. Do not resurrect its old skill context, crypto-bot, creative-writing, or generic assistant workflows.
+- easy-tdx is the primary market plugin under the latest owner instruction; TickFlow is retained only as an explicitly enabled auxiliary source. Do not resurrect its old skill context, crypto-bot, creative-writing, or generic assistant workflows.

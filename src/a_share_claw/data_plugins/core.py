@@ -168,7 +168,7 @@ class Registry:
     def snapshot(self, env: Mapping[str, str] | None = None,
                  transport_factory: Callable[[Manifest], Transport] = Transport) -> dict[str, Provider]:
         settings = dict(os.environ if env is None else env)
-        enabled = {x.strip() for x in settings.get("ASCLAW_DATA_PROVIDERS", "nbs,pbc,tickflow,fred,sec").split(",") if x.strip()}
+        enabled = {x.strip() for x in settings.get("ASCLAW_DATA_PROVIDERS", "nbs,pbc,easytdx,fred,sec").split(",") if x.strip()}
         with self._lock:
             return {key: factory(settings, transport_factory(factory.manifest))
                     for key, factory in self._factories.items() if key in enabled}
@@ -268,34 +268,36 @@ class DataRun:
         self.results[requirement_id] = result
         return result
 
+    def _archived_result(self, key):
+        if self.requirements is None or key not in self.requirements or key not in self.results:
+            raise DataError("plan_required", "Select only fetched requirements from this pinned run")
+        declared=self.requirements[key]
+        result=json.loads((self.directory / "results" / (key+".json")).read_text())
+        stored_hash=hashlib.sha256(json.dumps(result,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()
+        if stored_hash!=self._result_hashes.get(key):
+            raise DataError("hash_mismatch", "Archived normalized result was modified after acquisition")
+        if not result.get("ok"):
+            raise DataError(result.get("error_code") or "source_unavailable", "The requested source result is unavailable")
+        provenance=result.get("provenance",{})
+        if (result.get("run_id")!=self.run_id or result.get("requirement_id")!=key or
+                result.get("capability")!=declared.capability or provenance.get("provider")!=declared.provider or
+                provenance.get("as_of_date")!=declared.as_of_date):
+            raise DataError("source_mismatch", "Archived result differs from the frozen requirement")
+        artifact=provenance.get("artifact")
+        if not isinstance(artifact,str) or Path(artifact).name!=artifact:
+            raise DataError("invalid_schema", "Raw evidence path must remain in this run")
+        raw_path=self.directory / artifact
+        if raw_path.resolve().parent!=self.directory.resolve() or hashlib.sha256(raw_path.read_bytes()).hexdigest()!=provenance.get("sha256"):
+            raise DataError("hash_mismatch", "Raw evidence does not match the archived source hash")
+        return result
+
     def select(self, requirement_id: str, selector: dict, *, metadata_requirement_id: str | None = None) -> dict:
         """Trusted host selection from this run's archived evidence; never core admission."""
         from .normalization import fred_observation, sec_fact
         from .macro_mapping import publication_observation
         if not isinstance(selector,dict):
             raise DataError("invalid_request", "Selection must be a typed object")
-        def archived(key):
-            if self.requirements is None or key not in self.requirements or key not in self.results:
-                raise DataError("plan_required", "Select only fetched requirements from this pinned run")
-            declared=self.requirements[key]
-            result=json.loads((self.directory / "results" / (key+".json")).read_text())
-            stored_hash=hashlib.sha256(json.dumps(result,sort_keys=True,ensure_ascii=False,allow_nan=False).encode()).hexdigest()
-            if stored_hash!=self._result_hashes.get(key):
-                raise DataError("hash_mismatch", "Archived normalized result was modified after acquisition")
-            if not result.get("ok"):
-                raise DataError(result.get("error_code") or "source_unavailable", "The requested source result is unavailable")
-            provenance=result.get("provenance",{})
-            if (result.get("run_id")!=self.run_id or result.get("requirement_id")!=key or
-                    result.get("capability")!=declared.capability or provenance.get("provider")!=declared.provider or
-                    provenance.get("as_of_date")!=declared.as_of_date):
-                raise DataError("source_mismatch", "Archived result differs from the frozen requirement")
-            artifact=provenance.get("artifact")
-            if not isinstance(artifact,str) or Path(artifact).name!=artifact:
-                raise DataError("invalid_schema", "Raw evidence path must remain in this run")
-            raw_path=self.directory / artifact
-            if raw_path.resolve().parent!=self.directory.resolve() or hashlib.sha256(raw_path.read_bytes()).hexdigest()!=provenance.get("sha256"):
-                raise DataError("hash_mismatch", "Raw evidence does not match the archived source hash")
-            return result
+        archived=self._archived_result
         result=archived(requirement_id)
         if result["capability"] in {"macro.series","macro.series_snapshot"}:
             keys={"series_id","observation_date","units","frequency","seasonal_adjustment"}
@@ -324,16 +326,35 @@ class DataRun:
             self._save(path.name,selection)
         return selection
 
-    def plan_core_outlook(self, plan: dict, outlook_spec: dict, bindings: list[dict]):
+    def plan_core_outlook(self, plan: dict, outlook_spec: dict, bindings: list[dict], *, price_bindings=None):
         """Trusted host freezes source-to-core requirements before any acquisition."""
         from .handoff import freeze_outlook_contract
         if self.requirements is not None or self._core_contract_document is not None:
             raise DataError("plan_required","Bind the core contract before the first source plan/fetch")
         contract=freeze_outlook_contract(self,plan,outlook_spec,bindings)
+        if price_bindings is not None:
+            from .price_handoff import freeze_price_bindings
+            contract["price_bindings"]=freeze_price_bindings(plan,contract["specification"]["quant_spec"],price_bindings)
+            if any(Requirement.parse(obj).as_of_date!=contract["as_of_date"] for obj in plan["requirements"]):
+                raise DataError("source_mismatch","A joint outlook source run uses one current core date")
         self.plan(plan)
         self._core_contract_document=json.dumps(contract,sort_keys=True,ensure_ascii=False,allow_nan=False)
         self._save("core-contract.json",contract)
         return self.summary()
+
+    def plan_core_quant(self, plan: dict, quant_spec: dict, bindings: list[dict]):
+        from .price_handoff import freeze_quant_contract
+        if self.requirements is not None or self._core_contract_document is not None:
+            raise DataError("plan_required","Bind the core contract before the first source plan/fetch")
+        contract=freeze_quant_contract(self,plan,quant_spec,bindings)
+        self.plan(plan)
+        self._core_contract_document=json.dumps(contract,sort_keys=True,ensure_ascii=False,allow_nan=False)
+        self._save("core-contract.json",contract)
+        return self.summary()
+
+    def core_price_evidence(self):
+        from .price_handoff import price_evidence
+        return price_evidence(self)
 
     def core_macro_evidence(self):
         from .handoff import macro_evidence

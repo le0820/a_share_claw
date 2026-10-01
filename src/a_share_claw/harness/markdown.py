@@ -48,6 +48,8 @@ def statistics(data, level):
                     [[symbol, metric, value, data["metric_units"][metric]] for symbol, values in data["metrics"].items() for metric, value in values.items()])
     result += [heading + " 序列覆盖审计", ""]
     result += table(["标的", "序列审计"], [[symbol, value] for symbol, value in data["series_audit"].items()])
+    if any("current_snapshot" in v for v in data["series_audit"].values()):
+        result += ["价格版本口径：当前 SDK 捕获的原生指数；每行 available_at 为本次捕获时间，publication_date 为快照日期，不证明当时的历史发布/修订版本。", ""]
     result += [heading + " 限制与未定义项", ""] + bullets(data["limitations"] + data["unknowns"])
     return result
 

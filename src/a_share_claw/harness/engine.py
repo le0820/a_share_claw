@@ -335,6 +335,9 @@ class Harness:
             if capability=="macro_release_facts" and item["data"].get("schema_version")=="macro-release-facts-v2":
                 if p.get("research_spec_hash")!=digest(plan["parameters"].get("research_spec")):
                     raise ValueError("research_fact_contract_mismatch")
+            if capability=="price_history" and item["data"].get("schema_version")=="price-series-v2":
+                if p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
+                    raise ValueError("price_contract_mismatch")
             source_time = datetime.fromisoformat(p["source_timestamp"].replace("Z", "+00:00"))
             if source_time.tzinfo is None:
                 raise ValueError("invalid_source_timestamp")
