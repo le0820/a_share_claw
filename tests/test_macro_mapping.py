@@ -155,3 +155,16 @@ def test_identical_duplicate_source_expression_keeps_all_evidence_without_confli
 def test_conflicting_native_timezone_date_is_not_silently_reinterpreted(tmp_path):
     _,result=run_release(tmp_path,meta='2026-09-15T23:00:00Z')
     assert not result['ok'] and result['error_code']=='invalid_schema'
+
+@pytest.mark.parametrize('prefix,subject,expected',[
+    ('','全国工业生产者出厂价格',3.5),
+    ('','某省工业生产者出厂价格',None),
+    ('2025年。','全国工业生产者出厂价格',None),
+    ('','全国工业生产者购进价格',None),
+])
+def test_monthly_omitted_ppi_subject_requires_immediate_national_output_price_context(tmp_path,prefix,subject,expected):
+    text=NBS_TEXT.replace('全国工业生产者出厂价格同比下跌3.9%。','')+f'<p>{prefix}1—8月份，{subject}同比上涨1.8%。其中，8月份同比上涨3.5%，环比下降0.7%。</p>'
+    run,_=run_release(tmp_path,text)
+    if expected is None:
+        with pytest.raises(DataError):run.select('input',choose('ppi_yoy'))
+    else:assert run.select('input',choose('ppi_yoy'))['observation']['value']==expected

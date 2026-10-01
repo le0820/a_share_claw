@@ -10,7 +10,7 @@ from ..harness.contracts import digest
 from .core import DataError,iso_date
 from .normalization import _selection,numeric
 
-MAPPING_VERSION="official-macro-prose-v1"
+MAPPING_VERSION="official-macro-prose-v1.1"
 NUMBER=r"(?P<value>-?\d+(?:\.\d+)?)"
 CHANGE=r"(?P<direction>增长|下降|上涨|下跌)"+NUMBER+r"%"
 MONEY=r"\d+(?:\.\d+)?(?:万亿元|亿元)"
@@ -20,8 +20,8 @@ NBS_PATTERNS={
     "retail_sales_yoy":r"社会消费品零售总额"+MONEY+r",同比"+CHANGE,
     "fixed_asset_investment_yoy":r"全国固定资产投资\(不含农户\)"+MONEY+r",同比"+CHANGE,
     "urban_surveyed_unemployment":r"全国城镇调查失业率为"+NUMBER+r"%",
-    "cpi_yoy":r"全国居民消费价格\(CPI\)同比"+CHANGE,
-    "core_cpi_yoy":r"扣除食品和能源价格后的核心CPI同比"+CHANGE,
+    "cpi_yoy":r"全国居民消费价格(?:\(CPI\))?同比"+CHANGE,
+    "core_cpi_yoy":r"(?:扣除食品和能源价格后的)?核心CPI同比"+CHANGE,
     "ppi_yoy":r"(?:全国)?工业生产者出厂价格同比"+CHANGE,
 }
 PBC_PATTERNS={
@@ -44,7 +44,7 @@ def period_segments(text, year, month, kind, provider):
     periods = {(int(m["year"]), int(m["month"])) for m in re.finditer(heading, text)}
     if periods != {(year, month)}:
         raise DataError("period_mismatch", "An unambiguous native report title/table heading must identify the requested year/month")
-    markers = list(re.finditer(r"(?:^|[。\n])(?:初步统计,)?(?:(?P<year>\d{4})年)?(?:(?P<cumulative>1[—-])?(?P<month>1[0-2]|[1-9])月(?:份|末)?|前(?P<cn>十一|十二|十|[一二三四五六七八九])个月)", text))
+    markers = list(re.finditer(r"(?:^|[。\n])(?:其中,)?(?:初步统计,)?(?:(?P<year>\d{4})年)?(?:(?P<cumulative>1[—-])?(?P<month>1[0-2]|[1-9])月(?:份|末)?|前(?P<cn>十一|十二|十|[一二三四五六七八九])个月)", text))
     # A standalone prior-year header also changes scope; do not inherit the report year into it.
     year_headers = list(re.finditer(r"(?:^|[。\n])(?P<year>\d{4})年", text))
     chosen = []; current_year = year
@@ -120,9 +120,16 @@ def publication_observation(result,*,metric,year,month,period_kind):
     # Keep newlines as scope markers while removing visual span whitespace.
     text="\n".join(clean(line) for line in data["text"].splitlines())
     # PBC's native stock sentence joins 月末 directly to 社会融资; other subjects need a boundary.
-    boundary = r"(?:^|[。,\n]|(?<=月末))" if metric=="tsf_stock_yoy" else r"(?:^|[。,\n])"
+    boundary = r"(?:^|[。,\n]|(?<=月末))" if metric=="tsf_stock_yoy" else r"(?:^|[。,\n]|(?<=月份))" if metric=="core_cpi_yoy" else r"(?:^|[。,\n])"
     matches=[m for block in period_segments(text,year,month,period_kind,provider)
              for m in re.finditer(boundary+patterns[metric],block)]
+    if metric=="ppi_yoy" and period_kind=="month":
+        # Exact national cumulative sentence identifies the omitted subject of its immediately following monthly sentence.
+        contextual=rf"(?:^|[。\n])(?:{year}年)?1[—-]{month}月份,全国工业生产者出厂价格同比(?:增长|下降|上涨|下跌)-?\d+(?:\.\d+)?%。其中,{month}月份同比"+CHANGE
+        headers=list(re.finditer(r"(?:^|[。\n])(?P<year>\d{4})年",text))
+        for m in re.finditer(contextual,text):
+            preceding=[h for h in headers if h.start()<=m.start()]
+            if not preceding or int(preceding[-1]["year"])==year:matches.append(m)
     if not matches:
         raise DataError("insufficient_coverage","No exact metric/unit expression in the requested source period")
     values=[]

@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import calendar
+import io
 import re
-from datetime import datetime
+from datetime import datetime, datetime as NativeDateTime
 from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
@@ -60,8 +61,9 @@ def release_values(text,month):
 
 
 class BEA(Provider):
-    manifest=Manifest("bea",("macro.pce_release_snapshot",),("www.bea.gov",),version="1.0.0")
+    manifest=Manifest("bea",("macro.pce_release_snapshot","macro.pce_history_snapshot"),("www.bea.gov",),version="1.1.0")
     def fetch(self,r):
+        if r.capability=="macro.pce_history_snapshot":return self.fetch_history(r)
         p=parameters(r,{"url","year","month"},{"url","year","month"})
         native=native_requirement(METRICS[0],p["year"],p["month"],"validation")
         if r.as_of_date!=datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat():
@@ -92,23 +94,82 @@ class BEA(Provider):
             "snapshot_as_of_date":r.as_of_date,"availability_basis":"observed_current_snapshot","historical_vintage_certified":False,
             "source_notes":NOTES},raw,url,"verified",NOTES)
 
+    def fetch_history(self,r):
+        """Native dated comparisons from one published workbook; no interpolation."""
+        from openpyxl import load_workbook
+        p=parameters(r,{"url","year","month"},{"url","year","month"})
+        native_requirement(METRICS[0],p["year"],p["month"],"validation")
+        if r.as_of_date!=datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat():
+            raise DataError("historical_unavailable","Historical observations still require today's capture date")
+        u=urlsplit(p["url"])
+        pattern=rf"/sites/default/files/\d{{4}}-\d{{2}}/pi{p['month']:02d}{p['year']%100:02d}-hist\.xlsx"
+        if (u.scheme!="https" or u.hostname!="www.bea.gov" or u.username or u.password or u.port not in (None,443) or u.query or u.fragment or not re.fullmatch(pattern,u.path)):
+            raise DataError("source_denied","Use the exact official BEA historical-comparison workbook")
+        raw=self.transport.get(p["url"])
+        try:
+            w=load_workbook(io.BytesIO(raw),data_only=True,read_only=True)
+            if w.sheetnames!=["PIOhist_M"]:raise ValueError()
+            rows=list(w.active.values);w.close()
+            published=rows[0][6]
+            if (not isinstance(published,NativeDateTime) or rows[1][0]!=f"{MONTHS[p['month']-1]} {p['year']} Personal Income and Outlays" or
+                    rows[2][0]!="Historical Comparisons" or rows[4][1]!=datetime(p["year"],p["month"],1) or
+                    tuple(rows[4][2::2])!=("Last period with equal value","Last period with larger value","Last period with smaller value") or
+                    u.path.split("/")[4]!=published.strftime("%Y-%m")):
+                raise ValueError()
+            publication=published.date().isoformat()
+            if publication>r.as_of_date or native_requirement(METRICS[0],p['year'],p['month'],'v')['observation_end']>publication:
+                raise DataError("future_data","Workbook publication/observation exceeds capture")
+            values={};excerpts={};section=None;price=False
+            for row in rows:
+                if row[0]=="Chain-type price indexes":price=True;section=None;continue
+                if not price:continue
+                if row[0] in {"Percent change from preceding month:","Percent change from month one year ago:"}:
+                    section="mom" if row[0]=="Percent change from preceding month:" else "yoy";continue
+                if row[0] not in {"PCE","PCE, excluding food and energy"}:section=None;continue
+                if section is None:continue
+                metric=("core_" if row[0].startswith("PCE,") else "")+"pce_price_"+section+"_reported"
+                pairs=[(f"{p['year']}M{p['month']:02d}",row[1])]+[(row[i],row[i+1]) for i in (2,4,6) if row[i]!="---"]
+                for period,value in pairs:
+                    if not isinstance(period,str) or not re.fullmatch(r"\d{4}M(0[1-9]|1[0-2])",period):raise ValueError()
+                    y,m=int(period[:4]),int(period[5:]);n=native_requirement(metric,y,m,'v')
+                    if n['observation_end']>publication:raise DataError("future_data","Future comparison observation")
+                    key=metric+"."+period
+                    v=numeric(value)
+                    if period!=f"{p['year']}M{p['month']:02d}":
+                        current=numeric(row[1])
+                        for i,relation in ((2,lambda a,b:a==b),(4,lambda a,b:a>b),(6,lambda a,b:a<b)):
+                            if row[i]==period and not relation(numeric(row[i+1]),current):
+                                raise DataError("source_disagreement","Workbook equal/larger/smaller labels contradict values")
+                    if key in values and values[key]!=v:raise DataError("source_disagreement","Workbook dated comparisons disagree")
+                    values[key]=v;excerpts[key]=[str(row),"Printed dated value; not a continuous series"]
+            if any(metric+f".{p['year']}M{p['month']:02d}" not in values for metric in METRICS):raise ValueError()
+        except DataError:raise
+        except (ValueError,TypeError,KeyError,IndexError):raise DataError("invalid_schema","Unsupported BEA comparison workbook") from None
+        notes=NOTES+["All selected comparison values share this workbook publication version; sparse last-equal/larger/smaller comparisons are not a continuous history"]
+        return Payload({"year":p['year'],"month":p['month'],"values":values,"source_excerpts":excerpts,"unit":"percent",
+            "publication_date":publication,"publisher_available_at":None,"publication_time_precision":"day",
+            "snapshot_as_of_date":r.as_of_date,"availability_basis":"observed_current_snapshot","historical_vintage_certified":False,"source_notes":notes},raw,p['url'],"verified",notes)
+
 
 def reported_observation(result,*,metric,year,month,period_kind):
-    data=checked_result(result,"bea","macro.pce_release_snapshot")
+    capability=result["capability"]
+    if capability not in {"macro.pce_release_snapshot","macro.pce_history_snapshot"}:raise DataError("source_mismatch","Unsupported BEA capability")
+    data=checked_result(result,"bea",capability)
+    history=capability=="macro.pce_history_snapshot"
+    key=metric+f".{year}M{month:02d}" if history else metric
     native=native_requirement(metric,year,month,"selection")
-    if period_kind!="month" or data.get("year")!=year or data.get("month")!=month or data.get("unit")!="percent":
+    if period_kind!="month" or (not history and (data.get("year")!=year or data.get("month")!=month)) or data.get("unit")!="percent" or key not in data["values"]:
         raise DataError("period_mismatch","BEA reported rates retain exact monthly identity and native percent units")
     cutoff=result["provenance"]["as_of_date"]
     capture=datetime.fromisoformat(result["provenance"]["retrieved_at"])
-    release=datetime.fromisoformat(data["publisher_available_at"])
-    if (capture.tzinfo is None or release.tzinfo is None or capture.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()!=cutoff or
+    release=datetime.fromisoformat(data["publisher_available_at"]) if data["publisher_available_at"] is not None else None
+    if (capture.tzinfo is None or (release is not None and release.tzinfo is None) or capture.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()!=cutoff or
             data.get("snapshot_as_of_date")!=cutoff or data.get("availability_basis")!="observed_current_snapshot" or
-            data.get("historical_vintage_certified") is not False or release>capture or
-            release.date().isoformat()!=iso_date(data["publication_date"]) or native["observation_end"]>data["publication_date"]):
+            data.get("historical_vintage_certified") is not False or (release is not None and (release>capture or release.date().isoformat()!=iso_date(data["publication_date"]))) or data["publication_date"]>cutoff or native["observation_end"]>data["publication_date"]):
         raise DataError("future_data","BEA release and actual capture clocks must remain eligible and distinct")
-    return _selection("bea",{"metric":metric,"value":numeric(data["values"][metric]),"unit":"percent","period_kind":"month",
+    return _selection("bea",{"metric":metric,"value":numeric(data["values"][key]),"unit":"percent","period_kind":"month",
         "period_start":native["data_period"].split("/")[0],"period_end":native["observation_end"],
         "publication_date":data["publication_date"],"publisher_available_at":data["publisher_available_at"],
-        "publication_time_precision":"minute","available_at":capture.isoformat(),"snapshot_as_of_date":cutoff,
+        "publication_time_precision":data["publication_time_precision"],"available_at":capture.isoformat(),"snapshot_as_of_date":cutoff,
         "eligibility":"verified_current_snapshot","availability_basis":"observed_current_snapshot","historical_vintage_certified":False,
-        "mapping_version":"bea-reported-pce-v1","source_excerpts":data["source_excerpts"][metric],"source_notes":data["source_notes"]},[result])
+        "mapping_version":"bea-reported-pce-v1","source_excerpts":data["source_excerpts"][key],"source_notes":data["source_notes"]},[result])

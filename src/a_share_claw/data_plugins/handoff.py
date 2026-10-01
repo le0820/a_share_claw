@@ -34,10 +34,10 @@ def freeze_outlook_contract(run, plan, outlook_spec, bindings):
             from .sec_handoff import checked_binding
             dates.add(checked_binding(requirements,b,target))
             continue
-        if r.provider=="bea" and r.capability=="macro.pce_release_snapshot":
+        if r.provider=="bea" and r.capability in {"macro.pce_release_snapshot","macro.pce_history_snapshot"}:
             from .bea import native_requirement as bea_requirement
             if (set(b)!={"fact_id","requirement_id","selector"} or set(sel)!={"metric","year","month","period_kind"} or
-                    sel["period_kind"]!="month" or r.params.get("year")!=sel["year"] or r.params.get("month")!=sel["month"]):
+                    sel["period_kind"]!="month" or (r.capability=="macro.pce_release_snapshot" and (r.params.get("year")!=sel["year"] or r.params.get("month")!=sel["month"]))):
                 raise DataError("invalid_request","BEA binding requires the exact planned monthly reported rate")
             if target!=bea_requirement(sel["metric"],sel["year"],sel["month"],b["fact_id"]):
                 raise DataError("research_fact_contract_mismatch","BEA reported percent cannot fill raw index or recomputed rate requirements")

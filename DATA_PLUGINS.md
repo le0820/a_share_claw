@@ -1,6 +1,6 @@
 # 五个主来源插件：运行与交接
 
-当前阶段与退出条件见 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口)。下方分阶段记录保留当时证据，不表示旧缺口仍然全部存在；五源真实验收未全部完成，整合业务 case 尚未启动。
+当前阶段与退出条件见 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口)。下方分阶段记录保留当时证据，不表示旧缺口仍然全部存在；当前 case 所需五源能力的真实验收已完成；含月度历史的整合 case 已启动，最终文案验收仍在闭环。
 
 本页记录已实现的接口和明确限制，供跨设备接续开发。实现位于 `src/a_share_claw/data_plugins/`，不依赖模型 SDK 或 Telegram。
 
@@ -12,7 +12,7 @@
 | `pbc` 中国人民银行 | 同上，限定人民银行官网 | 无密钥 | 保留发布原文、单位与明确发布时钟；M2/M1/社融存量同比可精确选择；PDF/Excel 与完整序列未完成；不从累计量推算单月 |
 | `easytdx` | `market.index_catalog` 国际指数目录；`market.index_daily_snapshot` 原生指数日线当前版本 | 可选 market extra 锁定 easy-tdx 1.20.4 | 固定指数身份、无复权、原生点位；SDK 在隔离子进程取数，只连声明主机；核心复核冻结日历/窗口；不是历史 PIT 认证 |
 | `tickflow`（辅助、默认禁用） | `market.quote`、`market.daily_bars`、`financial.income`、`financial.balance_sheet`、`financial.cash_flow` | `TICKFLOW_API_KEY` | K 线解析列式响应并显式记录复权；三表保留原生字段，不能用期末日期代替披露日；当前快照为 unverified，历史三表请求在披露/vintage 映射完成前直接拒绝，禁止提升为正式输入 |
-| `bea` | `macro.pce_release_snapshot` 八月等明确月度 PCE 发布 | 无账户、无密钥 | 只读官方发布 URL；固定完整/核心、环比/同比原生 percent；保留发布时钟和当前捕获，不重构价格指数，不认证历史修订 vintage |
+| `bea` | `macro.pce_release_snapshot` 明确月度发布；`macro.pce_history_snapshot` 官方历史比较 XLSX | 无账户、无密钥 | 只读官方发布 URL；固定完整/核心、环比/同比原生 percent；保留发布时钟和当前捕获，历史表校验发布日、期别、固定四项及 dated equal/larger/smaller 值；可选确实存在的历史月份，不补序列；不重构价格指数，不认证历史 PIT vintage |
 | `fred` | `macro.series` / `macro.series_metadata` 历史查询；`macro.series_snapshot` / `macro.series_metadata_snapshot` 当前捕获 | `FRED_API_KEY` | 同时固定 realtime_start/end；检查观测窗口、返回 vintage 与分页截断；缺失值保留 null；元数据保留来源原生单位/频率/季调；日期级时点验证，不代表盘中可用性 |
 | `sec` | `company.facts` / `company.filing_metadata` 历史选择；`company.facts_snapshot` / `company.filing_metadata_snapshot` 当前配对快照 | `SEC_USER_AGENT`（应用名称 + 联系邮箱） | 过滤 filed/end 晚于截止日的事实；保留 accn/form/start/end/unit；不把 YTD 当单季，不累加重复披露；标准 taxonomy/entity-wide 数据，不重建完整报表版式或分部自定义标签 |
 
@@ -231,3 +231,15 @@ uv run --locked python -m a_share_claw harness run --workflow outlook --date YYY
 按用户授权将默认 FRED 槽位换为 BEA；其他 FRED rates/market adapter 没有用 BEA 补齐。BEA 1.0.0 的 params 恰为 url/year/month，官方 Personal Income and Outlays 标题、URL 月份、明确发布时钟、完整/核心及环比/同比原文必须一致。同比/环比使用四个固定 *_reported 原生百分比身份，不填 FRED 原始指数或 core-macro-v1 计算项；核心计算、权重、风险及发布权不改。冻结的 source/core binding 先于抓取，当前抓取资格不认证较早盘中的页面版本。
 
 本机独立实际取数与选择已通过：BEA 八月四项原生百分比；SEC Apple Assets 的精确 CIK/unit/end/filed/accession 与同 run 披露元数据。来源记录位于 data/harness_acceptance/bea_sec_sources_20261001_network/；初始受限网络失败、BEA 通用 News Release 标题形态拒绝及修正后的成功分开保留。SEC 联系邮箱只在本机忽略的 .env，不进入代码、计划或 provenance。本轮 Python 3.11/3.12 各 463 passed / 41 subtests；覆盖 BEA 来源/时间/单位/冲突/哈希拒绝及核心角色、双报告 NO_ACTION 交接。以上独立检查尚未执行整合季度 case。
+
+## 月度历史事实包
+
+每次月度更新须同时冻结当月与历史 fact_ids；在 research_spec 中加入 monthly_history，例如：
+
+```json
+{"comparison_id":"us.pce.yoy","basis":"reported_yoy_rate","fact_ids":["bea.pce_yoy.2026-07","bea.pce_yoy.2026-08"]}
+```
+
+basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yoy_rate 或 level；清单不含值，历史事实仍须逐条来源绑定。全部原生月度需求都要被覆盖，并由 base_scenario/risk_monitoring 引用。核心归档并传入角色的 monthly_history 包含输入哈希、期间、公布值、百分点差和版本边界；不新增评分阈值、交易建议或发布权限。旧的无历史规格只是单期事实研究兼容入口。
+
+历史优先来自同版本官方发布；BEA 请求例为 macro.pce_history_snapshot + params {url: 官方发布中已核实的 XLSX URL, year: 2026, month: 8}，selector 的 year/month 则固定实际需要的当前/比较观测。缺少指定月时停止，不把 last-equal/larger/smaller 的稀疏日期补成连续月度历史。7/8 月 PCE 本机同版本验收见 monthly_history_sources_20261001_v2；中国两月为不同发布版本，只比较公布增速，不能认证修订一致趋势。两点不证明持续趋势，累计率不推单月，历史观测不等于历史可得版本。跨运行缓存/授权重准入留待后续，本次按明确官方历史链接重取，不拼接其他 Scope 的未授权包。

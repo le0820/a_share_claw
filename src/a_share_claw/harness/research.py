@@ -17,7 +17,7 @@ ROLES = {"ge_yan", "jia_zhi", "qian_zhan", "shen_du", "ping_heng", "hong_guan"}
 
 def checked_spec(spec, *, workflow="industry"):
     required = {"subject", "technical_required", "debate_required", "debate_reason", "questions", "required_facts"}
-    if not isinstance(spec, dict) or set(spec) != required or not isinstance(spec["subject"], str) or not spec["subject"].strip():
+    if not isinstance(spec, dict) or set(spec) not in (required,required|{"monthly_history"}) or not isinstance(spec["subject"], str) or not spec["subject"].strip():
         raise ValueError("invalid_research_spec")
     if any(type(spec[k]) is not bool for k in ("technical_required", "debate_required")):
         raise ValueError("invalid_research_spec")
@@ -58,6 +58,8 @@ def checked_spec(spec, *, workflow="industry"):
         assigned.add(q["role"])
     if roles != assigned:
         raise ValueError("invalid_research_spec")
+    from .monthly_history import checked_history
+    checked_history(spec)
     return json.loads(canonical(spec))
 
 
@@ -261,6 +263,11 @@ def execute_research(session, plan, admitted, runner, reviewer, archive):
         raise ValueError("role_executor_required")
     packet = {"plan_id": plan["plan_id"], "scope_key": session.request.scope.key,
               "as_of_date": session.request.as_of_date, "version": 1, "facts": facts}
+    from .monthly_history import compare
+    history=compare(spec,facts)
+    if history is not None:
+        packet["monthly_history"]=history
+        archive(session,"monthly_history",history)
     packet_id = digest(packet)
     archive(session, "research_packet", {"packet_id": packet_id, **packet})
     if plan["workflow"] == "outlook":
@@ -299,6 +306,7 @@ def execute_research(session, plan, admitted, runner, reviewer, archive):
                  "packet_version": 1, "confirmed_facts": list(facts.values()), "role_outputs": outputs,
                  "debate_used": spec["debate_required"], "risk_decision": "NO_ACTION",
                  "monitoring_triggers": outputs["ping_heng:final"]["monitoring_triggers"]}
+    if history is not None:candidate["monthly_history"]=history
     archive(session, "research_candidate", candidate)
     review = review_candidate(session, plan, candidate, reviewer, archive)
     return {**candidate, "semantic_review": review}

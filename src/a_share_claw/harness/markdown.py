@@ -101,6 +101,9 @@ def body(workflow, data, level=2):
         result += [heading + " 核心月度指数变化计算", "", "原生同 vintage 指数计算，不是发布机构另行确认的同比/环比数值。原始观测发布日期未知；未采用 series last_updated 代替。", ""]
         result += table(["事实","公式","原生输入事实","输入哈希"],
             [[f["fact_id"],f["derivation"]["formula"],f["derivation"]["input_fact_ids"],f["derivation"]["input_hashes"]] for f in derived_macro])
+    if "monthly_history" in data:
+        result += [heading + " 月度历史事实对照", "", "差值单位为百分点。两个观测只说明相邻变化；跨发布版本不认证修订一致的经济趋势。", ""]
+        result += table(["指标", "对照口径", "观测", "变化", "版本边界"], [[g["entity"]+"/"+g["metric"],g["basis"],g["observations"],g["changes"],g["comparison_scope"]] for g in data["monthly_history"]["comparisons"]])
     result += [heading + " 角色推断与事实引用", "", "以下文案已通过候选语义评估；引用存在本身不证明推断正确。", ""]
     unknowns = []
     phases = ["hong_guan:initial", "ge_yan:initial", "jia_zhi:initial", "qian_zhan:initial", "shen_du:initial", "qian_zhan:rebuttal", "shen_du:rebuttal", "ping_heng:final"]

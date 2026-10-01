@@ -310,7 +310,7 @@ class DataRun:
                 raise DataError("invalid_request", "SEC selection requires explicit duration, unit and accession")
             metadata=archived(metadata_requirement_id) if metadata_requirement_id is not None else None
             selection=sec_fact(result,metadata=metadata,**selector)
-        elif result["capability"] == "macro.pce_release_snapshot":
+        elif result["capability"] in {"macro.pce_release_snapshot","macro.pce_history_snapshot"}:
             from .bea import reported_observation
             if set(selector)!={"metric","year","month","period_kind"} or metadata_requirement_id is not None:
                 raise DataError("invalid_request","BEA requires an exact native monthly rate selector")

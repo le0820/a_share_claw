@@ -101,3 +101,10 @@ Structured outputs should include a `data_audit` block with source file paths an
 ## Optional Fundamental Evidence Contract
 
 The legacy manually supervised fundamental workflow may materialize `data/raw/fundamental_inputs_<as_of_date>.json` after Tavily/QVeris evidence collection. Each holding requires `symbol`, 0..1 `weight`, `effective_date`, `publication_date`, `source`, and `source_url`. Each fundamental row requires `symbol`, `period_end`, `filing_date`, `publication_date`, `source`, `source_url`, plus at least one supported metric. `fetch_fundamental.py` validates and aggregates this into `fundamental_<as_of_date>.json`; neither file participates in the currently disabled L2 layer.
+
+
+## Monthly Release and Historical Fact Packs
+
+Every monthly update must freeze the new observation and explicit comparable history together using research_spec.monthly_history. Admit source-bound historical facts before judging changes; missing history blocks a trend conclusion. Match entity, metric, native unit, monthly or cumulative period and source-version limits. Prefer a common published version and disclose separate releases or unresolved revisions. A historical observation captured today is not a certified historical information vintage.
+
+The core calculates percentage-point differences between reported rates/levels. A change in YoY rates is not MoM growth; year-to-date rate comparisons do not reconstruct standalone months. Two observations show adjacent change only. Sparse official historical comparisons must not be interpolated into a continuous series. Legacy single-period research specifications remain observation-only and do not satisfy monthly-update acceptance. Cross-run and cross-day archive reuse still requires an explicit scoped re-admission design; no automatic cross-Scope injection is authorized.
