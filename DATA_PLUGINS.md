@@ -256,7 +256,7 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 
 已有核心接口：`quant-spec-v2` 保留全部price-statistics冻结字段，增加rotation（sw-rotation-v1）：SW2021/level1、market_scope=[SH,SZ]、精确31项industry_code/index_symbol/name、2..52个ISO周窗口、固定competition_12_decimal排名。额外必需capability=industry_classification，需industry-classification-v1（同一分类集合、版本、范围，生效/发布日、原始文件/哈希、publisher=申万宏源研究、host_reviewed），provenance.rotation_spec_hash绑定冻结规格，来源文件/发布日期须一致。日行情完整准入后才运行sw_level1_rotation ReAct计算span；少行业/少会话/混日历/错版本/未来生效/未复核/跨Scope均拒绝。混合、展望及正式评分尚不接此操作。缺分类绑定时返回rotation_source_binding_missing，取行情前就停止，不绕过现有五源规则。
 
-用户已明确批准新增申万官方，并确定周线为主、月线为辅的低频统计口径。easytdx已核查目录没有SW2021一级31指数。新增显式启用的 `swresearch`，仅访问申万官方发布/下载页面（www.swsresearch.com，及其官方研究文件域名wxweb.swsresearch.com）；不替换四观察指数或沪深资金来源，不改变核心评分、L2、风险门禁或正式发布。
+用户已明确批准新增申万官方，并确定周线为主、日线为辅的低频统计口径。easytdx已核查目录没有SW2021一级31指数。新增显式启用的 `swresearch`，仅访问申万官方发布/下载页面（www.swsresearch.com，及其官方研究文件域名wxweb.swsresearch.com）；不替换四观察指数或沪深资金来源，不改变核心评分、L2、风险门禁或正式发布。
 
 限定能力：`industry.sw2021_level1_metadata` 提供有出处的31行业代码/名称/指数身份/版本/生效日；`market.sw_index_daily_snapshot` 只接冻结的31指数、日期窗口和原生收盘。取数前冻结Scope+分类+日历/锚点+口径+周窗口+来源合同；原始响应与哈希留存，字段单位/身份/完整性逐项校验。当前捕获与原始发布日分开，历史PIT未知就明确标记；缺必需元数据、任一行业或任一会话就交付缺口页，禁止替代或补零。研究保持NO_ACTION。完成真实31行业独立周收益/并列排名/排名变化复算和HTML验收后才称真实轮动接通。
 
@@ -264,7 +264,7 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 
 状态：`swresearch` 已注册，须显式加入 `ASCLAW_DATA_PROVIDERS`，默认五源集合保持原有范围。原生HTTP插件和冻结price-core交接已实现；分类目录仅unverified，须先有独立宿主复核的分类文件才允许取31指数。原生日数据经price-series-v3保留HTTP身份/版本/原始哈希/当前捕获，不伪装为easytdx SDK。官网本轮连接超时，真实分类与31行情完整覆盖尚未验收。
 
-周热力图为主，月线辅助表使用同一已准入日行情计算月度收益/竞争排名，不调用供应商周月汇总或增加交易动作。窗口没有覆盖完整日历月时保守标记“部分月份（窗口内）”；缺会话仍拒绝，不能把部分月与完整月混为一谈。原生端点为 `/institute-sw/api/index_publish/current/` 与 `trend/`；仅核查原生字段与请求语义，不运行第三方SDK或TLS绕过。
+周热力图为主，日线辅助表使用同一已准入日行情计算逐交易日收益/竞争排名，不调用供应商周月汇总或增加交易动作。日收益以前一准入交易日收盘为锚点；首日使用冻结锚点，周末与休市不补价，缺会话仍拒绝。原生端点为 `/institute-sw/api/index_publish/current/` 与 `trend/`；仅核查原生字段与请求语义，不运行第三方SDK或TLS绕过。
 
 `market.board_catalog` 仅允许 classification=native_industry_level1，原生通达信板块不等于申万2021一级。`market.extended_index_catalog` 只允许 market=62/70；`market.instrument_identity` 只允许国内精确 market/code。上述均为 unverified/discovery，不能用原生目录标签发布核心价格或申万轮动。
 

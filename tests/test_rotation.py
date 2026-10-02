@@ -42,16 +42,20 @@ def test_complete_sw_shaped_universe_has_real_rank_transition_ties_and_bound_htm
     for symbol in ('801001.SW','801002.SW'):
         a,b=by_symbol[symbol]['observations'];assert a['rank']==1 and b['rank']==30 and b['rank_change']==-29
         assert a['rank_change'] is None and abs(b['period_return']+.1)<1e-12
+        daily=by_symbol[symbol]['daily_context']
+        assert [value['rank'] for value in daily]==[1,1,30]
+        assert [value['rank_change'] for value in daily]==[None,0,-29]
     assert by_symbol['801031.SW']['observations'][-1]['rank']==1
     assert by_symbol['801031.SW']['observations'][-1]['rank_change']==2
     assert '<svg' in delivery['html'] and '31行业原生收盘图与数值' in delivery['html'] and '全部周收益与排名原始数值' in delivery['html']
-    assert '月线辅助视角' in delivery['html'] and '部分月份（窗口内）' in delivery['html']
+    assert '日线辅助视角' in delivery['html'] and '周线为主、日线为辅' in delivery['html']
+    assert '月线辅助视角' not in delivery['html']
     trace=TraceRepository(storage).read(out.run_id,scope)
     assert any(r['stage']=='react_action' and r['detail']['operation']=='sw_level1_rotation' for r in trace['run_steps'])
     assert not out.official_output_allowed and out.action=='NO_ACTION' and not TraceRepository(storage).read_state(scope,'quant')
 
 
-def test_monthly_auxiliary_uses_prior_month_end_and_marks_partial_edges():
+def test_daily_auxiliary_uses_previous_trading_session_across_weekend_and_month():
     from decimal import Decimal
     from a_share_claw.harness.rotation import compute_rotation
     s=specification();s.update(window_start='2026-07-27',window_end='2026-08-07',cutoff_timestamp='2026-08-10T01:00:00Z')
@@ -67,12 +71,16 @@ def test_monthly_auxiliary_uses_prior_month_end_and_marks_partial_edges():
     classification=packet(Scope(),s)['facts'][1]['data']
     output=compute_rotation(checked_quant_spec(s),prices,classification,'2026-08-10')
     for sector in output['industries']:
-        july,august=sector['monthly_context']
-        assert abs(july['period_return']-float(Decimal(110)/Decimal(100)-1))<1e-12
-        assert abs(august['period_return']-float(Decimal(121)/Decimal(110)-1))<1e-12
-        assert august['anchor_date']=='2026-07-31' and july['anchor_date']=='2026-07-24'
-        assert july['rank']==august['rank']==1 and august['rank_change']==0
-        assert all(v['coverage']=='window_segment' and not v['period_complete'] for v in (july,august))
+        daily=sector['daily_context']
+        expected=[Decimal(105)/Decimal(100)-1,Decimal(110)/Decimal(105)-1,
+                  Decimal(115)/Decimal(110)-1,Decimal(121)/Decimal(115)-1]
+        assert [value['trade_date'] for value in daily]==dates
+        assert [value['anchor_date'] for value in daily]==['2026-07-24',*dates[:-1]]
+        for value,result in zip(daily,expected):assert abs(value['period_return']-float(result))<1e-12
+        assert all(value['rank']==1 for value in daily)
+        assert daily[0]['rank_change'] is None and all(value['rank_change']==0 for value in daily[1:])
+        assert 'monthly_context' not in sector
+
 
 
 @pytest.mark.parametrize('change',['missing_sector','classification_name','classification_version','unreviewed_classification','missing_week_price','future_classification','effective_after_window','duplicate_index','cross_scope','wrong_spec_hash','mixed_calendar','gap_window'])

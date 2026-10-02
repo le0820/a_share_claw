@@ -127,7 +127,7 @@ def test_reviewed_existing_classification_and_native_prices_reach_core(environme
     if not missing_session:
         data=json.loads(out.output)['data']['industry_rotation']
         assert data['classification_basis']=='synthetic_fixture'
-        assert data['industries'][0]['monthly_context'][0]['coverage']=='window_segment'
+        assert data['industries'][0]['daily_context'][0]['anchor_date']=='2026-07-02'
     assert out.action=='NO_ACTION' and not out.official_output_allowed
 
 
