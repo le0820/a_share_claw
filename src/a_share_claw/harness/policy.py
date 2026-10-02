@@ -75,6 +75,8 @@ class PolicyBundle:
                     "quant": ["price_history"], "outlook": ["macro_release_facts", "price_history"], "general": []}
         if workflow=="quant" and ((parameters or {}).get("quant_spec") or {}).get("operation")=="fund_flow_snapshot":
             required["quant"]=["fund_flow_snapshot"]
+        if workflow=='quant' and ((parameters or {}).get('quant_spec') or {}).get('schema_version')=='quant-spec-v2':
+            required['quant']=['industry_classification','price_history']
         if workflow not in required:
             raise ValueError("Unsupported workflow")
         return {"workflow": workflow, "policy_version": self.version, "required_capabilities": required[workflow],

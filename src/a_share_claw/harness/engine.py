@@ -186,9 +186,15 @@ class Harness:
                         data=compute_flows(parameters["quant_spec"],facts["fund_flow_snapshot"],reference,cutoff)
                         span.observe(output_hash=digest(data))
                 elif workflow == "quant":
+                    if parameters['quant_spec'].get('rotation') and request.mode=='official':raise ValueError('rotation_official_not_supported')
                     with session.action("calculation", "price_statistics", "validate_calendar_and_compute_local_price_metrics", {"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["price_history"])}) as span:
                         data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
                         span.observe(output_hash=digest(data))
+                    if parameters['quant_spec'].get('rotation'):
+                        from .rotation import compute_rotation
+                        with session.action('calculation','sw_level1_rotation','validate_sw31_and_compute_weekly_ranks',{'spec_hash':digest(parameters['quant_spec']),'classification_hash':digest(facts['industry_classification']),'prices_hash':digest(facts['price_history'])}) as span:
+                            data['industry_rotation']=compute_rotation(parameters['quant_spec'],facts['price_history'],facts['industry_classification'],cutoff)
+                            span.observe(output_hash=digest(data['industry_rotation']))
                 elif workflow in {"company", "industry", "outlook"}:
                     if workflow == "outlook":
                         if not parameters:
@@ -268,7 +274,7 @@ class Harness:
             known = {"source_acquisition_not_authorized","invalid_source_batch","source_contract_mismatch","WAIT_FOR_CUTOFF","future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
-                     "invalid_flow_spec", "flow_contract_mismatch", "flow_official_not_supported", "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
+                     "invalid_rotation_spec", "rotation_identity_mismatch", "rotation_classification_mismatch", "non_comparable_calendar", "rotation_official_not_supported", "rotation_source_binding_missing", "invalid_flow_spec", "flow_contract_mismatch", "flow_official_not_supported", "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
                      "mixed_spec_required", "invalid_mixed_spec", "invalid_mixed_packet", "invalid_mixed_link", "mixed_incomplete",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
                      "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
@@ -397,6 +403,10 @@ class Harness:
                     raise ValueError("research_fact_contract_mismatch")
             if capability=="fund_flow_snapshot" and p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
                 raise ValueError("flow_contract_mismatch")
+            if capability=='industry_classification' and p.get('rotation_spec_hash')!=digest(plan['parameters']['quant_spec'].get('rotation')):
+                raise ValueError('rotation_classification_mismatch')
+            if capability=='industry_classification' and any(p.get(k)!=item['data'].get(k) for k in ('source_file','publication_date')):
+                raise ValueError('rotation_classification_mismatch')
             if capability=="price_history" and item["data"].get("schema_version")=="price-series-v2":
                 if p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
                     raise ValueError("price_contract_mismatch")

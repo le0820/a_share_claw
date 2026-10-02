@@ -24,6 +24,13 @@ def timestamp(value):
 
 
 def checked_quant_spec(spec):
+    if isinstance(spec,dict) and spec.get('schema_version')=='quant-spec-v2':
+        base={k:v for k,v in spec.items() if k!='rotation'};base['schema_version']='quant-spec-v1'
+        checked=checked_quant_spec(base)
+        from .rotation import checked_rotation
+        rotation=checked_rotation(spec.get('rotation'),checked)
+        checked.update(schema_version='quant-spec-v2',rotation=rotation)
+        return checked
     if isinstance(spec,dict) and spec.get("operation")=="fund_flow_snapshot":
         from .flows import checked_flow_spec
         return checked_flow_spec(spec)
@@ -36,7 +43,7 @@ def checked_quant_spec(spec):
     cutoff = timestamp(spec["cutoff_timestamp"])
     if start > end or type(spec["annualization_factor"]) is not int or not 1 <= spec["annualization_factor"] <= 366:
         raise ValueError("invalid_quant_spec")
-    if (not isinstance(spec["assets"], list) or not 1 <= len(spec["assets"]) <= 30 or
+    if (not isinstance(spec["assets"], list) or not 1 <= len(spec["assets"]) <= 31 or
             not isinstance(spec["metrics"], list) or not spec["metrics"] or
             any(not isinstance(v, str) for v in spec["metrics"])):
         raise ValueError("invalid_quant_spec")

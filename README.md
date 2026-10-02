@@ -221,6 +221,8 @@ tests/                      # 现有单元与路由回归测试
 
 显式普通聊天配置使用 `InvestmentAgent(..., trusted_chat=TrustedChatProfile.parse(document))` 或 `chat --host-contract HOST.json --date YYYY-MM-DD`。`trusted-chat-host-v1` 恰含 schema_version、四字段 scope、as_of_date、workflow、parameters、source_contract；parameters 使用完整 research_spec / quant_spec / outlook_spec，source_contract 使用既有宿主审核绑定。主体、会话、日期、workflow 和规格在模型/来源调用前校验。默认 chat 仍无绑定；配置不会从消息文字或模型输出生成，模型仍无工具。合成 SDK+四来源端到端、缺源、改规格与跨 Scope 拒绝已验收，真实模型质量尚未验收。
 
+申万轮动核心已实现：quant-spec-v2冻结SW2021一级31行业、分类证据和同一日历/锚点，核心算周收益、竞争排名与较前周变化；HTML含收益/排名热力图、全部原始周数值、展开式31行业收盘图。独立Decimal合成验收与错误/缺分类/缺行情/跨Scope/正式发布拒绝通过，示例在 `data/harness_acceptance/sw_rotation_synthetic_20261002/acceptance.json`，明确非真实申万数据。真实分类/行情插件尚未绑定，限定的申万官方来源扩展提案见DATA_PLUGINS.md，正在等待用户确认；不把合成图或纯核心实现当真实轮动完成。
+
 `harness watch-plan --date DATE --window-start START --window-end END --cutoff TIMESTAMP --nyse-calendar FILE --nasdaq-calendar FILE --sse-calendar FILE --szse-calendar FILE` 只冻结四指数规格与来源合同，无网络取数。随后显式 `harness run quant --quant-spec FILE --source-contract FILE`；`harness ui --run-id RUN_ID --date DATE` 导出同 Scope 离线列表、诊断/时间轴和已校验报告链接。使用相同的 platform/user/chat/agent-key。HTML 快照没有运行/取数按钮或正式发布权限。
 
 ## 待办与下一会话入口

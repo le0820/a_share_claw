@@ -252,6 +252,16 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 
 ## 原生市场发现（1.2.0，尚未成为资金/行业核心证据）
 
+### 待用户批准：仅申万轮动的官方原生来源
+
+已有核心接口：`quant-spec-v2` 保留全部price-statistics冻结字段，增加rotation（sw-rotation-v1）：SW2021/level1、market_scope=[SH,SZ]、精确31项industry_code/index_symbol/name、2..52个ISO周窗口、固定competition_12_decimal排名。额外必需capability=industry_classification，需industry-classification-v1（同一分类集合、版本、范围，生效/发布日、原始文件/哈希、publisher=申万宏源研究、host_reviewed），provenance.rotation_spec_hash绑定冻结规格，来源文件/发布日期须一致。日行情完整准入后才运行sw_level1_rotation ReAct计算span；少行业/少会话/混日历/错版本/未来生效/未复核/跨Scope均拒绝。混合、展望及正式评分尚不接此操作。缺分类绑定时返回rotation_source_binding_missing，取行情前就停止，不绕过现有五源规则。
+
+当前五源规则不含申万官方行情，easytdx已核查目录没有SW2021一级31指数。拟增加显式启用的 `swresearch`，仅访问申万官方发布/下载页面（www.swsresearch.com，及其官方研究文件域名wxweb.swsresearch.com）；不替换四观察指数或沪深资金来源，不改变核心评分、L2、风险门禁或正式发布。
+
+拟定能力：`industry.sw2021_level1_metadata` 提供有出处的31行业代码/名称/指数身份/版本/生效日；`market.sw_index_daily_snapshot` 只接冻结的31指数、日期窗口和原生收盘。取数前冻结Scope+分类+日历/锚点+口径+周窗口+来源合同；原始响应与哈希留存，字段单位/身份/完整性逐项校验。当前捕获与原始发布日分开，历史PIT未知就明确标记；缺必需元数据、任一行业或任一会话就交付缺口页，禁止替代或补零。研究保持NO_ACTION。完成真实31行业独立周收益/并列排名/排名变化复算和HTML验收后才称真实轮动接通。
+
+状态：这是审核用的限定接口提案，尚未启用或实现新的网络插件；需要用户同意扩展AGENTS.md所限定的来源集合。已有核心31行业计算/图表不因批准而变更。
+
 `market.board_catalog` 仅允许 classification=native_industry_level1，原生通达信板块不等于申万2021一级。`market.extended_index_catalog` 只允许 market=62/70；`market.instrument_identity` 只允许国内精确 market/code。上述均为 unverified/discovery，不能用原生目录标签发布核心价格或申万轮动。
 
 `market.a_share_quote_snapshot` 冻结 markets=[SH,SZ,BJ]、max_rows=10000，固定 MAC 主机。逐页保留原生总数并检查稳定，按代码排序，不排除 ST/科创/创业/北交所；唯一证券数量必须逐市匹配原生总数。返回原生嵌套 fields、交易日字段及主力净额，缺字段列为 missing_fields，禁止补0和 SDK 汇总/历史回退。整体仍 unverified，直到核心校验日期、完整冻结 universe、供应商主力口径与绑定；不代表投资者真实净现金流。

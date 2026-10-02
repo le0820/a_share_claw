@@ -115,3 +115,13 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 申万目录方向取得新证据：初试全global目录106798条超限，保留失败；改用SDK market排序契约，原生count+二分相邻边界探针+完整目标连续页，严格header/offset/count。market62实际2320条、3页、28探针、6个重复代码，重复身份原样保留并标记，整体仍unverified。raw及 `complete-catalog-acceptance.json` 位于market_sector验收目录；没有801xxx/申万31，唯一名称含申万的是931595中证申万通胀防御，不替代申万一级。原官方申万发布页仍超时；下一步须合法SW元数据及行情绑定，或者继续核心轮动规格/计算/图表实现并保留真实来源缺口，不能把TDX/中证分类改名成SW。
 
 本增量最终离线回归Python3.13：549 passed / 41 subtests；沪深真实HTML浏览器布局及无BJ条目检查通过，临时服务/页已关闭。普通四指数、ReAct、所有终态HTML仍保留既有验收；整体goal未完成，继续SW轮动核心与真实绑定、真实模型聊天整合，北交所已从当前研究范围和剩余验收要求排除。
+
+## 2026-10-02 申万轮动核心与合成图表验收
+
+新增quant-spec-v2.rotation、industry_classification必需事实、代码计算的周收益/竞争排名/排名变化与独立sw_level1_rotation ReAct span。精确31行业+相同会话/锚点+SW2021/一级/沪深；ISO周窗口覆盖完整声明会话且不能交叠/漏期；同收益保留12位后同排名，正rank_change表示提升。HTML含31行热力图（统一收益颜色尺度）、全部周原始数据、折叠31行业收盘图；Synthetic fixture前置醒目标注，不伪称真实行情。缺分类来源、缺行业/会话、混日历、未复核/错版本/未来生效、跨Scope、错误冻结hash及正式发布均拒绝；混合/展望暂不接此操作。
+
+合成独立验收最新run=`69d2fa09796f4076a445168042ffef18`，明确Scope（host:development_acceptance/sw-rotation-synthetic-20261002），0source/0model/NO_ACTION/no state。31×2周的Decimal收益、12位竞争排名、排名变化独立复算通过，浏览器截图验证醒目Synthetic标签、热力图缩放及单元格可读。目录 `data/harness_acceptance/sw_rotation_synthetic_20261002/acceptance.json`；旧样本保留，最新修正了展示缩放和fixture来源统计期。仅证明算法、门禁与展示，不证明真实SW分类/31指数行情或整个goal完成。
+
+已向用户异步请求限定来源扩展（仅申万官方分类/原生指数）。原因是AGENTS.md:42明确主源限NBS/PBC/easytdx/BEA/SEC，easytdx原生目录实际没有SW31；DATA_PLUGINS.md已写具体受限接口、数据要求和验收方案。未获得回复，不将等待时间视为批准，不启用或实现新网络插件；等待答复期间只完成独立核心/合成验收。剩余仍含真实SW源绑定与31行业数值/日历验收、真实模型普通chat质量、沪深最终收盘快照覆盖；北交所按用户指令排除。
+
+本增量最终回归Python3.13：564 passed / 41 subtests；未执行3.11/3.12 CI。临时浏览器/localhost服务均已关闭，当前合成acceptance保留独立复算及真实未完成项；开发提交后develop快进镜像，main不修改。

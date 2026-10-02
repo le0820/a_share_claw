@@ -58,6 +58,10 @@ def statistics(data, level):
     if any("current_snapshot" in v for v in data["series_audit"].values()):
         result += ["价格版本口径：当前 SDK 捕获的原生指数；每行 available_at 为本次捕获时间，publication_date 为快照日期，不证明当时的历史发布/修订版本。", ""]
     result += [heading + " 限制与未定义项", ""] + bullets(data["limitations"] + data["unknowns"])
+    if data.get('industry_rotation'):
+        r=data['industry_rotation'];result += [heading+' 申万2021一级行业周排名', '']
+        result += table(['行业','指数','最后周','周收益（ratio）','排名','排名变化'],[[row['name'],row['index_symbol'],row['observations'][-1]['week'],row['observations'][-1]['period_return'],row['observations'][-1]['rank'],row['observations'][-1]['rank_change']] for row in r['industries']])
+        result += bullets(r['limitations'])
     return result
 
 
@@ -135,7 +139,7 @@ def _render(report):
     workflow = report["workflow"]
     if report.get("markdown_version") != VERSION or workflow not in TITLES:
         raise ValueError("report_contract_failure")
-    title = "资金流向（主力口径）" if report.get("data",{}).get("schema_version")=="flow-output-v1" else TITLES[workflow]
+    title = '申万一级行业轮动' if report.get('data',{}).get('industry_rotation') else "资金流向（主力口径）" if report.get("data",{}).get("schema_version")=="flow-output-v1" else TITLES[workflow]
     result = ["# " + title + "报告", "", "归档状态：staged。该文件本身不证明正式发布；以授权读取的运行终态和状态事务为准。", "",
               "## 运行与数据口径", ""]
     result += table(["字段", "值"], [[k,report[k]] for k in ("run_id", "plan_id", "scope_key", "workflow", "as_of_date", "generated_at", "mode", "fallback_status", "policy_version")])

@@ -85,10 +85,15 @@ def charts(workflow, data):
     if workflow == 'mixed':
         return ''.join(charts(c['workflow'], c['data']) for c in data['slices'])
     quant = data if workflow == 'quant' else data.get('market_statistics', {})
+    if quant.get('industry_rotation'):
+        from .rotation_html import rotation_chart
+        rendered.append(rotation_chart(quant['industry_rotation']))
+    prices=[]
     if quant.get("schema_version")=="flow-output-v1":rendered.append(flow_chart(quant))
     for symbol, series in quant.get('chart_series', {}).items():
-        rendered.append(line_chart(symbol+' / '+series['name'], [(r['trade_date'],r['close']) for r in series['rows']], series['unit'],
+        prices.append(line_chart(symbol+' / '+series['name'], [(r['trade_date'],r['close']) for r in series['rows']], series['unit'],
             '本地币种原生收盘价；来源：'+series['source_file']+'。当前捕获版本不证明历史 PIT；无分红、费用或汇率换算。'))
+    rendered.append('<details><summary>31行业原生收盘图与数值</summary>'+''.join(prices)+'</details>' if quant.get('industry_rotation') else ''.join(prices))
     for group in data.get('monthly_history', {}).get('comparisons', []):
         rendered.append(line_chart(group['entity']+'/'+group['metric'], [(r['period'],r['value']) for r in group['observations']], 'percent',
             group['basis']+'；'+group['comparison_scope']+'。相邻公布率对照；两点不能认证持续趋势。'))
@@ -99,7 +104,7 @@ def render_html(report):
     report = json.loads(canonical(report))
     if report.get('html_version') != VERSION:
         raise ValueError('report_contract_failure')
-    title = html.escape(('资金流向（主力口径）' if report['data'].get('schema_version')=='flow-output-v1' else TITLES[report['workflow']])+'报告', quote=True)
+    title = html.escape(('申万一级行业轮动' if report['data'].get('industry_rotation') else '资金流向（主力口径）' if report['data'].get('schema_version')=='flow-output-v1' else TITLES[report['workflow']])+'报告', quote=True)
     return f'''<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'none'; base-uri 'none'; form-action 'none'">
