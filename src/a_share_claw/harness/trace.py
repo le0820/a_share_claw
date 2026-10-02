@@ -113,7 +113,7 @@ class TraceRepository:
             if cursor.rowcount != 1:
                 raise ValueError("Model call is not open in this run")
 
-    def finish(self, outcome: RunOutcome, scope: Scope, state=None, as_of_date=None):
+    def finish(self, outcome: RunOutcome, scope: Scope, state=None, as_of_date=None, *, terminal_boundary=None):
         if outcome.status == RunStatus.RUNNING:
             raise ValueError("Terminal status required")
         if outcome.status != RunStatus.SUCCEEDED and (outcome.official_output_allowed or outcome.action != "NO_ACTION"):
@@ -145,6 +145,11 @@ class TraceRepository:
                 if (markdown.get("scope_key") != scope.key or markdown.get("run_id") != outcome.run_id or
                         not any(json.loads(item[0]) == markdown for item in artifacts)):
                     raise ValueError("Official Markdown report is not archived in this run")
+                html_report = state.get("report_html")
+                if html_report is not None and ("report_html_contract" not in completed_checks or
+                        html_report.get("scope_key") != scope.key or html_report.get("run_id") != outcome.run_id or
+                        not any(json.loads(item[0]) == html_report for item in artifacts)):
+                    raise ValueError("Official HTML report is not evaluated and archived in this run")
                 workflow = state["workflow"]
                 route = self.storage._conn.execute("SELECT detail_json FROM run_steps WHERE run_id=? AND stage='route' ORDER BY id DESC LIMIT 1", (outcome.run_id,)).fetchone()
                 if route is None or json.loads(route[0]).get("workflow") != workflow:
@@ -155,6 +160,9 @@ class TraceRepository:
                 self.storage._conn.execute("INSERT INTO official_state_history VALUES (?,?,?,?,?)", (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
                 self.storage._conn.execute("INSERT INTO official_states VALUES (?,?,?,?,?) ON CONFLICT(scope_key,workflow) DO UPDATE SET run_id=excluded.run_id,as_of_date=excluded.as_of_date,state_json=excluded.state_json",
                                             (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
+            if terminal_boundary is not None:
+                self.storage._conn.execute("INSERT INTO run_steps (run_id,stage,status,recorded_at,detail_json) VALUES (?,?,?,?,?)",
+                    (outcome.run_id, "react_phase", outcome.status.value, now(), canonical(redact(terminal_boundary))))
             self.storage._conn.execute("UPDATE runs SET status=?,finished_at=?,outcome_json=? WHERE run_id=?",
                                         (outcome.status.value, now(), canonical(record), outcome.run_id))
             self.storage._conn.execute("UPDATE model_calls SET status='interrupted',finished_at=? WHERE run_id=? AND finished_at IS NULL", (now(), outcome.run_id))

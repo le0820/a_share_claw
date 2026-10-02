@@ -34,6 +34,11 @@ class RunSession:
         self.tool_count = 0
         self.failure = None
         self.closed = False
+        self.active_phase = None
+        self.phase_sequence = 0
+        self.phase_started = None
+        self.last_phase = None
+        self.phase_events = []
         self.step("request", {"host": request.host, "mode": request.mode, "as_of_date": request.as_of_date})
 
     @property
@@ -46,7 +51,41 @@ class RunSession:
             raise TimeoutError("budget_exceeded")
 
     def step(self, stage, detail, status="ok"):
-        return self.repository.step(self.run_id, self.request.scope, stage, detail, status)
+        result = self.repository.step(self.run_id, self.request.scope, stage, detail, status)
+        if self.active_phase is not None and stage != "react_phase":
+            self.phase_events.append({"stage": stage, "status": status, "detail_hash": digest(redact(detail))})
+        return result
+
+    def phase(self, name, decision_code, inputs=None):
+        """Code-owned ReAct boundaries; summaries and hashes, never private reasoning.
+
+        A phase ends before its successor starts. Failure/cancellation closes the
+        active phase at termination, so missing observations cannot look successful.
+        """
+        successors = {None: {"context"}, "context": {"planning"},
+                      "planning": {"evidence", "publish"}, "evidence": {"compute"},
+                      "compute": {"output"}, "output": {"publish"}, "publish": set()}
+        previous = self.active_phase or self.last_phase
+        if name not in successors[previous]:
+            raise ValueError("invalid_execution_transition")
+        self.end_phase("ok")
+        self.phase_sequence += 1
+        self.active_phase, self.phase_started = name, time.monotonic()
+        self.phase_events = []
+        self.step("react_phase", {"schema_version": "react-boundary-v1", "phase": name,
+                  "sequence": self.phase_sequence, "boundary": "start",
+                  "decision_code": decision_code, "input_hash": digest(inputs or {}),
+                  "reasoning_kind": "public_decision_summary"}, "running")
+
+    def end_phase(self, status, observation=None):
+        if self.active_phase is None:
+            return
+        self.step("react_phase", {"schema_version": "react-boundary-v1", "phase": self.active_phase,
+                  "sequence": self.phase_sequence, "boundary": "end",
+                  "duration_ms": round((time.monotonic()-self.phase_started)*1000, 3),
+                  "observation": observation or {}, "event_count": len(self.phase_events),
+                  "events_hash": digest(self.phase_events)}, status)
+        self.last_phase, self.active_phase = self.active_phase, None
 
     def evaluate(self, result):
         self.repository.evaluate(self.run_id, self.request.scope, result)
@@ -118,6 +157,15 @@ class RunSession:
         self.step("final_output", {"output_hash": digest(output), "output_chars": len(output),
                                    "action": action, "official_output_allowed": official}, status.value)
         outcome = RunOutcome(self.run_id, status, output, action, official, self.failure or getattr(self, "attribution", None))
-        self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date)
+        terminal_boundary = None
+        if self.active_phase is not None:
+            terminal_boundary = {"schema_version": "react-boundary-v1", "phase": self.active_phase,
+                "sequence": self.phase_sequence, "boundary": "end",
+                "duration_ms": round((time.monotonic()-self.phase_started)*1000, 3),
+                "event_count": len(self.phase_events), "events_hash": digest(self.phase_events),
+                "observation": {"output_hash": digest(output), "action": action, "official_output_allowed": official}}
+        self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date, terminal_boundary=terminal_boundary)
+        if self.active_phase is not None:
+            self.last_phase, self.active_phase = self.active_phase, None
         self.closed = True
         return outcome

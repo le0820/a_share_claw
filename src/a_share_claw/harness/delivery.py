@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .contracts import validate_date
 from .markdown import validate_markdown
+from .html import validate_html
 
 
 def read_artifact(trace, scope, artifact_root, filename):
@@ -49,6 +50,15 @@ def read_report(repository, scope, run_id, artifact_root, *, as_of_date=None):
             result["report"] != descriptor or result["report_markdown"] != md_descriptor or result["data"] != report["data"] or
             report["publication_status"] != "staged"):
         raise ValueError("report_integrity_error")
+    rendered_html, html_descriptor = None, None
+    if report.get("html_version") is not None:
+        if "report_html_contract" not in {v["detail"]["evaluator"] for v in trace["evaluations"] if v["passed"] and v["hard_gate"]}:
+            raise ValueError("report_integrity_error")
+        html_raw, html_descriptor = read_artifact(trace, scope, artifact_root, "report.html")
+        if result.get("report_html") != html_descriptor:
+            raise ValueError("report_integrity_error")
+        rendered_html = html_raw.decode("utf-8")
+        validate_html(rendered_html, report)
     text = md.decode("utf-8")
     validate_markdown(text, report)
     published = repository.published_state(run_id, scope)
@@ -56,6 +66,8 @@ def read_report(repository, scope, run_id, artifact_root, *, as_of_date=None):
     if official:
         if (published is None or published["report"] != descriptor or published.get("report_markdown") != md_descriptor or
                 published["workflow"] != report["workflow"] or published["as_of_date"] != report["as_of_date"]):
+            raise ValueError("report_integrity_error")
+        if html_descriptor is not None and published.get("report_html") != html_descriptor:
             raise ValueError("report_integrity_error")
         publication = "published"
         action = trace["outcome"]["action"]
@@ -66,4 +78,4 @@ def read_report(repository, scope, run_id, artifact_root, *, as_of_date=None):
     header = "读取状态：" + ("已正式发布" if official else "研究/回放产物") + "；行动：" + action + "。归档原文如下。\n\n"
     return {"run_id":run_id, "scope_key":scope.key, "publication_status":publication, "official_output_allowed":official,
             "action":action, "report":report, "report_descriptor":descriptor, "markdown_descriptor":md_descriptor,
-            "markdown":header+text}
+            "markdown":header+text, "html":rendered_html, "html_descriptor":html_descriptor}

@@ -175,7 +175,9 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
             selected[metric] = result
         metrics[symbol] = selected
     return {"schema_version": "quant-output-v1", "specification": spec, "metrics": metrics, "metric_units": METRIC_UNITS,
-            "series_audit": metadata, "unknowns": unknowns, "risk_decision": "NO_ACTION",
+            "series_audit": metadata, "chart_series": {symbol: {"name": metadata[symbol]["name"],
+                "unit": metadata[symbol]["unit"], "source_file": metadata[symbol]["source_file"],
+                "input_hash": metadata[symbol]["input_hash"], "rows": received[symbol]["rows"]} for symbol in prices}, "unknowns": unknowns, "risk_decision": "NO_ACTION",
             "limitations": ["Calendar and source identity require trusted host review; labels and hashes alone do not prove authenticity.",
                             "Price changes exclude dividends, fees and FX conversion; these are statistics, not a strategy backtest.",
                             "Volatility uses sample standard deviation of simple local-session returns and the declared annualization factor.",

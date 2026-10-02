@@ -17,6 +17,7 @@ from .framework import compile_framework
 from .research import execute_research
 from .mixed import workflow_parameters, mixed_plan, execute_mixed
 from .reports import build_report, validate_report
+from .html import render_html, validate_html
 from .markdown import render_markdown, validate_markdown
 from .quant import compute_quant, timestamp
 from .outlook import outlook_facts
@@ -64,6 +65,7 @@ class Harness:
                   "action": "NO_ACTION", "official_output_allowed": False, "gaps": [], "data": None}
         status, state = RunStatus.BLOCKED, None
         try:
+            session.phase("context", "validate_scope_route_and_policy", {"request_hash": digest(request.message)})
             session.checkpoint()
             if parent_run_id is not None:
                 parent = session.repository.read(parent_run_id, request.scope)
@@ -80,6 +82,7 @@ class Harness:
             session.step("context", {"kind": "policy_snapshot", "loaded_files": list(policy.hashes),
                                      "missing_files": [], "state_scope": request.scope.key,
                                      "state_injected": False})
+            session.phase("planning", "compile_and_freeze_requirements", {"workflow": workflow, "policy_version": policy.version})
             compiled = None
             if framework_adapter is not None or framework_proposer is not None:
                 if request.mode == "replay":
@@ -109,6 +112,7 @@ class Harness:
                 output["completion"] = "framework_only"
                 status = RunStatus.SUCCEEDED
             else:
+                session.phase("evidence", "admit_existing_then_acquire_frozen_gaps", {"plan_id": plan["plan_id"]})
                 if compiled is not None and plan["unresolved_constraints"]:
                     output["gaps"] = plan["unresolved_constraints"]
                     raise ValueError("planning_constraints_required")
@@ -147,6 +151,7 @@ class Harness:
                         reference=session.evaluation_clock
                         session.step("post_acquisition_clock",{"evaluation_timestamp":reference.isoformat(),"frozen_cutoff_timestamp":quant_cutoff})
                 if workflow == "mixed":
+                    session.phase("compute", "orchestrate_scoped_slices_and_combined_review", {"plan_id": plan["plan_id"]})
                     data, provenance = execute_mixed(self, session, plan, packet, reference, output,
                                                     role_runner, semantic_reviewer, research_adapter)
                 else:
@@ -158,6 +163,8 @@ class Harness:
                         raise ValueError("missing_required_data")
                 output["data_audit"] = {"as_of_date": cutoff, "source_files": provenance,
                                         "fallback_status": "none", "policy_version": policy.version}
+                if workflow != "mixed":
+                    session.phase("compute", "execute_core_calculation_and_evaluated_roles", {"plan_id": plan["plan_id"], "evidence_hash": digest(provenance)})
                 if workflow == "mixed":
                     pass  # child evidence and combined review have passed; publisher below is shared
                 elif workflow == "macro":
@@ -204,6 +211,7 @@ class Harness:
                 session.evaluate(EvalResult("required_evidence", True))
                 session.evaluate(EvalResult("scope_and_date", True))
                 prior = session.repository.read_state(request.scope, workflow, as_of_date=cutoff)
+                session.phase("output", "render_validate_and_archive_reports", {"computed_hash": computed_hash})
                 report_timestamp = now()
                 report = build_report(request, session.run_id, plan, data, output["data_audit"], prior, report_timestamp)
                 validate_report(report, request, session.run_id, plan, data, output["data_audit"], prior, report_timestamp)
@@ -211,8 +219,12 @@ class Harness:
                     raise ValueError("report_contract_failure")
                 rendered = render_markdown(report)
                 validate_markdown(rendered, report)
+                rendered_html = render_html(report)
+                validate_html(rendered_html, report)
                 output["report"] = self._archive(session, "report", report)
                 output["report_markdown"] = self._archive_content(session, "report.md", rendered.encode("utf-8"))
+                output["report_html"] = self._archive_content(session, "report.html", rendered_html.encode("utf-8"))
+                session.evaluate(EvalResult("report_html_contract", True))
                 session.evaluate(EvalResult("report_markdown_contract", True))
                 session.evaluate(EvalResult("report_contract", True))
                 session.step("report", {"sha256": output["report"]["sha256"], "status": "staged"})
@@ -221,7 +233,7 @@ class Harness:
                 output["action"] = (data["decision"]["action"] if workflow == "ai" else "POSITION_BAND" if workflow == "macro" else "NO_ACTION") if request.mode == "official" else "NO_ACTION"
                 status = RunStatus.SUCCEEDED
                 if request.mode == "official":
-                    state = {"run_id": session.run_id, "workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"], "report": output["report"], "report_markdown": output["report_markdown"]}
+                    state = {"run_id": session.run_id, "workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"], "report": output["report"], "report_markdown": output["report_markdown"], "report_html": output["report_html"]}
                 self._archive(session, "computed_output", {**output, "publication_status": "staged", "official_output_allowed": False, "action": "NO_ACTION"})
                 if session.remaining <= 0:
                     raise TimeoutError("budget_exceeded")
@@ -282,7 +294,12 @@ class Harness:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None)
             output.pop("report", None)
             output.pop("report_markdown", None)
+            output.pop("report_html", None)
             state = None
+        if status != RunStatus.SUCCEEDED or session.failure is not None:
+            session.end_phase("cancelled" if status == RunStatus.CANCELLED else "error", {"error_code": output.get("error_code")})
+        if status == RunStatus.SUCCEEDED and session.failure is None:
+            session.phase("publish", "apply_terminal_publication_gate", {"official": output["official_output_allowed"]})
         session.step("publish_gate", {"allowed": output["official_output_allowed"], "action": output["action"]})
         try:
             return session.finish(canonical(output), status, action=output["action"], official=output["official_output_allowed"], state=state)
@@ -293,12 +310,14 @@ class Harness:
                           error_code="cancelled" if cancelled else "budget_exceeded")
             output.pop("report", None)
             output.pop("report_markdown", None)
+            output.pop("report_html", None)
             session.step("publish_gate", {"allowed": False, "action": "NO_ACTION"}, "cancelled" if cancelled else "error")
             return session.finish(canonical(output), RunStatus.CANCELLED if cancelled else RunStatus.FAILED)
         except ValueError:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None, error_code="promotion_denied")
             output.pop("report", None)
             output.pop("report_markdown", None)
+            output.pop("report_html", None)
             session.evaluate(EvalResult("official_promotion", False, category=Failure.STATE_CONTAMINATION_FAILURE, code="promotion_denied"))
             return session.finish(canonical(output), RunStatus.BLOCKED)
 

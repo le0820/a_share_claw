@@ -30,7 +30,7 @@ def add_harness_parser(sub):
     report = commands.add_parser("report", help="Read a verified scoped report by run_id")
     scope_options(report)
     report.add_argument("run_id")
-    report.add_argument("--format", choices=["markdown", "json"], default="markdown")
+    report.add_argument("--format", choices=["markdown", "html", "json"], default="markdown")
     report.add_argument("--date", help="Reject reports later than this cutoff")
     for name in ("plan", "run", "replay", "state"):
         command = commands.add_parser(name)
@@ -83,7 +83,9 @@ def run_harness(args, config, storage):
     if args.harness_command == "report":
         try:
             delivery = read_report(repo, scope, args.run_id, config.data_dir / "harness_runs", as_of_date=args.date)
-            print(delivery["markdown"] if args.format == "markdown" else json.dumps({k:v for k,v in delivery.items() if k != "markdown"}, ensure_ascii=False, indent=2))
+            if args.format == "html" and delivery["html"] is None:
+                raise LookupError("Legacy report has no HTML artifact")
+            print(delivery[args.format] if args.format in {"markdown", "html"} else json.dumps({k:v for k,v in delivery.items() if k not in {"markdown", "html"}}, ensure_ascii=False, indent=2))
             return 0
         except LookupError:
             print(json.dumps({"ok":False,"error_code":"report_not_found"}))
@@ -130,8 +132,8 @@ def run_harness(args, config, storage):
                 raw = path.read_bytes()
                 if hashlib.sha256(raw).hexdigest() != detail["sha256"]:
                     raise ValueError("Artifact hash mismatch")
-                if path.suffix == ".md":
-                    continue  # the hash was checked; Markdown is not a FactPacket
+                if path.suffix in {".md", ".html"}:
+                    continue  # the hash was checked; rendered reports are not FactPackets
                 obj = json.loads(raw)
                 if "capability" in obj:
                     facts.append(obj)

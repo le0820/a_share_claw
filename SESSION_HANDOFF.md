@@ -67,3 +67,13 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 ```
 
 真实网络/模型验收须显式使用已授权环境配置并保留来源快照；不要把密钥、联系值、私人状态或原始会话提交到仓库。
+
+## 2026-10-02 继续开发记录（本轮范围）
+
+在原开发 worktree 实施六阶段执行边界与 HTML 归档读取门禁；核心 quant 输出增加准入收盘序列供 SVG 图表使用，月度历史报告也有公布率图。增加 HTML 转义、篡改拒绝、输出失败保留正式状态与七工作流阶段边界验收。旧双格式报告仍能读取；旧报告不自动补 HTML。离线 replay 校验 HTML 哈希后跳过渲染文件。
+
+完整用户 goal 保持未完成：交接建议的普通 chat 可信来源配置仍需实现；各来源/模型/角色/评价步骤的细粒度 ReAct span、公开决策与观测界面，纯规划/缺口 HTML、报告浏览入口，资金流向与申万一级行业轮动，S&P500/Nasdaq100/沪深300/创业板真实行情接线与数值/日历验收仍需继续。不能用六个阶段或合成三指数图宣告整体完成。下一轮从本 worktree 的未完成边界推进，不重新开放旧工具或绕过来源政策。
+
+本机预览 `data/harness_acceptance/html_react_20261002/preview/report.html` 仅为合成数据验收，明确 Synthetic 标签；不是实际行情或投资输出。当前机器缺少 uv/3.11/3.12 验证环境，使用主 checkout 的 Python 3.13 venv，核心 SDK/pandas 已对齐 uv.lock 对应版本；不继承旧 CI 的双 Python 版本通过声明。
+
+本轮离线回归：Python 3.13，489 passed / 1 skipped / 41 subtests passed；`data/harness_acceptance/html_react_20261002/junit.xml` 与 acceptance.json 留存。未调用真实数据或模型；未跑 3.11/3.12 CI。
