@@ -24,9 +24,11 @@ class OfflineEndpoint:
         self.requests = []
         self.mutation = mutation
         self.clients = []
+        self.bodies = []
 
     def response(self, request):
         body = json.loads(request.content)
+        self.bodies.append(body)
         assert str(request.url) == "https://fixture-endpoint.invalid/v1/chat/completions"
         assert body["model"] == "synthetic-sdk-model"
         assert not body.get("tools")
@@ -63,17 +65,21 @@ def configured(config):
                                model_api_key="offline-only-not-a-credential", model_name="synthetic-sdk-model")
 
 
-def test_real_sdk_roles_review_and_report_share_core_run(host):
+@pytest.mark.parametrize('provider', ['tencent', 'deepseek'])
+def test_real_sdk_roles_review_and_report_share_core_run(host, provider):
     config, storage, context, _ = host
     scope = Scope.from_context(ROOT, context)
     endpoint = OfflineEndpoint()
-    agent = InvestmentAgent(configured(config), storage)
+    agent = InvestmentAgent(dataclasses.replace(configured(config), model_provider=provider), storage)
     with patch("a_share_claw.agent.build_model_client", side_effect=endpoint.client):
         outcome = agent.run_core_result(context, "Synthetic industry acceptance", as_of_date=DAY,
                     packet=research_packet(scope), research_spec=spec(technical=True, debate=True), workflow="industry")
     assert outcome.status == RunStatus.SUCCEEDED, outcome.output
     assert outcome.action == "NO_ACTION" and not outcome.official_output_allowed
     assert len(endpoint.requests) == 8 and all(client.is_closed() for client in endpoint.clients)
+    expected='json_object' if provider=='deepseek' else 'json_schema'
+    assert all(body['response_format']['type']==expected for body in endpoint.bodies)
+    if provider=='deepseek':assert all(body['response_format']=={'type':'json_object'} for body in endpoint.bodies)
     roles = endpoint.requests[:-1]
     assert len({entry["packet_id"] for entry in roles}) == 1
     trace = TraceRepository(storage).read(outcome.run_id, scope)
@@ -88,12 +94,13 @@ def test_real_sdk_roles_review_and_report_share_core_run(host):
 
 @pytest.mark.parametrize("mutation,code,calls", [("invalid_json","invalid_model_output",1),
                      ("invalid_reference","invalid_evidence_reference",1), ("failed_review","semantic_review_failed",3)])
-def test_actual_sdk_bad_output_or_review_cannot_publish(host, mutation, code, calls):
+@pytest.mark.parametrize('provider', ['tencent', 'deepseek'])
+def test_actual_sdk_bad_output_or_review_cannot_publish(host, mutation, code, calls, provider):
     config, storage, context, _ = host
     scope = Scope.from_context(ROOT, context)
     endpoint = OfflineEndpoint(mutation)
     with patch("a_share_claw.agent.build_model_client", side_effect=endpoint.client):
-        outcome = InvestmentAgent(configured(config), storage).run_core_result(context, "Synthetic company", as_of_date=DAY,
+        outcome = InvestmentAgent(dataclasses.replace(configured(config), model_provider=provider), storage).run_core_result(context, "Synthetic company", as_of_date=DAY,
                   packet=research_packet(scope), research_spec=spec(), workflow="company", mode="official")
     assert outcome.status == RunStatus.BLOCKED and not outcome.official_output_allowed
     assert outcome.action == "NO_ACTION" and len(endpoint.requests) == calls

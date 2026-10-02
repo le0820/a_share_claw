@@ -272,3 +272,10 @@ NBS 八月国民经济页面与 PBC 八月金融统计页面均实际抓取成�
 
 
 用户最新口径更正：周线为主、日线为辅，取代此前月线辅助描述。当前申万核心输出为daily_context，逐准入交易日收益/竞争排名/排名变化，首日用冻结锚点；HTML默认展示最后交易日，折叠完整日数值，周热力图仍为主。旧月度验收归档仅历史兼容，不代表当前策略；真实轮动仍须周/日数值与来源验收。
+
+
+## DeepSeek Chat Completions 离线协议兼容
+
+按官方create-chat-completion文档（https://api-docs.deepseek.com/api/create-chat-completion/），deepseek提供商发送response_format=json_object，不再发送该接口不支持的json_schema；model_adapter trace记录格式和完整schema hash。其他提供商保持原格式，结构/参数引用/事实引用/Scope/日期/独立评估/发布仍由核心拥有，JSON模式不提升证据权限。不改变思考模式、预算或将私有思维链送入工作台。README与.env.example同步DeepSeek配置示例，API key留空/占位，不提交真实密钥。
+
+实际SDK+MockTransport验证DeepSeek provider的8角色/评估调用、框架提案与独立审核引用协议，错误JSON/伪造引用/评审失败仍阻断，无工具、无来源调用。Python3.13全量603 passed /41 subtests；针对性22 passed。证据data/harness_acceptance/deepseek_protocol_20261002/acceptance.json及offline-junit.xml。仅离线协议验收，真实官方401仍待用户确认服务地址，未重新调用模型或向其他网关发送密钥。真实SW31及沪深最终收盘边界不变，整体goal仍未完成。

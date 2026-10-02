@@ -170,3 +170,10 @@ swresearch 0.2.0 增加 industry.publisher_document，显式宿主计划固定�
 合成run=f4ee6e48a0d04ee2b1d544d7e56e07e4，0source/0model/NO_ACTION/no state；same Scope fixture执行当前代码，独立Decimal复算31×2周及31×3日收益/12位竞争排名/排名变化。IAB确认Synthetic标签、周热力图、日辅助31条最后交易日默认表、93条完整日记录折叠表及31行业收盘图，1280宽度无页面横向溢出；页/服务已关闭。最新acceptance在data/harness_acceptance/sw_rotation_synthetic_20261002/，按run_id另存，旧月辅助验收不改写。当前read_report还复验真实四指数de3365db和沪深资金6ac64f6a的同Scope读取/哈希/确定性渲染，均通过。这些是归档兼容与最新周/日算法/展示证据，不证明真实SW31数据、DeepSeek鉴权或整个goal完成。
 
 剩余真实来源阻碍保持：官方分类PDF403、目录连接失败，缺原始版本/身份/指数生效/沪深范围审核；DeepSeek官方401待确认服务地址；沪深三条零值最终收盘完整性未认证。不重复无条件取数或模型尝试，不改变来源规则。无新的代码变动或测试重跑，当前实现回归沿用f4c3ff5的598 passed /41 subtests。
+
+
+## DeepSeek Chat Completions 离线协议兼容
+
+按官方create-chat-completion文档（https://api-docs.deepseek.com/api/create-chat-completion/），deepseek提供商发送response_format=json_object，不再发送该接口不支持的json_schema；model_adapter trace记录格式和完整schema hash。其他提供商保持原格式，结构/参数引用/事实引用/Scope/日期/独立评估/发布仍由核心拥有，JSON模式不提升证据权限。不改变思考模式、预算或将私有思维链送入工作台。README与.env.example同步DeepSeek配置示例，API key留空/占位，不提交真实密钥。
+
+实际SDK+MockTransport验证DeepSeek provider的8角色/评估调用、框架提案与独立审核引用协议，错误JSON/伪造引用/评审失败仍阻断，无工具、无来源调用。Python3.13全量603 passed /41 subtests；针对性22 passed。证据data/harness_acceptance/deepseek_protocol_20261002/acceptance.json及offline-junit.xml。仅离线协议验收，真实官方401仍待用户确认服务地址，未重新调用模型或向其他网关发送密钥。真实SW31及沪深最终收盘边界不变，整体goal仍未完成。

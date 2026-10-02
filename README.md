@@ -259,14 +259,14 @@ python -m a_share_claw init-db
 ASCLAW_FAKE_AI=1 python -m a_share_claw chat "测试一下"
 ```
 
-独立模型模式配置 `.env`，本地 `chat` 不需要 Telegram token：
+独立模型模式配置 `.env`，本地 `chat` 不需要 Telegram token。DeepSeek Chat Completions 使用 `json_object`；结构/引用/日期/Scope和独立评审仍由核心校验，JSON格式成功不代表研究通过。配置示例不证明真实鉴权可用：
 
 ```bash
-# 国内 OpenAI 兼容端点；不配置时才回落到教程占位模型。
-ASCLAW_MODEL_PROVIDER=tencent
-ASCLAW_MODEL_BASE_URL=https://tokenhub.tencentmaas.com/v1
-ASCLAW_MODEL_API_KEY=sk-...
-ASCLAW_MODEL_NAME=hy3
+# 显式模型配置；核心 SDK 不静默回落到其他端点。
+ASCLAW_MODEL_PROVIDER=deepseek
+ASCLAW_MODEL_BASE_URL=https://api.deepseek.com
+ASCLAW_MODEL_API_KEY=YOUR_API_KEY
+ASCLAW_MODEL_NAME=deepseek-flash
 ASCLAW_OPENAI_MODEL=gpt-5.5
 
 # 宿主展示/任务的用户时区，与 A 股市场日期边界分离。

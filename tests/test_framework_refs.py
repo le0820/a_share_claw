@@ -1,5 +1,5 @@
 """Complete host parameter references are resolved by code before review/acquisition."""
-import copy,json
+import copy,json,dataclasses
 from datetime import date,timedelta
 from unittest.mock import patch
 import httpx,pytest
@@ -70,18 +70,21 @@ class ReferenceEndpoint(OfflineEndpoint):
             result={'candidate_hash':entry['candidate_hash'],'passed':True,'findings':[],
                     'reviewer':'synthetic_reference_reviewer','version':'fixture-v1'}
         else:
-            assert set(body['response_format']['json_schema']['schema']['properties'])=={'framework','parameters_ref','unresolved_constraints'}
+            if body['response_format']['type']=='json_schema':
+                assert set(body['response_format']['json_schema']['schema']['properties'])=={'framework','parameters_ref','unresolved_constraints'}
+            else:assert body['response_format']=={'type':'json_object'}
             result={'framework':'Synthetic quarter price framework and visualization; admitted facts required before calculating results.',
                     'parameters_ref':entry['host_parameters_ref'],'unresolved_constraints':[]}
         return httpx.Response(200,json={'id':'synthetic-reference','object':'chat.completion','created':1,'model':'synthetic-sdk-model',
             'choices':[{'index':0,'message':{'role':'assistant','content':canonical(result)},'finish_reason':'stop'}],
             'usage':{'prompt_tokens':10,'completion_tokens':10,'total_tokens':20}})
 
-def test_real_sdk_transport_uses_calendar_metadata_and_core_keeps_full_contract(environment,host):
+@pytest.mark.parametrize('provider', ['tencent', 'deepseek'])
+def test_real_sdk_transport_uses_calendar_metadata_and_core_keeps_full_contract(environment,host,provider):
     storage,scope,engine,tmp=environment;config,*_=host;endpoint=ReferenceEndpoint();constraints=complete_constraints()
     with patch('a_share_claw.agent.build_model_client',side_effect=endpoint.client):
         out=engine.run(RunRequest(scope,'Synthetic full-quarter reference model transport',DAY,'plan','quant'),
-            planning_constraints=constraints,framework_adapter=SDKResearchAdapter(configured(config)))
+            planning_constraints=constraints,framework_adapter=SDKResearchAdapter(dataclasses.replace(configured(config),model_provider=provider)))
     assert out.status==RunStatus.SUCCEEDED,out.output
     assert json.loads(out.output)['plan']['parameters']==constraints
     proposal,reviewed=endpoint.requests
