@@ -91,7 +91,20 @@ class SDKResearchAdapter:
                         "responds_to": (["shen_du:initial" if role == "qian_zhan" else "qian_zhan:initial"] if phase == "rebuttal" else []),
                         "unknowns": [], "monitoring_triggers": []}
             purpose = ROLE_PURPOSE[role] + " Answer every assigned question. Cite the supplied fact IDs; do not invent facts. Return only the eight top-level keys shown, no additional summaries or scores. Each answer has exactly question_id/fact_ids/inference. Every unknown has exactly question_id/reason/blocking (boolean) and uses an existing assigned question_id; missing inputs that limit a conditional interpretation can be nonblocking, but missing evidence for the required question must block. Initial phases use responds_to=[]; do not refer to an opposing phase that has not run yet. Rebuttals must use the opposing initial phase key from previous_role_outputs; final may reference existing keys only. Ping Heng must provide monitoring_triggers with exactly condition/fact_ids. Keep the entire response below 16000 characters. Conditional forecasts are allowed as inferences, not facts; identify assumptions and transmission mechanisms instead of treating all future analysis as forbidden."
-        return await self._roundtrip(session, payload, operation, contract, purpose, response_schema(entry))
+        model_payload=payload
+        if (review and operation=='framework_semantic_review' and
+                digest(entry['candidate']['parameters'])==entry['candidate']['host_constraints_hash']):
+            from .framework_transport import metadata_view
+            from .harness.research import RoleRequest
+            reduced=metadata_view(entry)
+            reduced['framework_transport']={'schema_version':'framework-metadata-v1',
+                'original_payload_hash':digest(entry),'calendar_lists':'count_first_last_and_sha256_only',
+                'binding_validation':'core_checked_complete_host_parameters_before_review'}
+            model_payload=RoleRequest(canonical(reduced),payload.remaining_seconds)
+            session.step('framework_transport',{'operation':operation,'original_payload_hash':digest(entry),
+                'model_payload_hash':digest(reduced),'original_chars':len(payload.document),'model_chars':len(model_payload.document)})
+            purpose+=' Calendar summaries contain counts, first/last sessions and hashes; exact host bindings are code-validated and remain in the archived candidate. Review semantic coverage and do not reconstruct calendars or demand a model echo of the full lists. This is a framework-only review, not evidence admission.'
+        return await self._roundtrip(session, model_payload, operation, contract, purpose, response_schema(entry))
 
     def bind_framework(self, session):
         if session.request.mode == "replay":
@@ -100,6 +113,29 @@ class SDKResearchAdapter:
                 lambda payload: asyncio.run(self._call(session,payload,review=True)))
 
     async def _framework(self, session, payload):
+        from .harness.framework import host_parameters_ref
+        entry=payload.json()
+        try:
+            reference=host_parameters_ref(entry['workflow'],entry['host_constraints'],entry['as_of_date'],entry['scope_key'])
+        except ValueError:
+            reference=None
+        if reference is not None:
+            from .framework_transport import metadata_view,reference_schema
+            from .harness.research import RoleRequest
+            reduced={**entry,'host_constraints':metadata_view(entry['host_constraints']),'host_parameters_ref':reference}
+            model_payload=RoleRequest(canonical(reduced),payload.remaining_seconds)
+            session.step('framework_transport',{'operation':'framework_proposal','original_payload_hash':digest(entry),
+                'model_payload_hash':digest(reduced),'original_chars':len(payload.document),'model_chars':len(model_payload.document)})
+            contract={'framework':'Dated research questions and completion boundaries, preserving requested language and presentation; no facts or action.',
+                      'parameters_ref':reference,'unresolved_constraints':[]}
+            purpose=('Compile the original user_request into the host-selected workflow. Complete executable parameters are owned by the host and materialized by core code. '
+                'Return only framework/parameters_ref/unresolved_constraints; copy host_parameters_ref exactly. Never emit or modify parameters, calendars, metric definitions, providers or source contracts. '
+                'The host_constraints view describes the full frozen specification; sessions are summarized by count/first/last/hash and are not missing planning constraints. '
+                'Preserve the requested output language, named assets, window, comparisons and visualization requirements in framework text. '
+                'There are no admitted observations yet; unavailable sources belong to the later evidence gate. No research conclusions, numerical actions, allocation or new facts. '
+                'A genuine structural incompatibility with the original request must remain explicit as {constraint:snake_case_id,reason:nonempty_string}. '
+                'A complete specification does not imply evidence or research completion.')
+            return await self._roundtrip(session,model_payload,'framework_proposal',contract,purpose,reference_schema(reference))
         contract={"framework":"Questions, hypotheses and completion boundaries; no answers or numerical action.",
                   "parameters":{},"unresolved_constraints":[]}
         purpose=("Compile the original user_request into the host-selected workflow. Return framework/parameters/unresolved_constraints only. "
