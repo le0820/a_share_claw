@@ -34,6 +34,48 @@ def test_catalog_requires_31_but_cannot_certify_classification(tmp_path):
     assert result.availability=='unverified' and not result.data['classification_version_certified']
     assert t.calls[0][1]['indextype']=='一级行业'
 
+class DocumentTransport:
+    def __init__(self, raw=b'%PDF-1.7\nsynthetic fixture only'):
+        self.raw=raw;self.calls=[]
+    def get(self,url,params=None,headers=None):
+        self.calls.append(url);return self.raw
+
+def document_req(url='https://wxweb.swsresearch.com/swsreport/2021_08/328340.pdf'):
+    return requirement('swresearch','industry.publisher_document',
+                       {'url':url,'purpose':'classification_standard'},day=DAY)
+
+def test_publisher_document_preserves_original_bytes_without_date_or_review_promotion(tmp_path):
+    import hashlib
+    transport=DocumentTransport();run=DataRun({'swresearch':SWResearch({},transport)},tmp_path,'synthetic-document')
+    run.plan({'framework':'Synthetic explicit classification document for host review, no prices',
+              'requirements':[document_req().json()]})
+    result=asyncio.run(run.fetch('input'))
+    assert result['status']=='unverified' and result['fallback_status']=='unverified'
+    data=result['data'];assert data['review_status']=='unreviewed'
+    assert data['publication_date'] is data['classification_effective_date'] is data['index_effective_date'] is None
+    assert not data['classification_version_certified']
+    assert data['document_sha256']==result['provenance']['sha256']==hashlib.sha256(transport.raw).hexdigest()
+    assert (run.directory/result['provenance']['artifact']).read_bytes()==transport.raw
+    assert len(transport.calls)==1
+
+@pytest.mark.parametrize('url',[
+    'http://wxweb.swsresearch.com/swsreport/2021_08/328340.pdf',
+    'https://wxweb.swsresearch.com.evil.test/swsreport/2021_08/328340.pdf',
+    'https://user@wxweb.swsresearch.com/swsreport/2021_08/328340.pdf',
+    'https://wxweb.swsresearch.com:8443/swsreport/2021_08/328340.pdf',
+    'https://wxweb.swsresearch.com/swsreport/2021_08/328340.pdf?token=x',
+    'https://wxweb.swsresearch.com/swsreport/2021_08/328340.pdf#classification',
+    'https://wxweb.swsresearch.com/swsreport/2021_13/328340.pdf',
+    'https://wxweb.swsresearch.com/swsreport/2021_08/../328340.pdf'])
+def test_publisher_document_rejects_unfrozen_source_before_network(url):
+    transport=DocumentTransport()
+    with pytest.raises(DataError):SWResearch({},transport).fetch(document_req(url))
+    assert transport.calls==[]
+
+@pytest.mark.parametrize('raw',[b'<html>Access denied</html>',b'',b'%PDF-1.7'+b'x'*20_000_000])
+def test_publisher_document_rejects_access_notice_and_oversize(raw):
+    with pytest.raises(DataError):SWResearch({},DocumentTransport(raw)).fetch(document_req())
+
 @pytest.mark.parametrize('change',['code','duplicate','zero','nan','bad_ohlc','missing_anchor','missing_last'])
 def test_native_window_rejects_invalid_history(change):
     data=rows()

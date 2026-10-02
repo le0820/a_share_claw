@@ -126,7 +126,7 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
             if (spec['schema_version']!='quant-spec-v2' or not isinstance(meta,dict) or set(meta)!=required or
                     meta['basis']!='observed_current_snapshot' or meta['snapshot_as_of_date']!=as_of_date or
                     meta['historical_vintage_certified'] is not False or meta['provider']!='swresearch' or
-                    meta['adapter_version']!='0.1.0' or meta['raw_format']!='native_http_json' or
+                    meta['adapter_version'] not in {'0.1.0', '0.2.0'} or meta['raw_format']!='native_http_json' or
                     meta['native_identity']!={'code':symbol[:-3],'name':asset['name'],'publisher':'申万宏源研究'} or
                     captured.astimezone(ZoneInfo('Asia/Shanghai')).date().isoformat()!=as_of_date or
                     not isinstance(meta['source_run_id'],str) or not re.fullmatch(r'[a-f0-9]{32}',meta['source_run_id']) or

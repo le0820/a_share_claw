@@ -149,3 +149,12 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 用户随后要求改用 DeepSeek Flash：两个本地忽略.env已设 provider=deepseek/model=deepseek-flash/base_url=https://api.deepseek.com，凭据不入验收或Git。官方/models测试401，配置读取正常但鉴权/真实调用未验收；已请求确认官方或原腾讯网关，尚待回复。不能用上面的Tencent成功替代DeepSeek验收，不能静默恢复旧模型或向其他网关发送密钥。
 
 下一步保持完整goal：确认模型服务后做对应SDK协议兼容和真实模型验收；恢复申万官方可达性、复核SW2021一级31行业分类及生效/沪深范围，再取得精确日行情，独立周/月复算与真实HTML验收；沪深3条原生零值的最终收盘完整性仍未认证。北交所排除、周线主/月线辅、完整Issue #1边界不变。不得因这次实际聊天成功关闭整个goal。
+
+
+## 2026-10-02 申万原始文件取证入口
+
+swresearch 0.2.0 增加 industry.publisher_document，显式宿主计划固定官方wxweb报告PDF URL及审核目的；严格官方HTTPS路径、无重定向、20MB/PDF字节头检查，原文与SHA256沿用同Scope来源归档。结果保留unverified/unreviewed，发布日期/分类生效/指数生效均为null；没有自动解析/审核/价格准入或正式发布。旧0.1.0和新0.2.0原生日行情版本显式兼容，其余版本仍拒绝。官方2021分类说明搜索结果提示“分类推出”和“配套指数调整”日期不同，原PDF直接访问仍403，搜索摘要没有提升为分类证据。该入口补齐合法原文件获取机制，不表示真实申万轮动已通过。
+
+来源仍受阻；下一步是在外部可达性变化或宿主提供正式原始文件后，分别审核分类版本/发布日期/指数生效日期/31身份/沪深范围，再采日行情并验收周/月轮动。DeepSeek官方401仍待用户确认服务地址；不向其他网关发送密钥。北交所排除、周线主/月线辅、完整goal继续active。
+
+本增量全量离线Python3.13：598 passed / 41 subtests；Junit保留在data/harness_acceptance/sw_official_20261002/document-offline-junit.xml。新增原始字节/哈希、不推断日期、URL越权取数前拒绝、HTML访问提示和超限拒绝检查。没有实际PDF取证成功、新增31行情或模型调用，不继承3.11/3.12 CI验收。

@@ -260,6 +260,8 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 
 限定能力：`industry.sw2021_level1_metadata` 提供有出处的31行业代码/名称/指数身份/版本/生效日；`market.sw_index_daily_snapshot` 只接冻结的31指数、日期窗口和原生收盘。取数前冻结Scope+分类+日历/锚点+口径+周窗口+来源合同；原始响应与哈希留存，字段单位/身份/完整性逐项校验。当前捕获与原始发布日分开，历史PIT未知就明确标记；缺必需元数据、任一行业或任一会话就交付缺口页，禁止替代或补零。研究保持NO_ACTION。完成真实31行业独立周收益/并列排名/排名变化复算和HTML验收后才称真实轮动接通。
 
+新增 `industry.publisher_document`（swresearch 0.2.0）：宿主在来源计划中显式固定官方报告PDF URL和purpose（classification_standard/index_methodology/index_effective_notice）；仅允许wxweb.swsresearch.com/swsreport/YYYY_MM/数字.pdf，GET、无重定向、20MB限制。原始PDF字节及SHA256按同Scope归档；结果始终unverified/unreviewed，不解析行业、不推断发布或生效日期、不直接交给评分/轮动。人工复核必须分别核实分类推出日、报告发布日期、配套指数调整日、31行业代码映射及沪深范围；不能用搜索摘要或URL月份替代原文。实际官方328340.pdf当前返回403，仍缺原始文件，不宣称真实取证成功。
+
 状态：`swresearch` 已注册，须显式加入 `ASCLAW_DATA_PROVIDERS`，默认五源集合保持原有范围。原生HTTP插件和冻结price-core交接已实现；分类目录仅unverified，须先有独立宿主复核的分类文件才允许取31指数。原生日数据经price-series-v3保留HTTP身份/版本/原始哈希/当前捕获，不伪装为easytdx SDK。官网本轮连接超时，真实分类与31行情完整覆盖尚未验收。
 
 周热力图为主，月线辅助表使用同一已准入日行情计算月度收益/竞争排名，不调用供应商周月汇总或增加交易动作。窗口没有覆盖完整日历月时保守标记“部分月份（窗口内）”；缺会话仍拒绝，不能把部分月与完整月混为一谈。原生端点为 `/institute-sw/api/index_publish/current/` 与 `trend/`；仅核查原生字段与请求语义，不运行第三方SDK或TLS绕过。
