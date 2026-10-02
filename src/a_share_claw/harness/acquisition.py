@@ -61,7 +61,9 @@ def acquire(engine,session,policy,plan,packet,adapter,output):
         "existing_packet":packet or {"as_of_date":plan["as_of_date"],"facts":[]},"evaluation_timestamp":session.evaluation_clock.isoformat()}
     session.step("source_prepare",{"plan_id":plan["plan_id"],"needed_capabilities":needed})
     request=EvidenceRequest(canonical(payload),session.remaining)
-    batch=bounded_call(adapter.prepare,request,session.remaining,session.control)
+    with session.action("source", "prepare_batch", "bind_frozen_gaps_before_fetch", {"plan_id":plan["plan_id"],"needed_capabilities":needed}) as span:
+        batch=bounded_call(adapter.prepare,request,session.remaining,session.control)
+        span.observe(batch_hash=digest(batch.json()) if isinstance(batch,EvidenceBatch) else None)
     if not isinstance(batch,EvidenceBatch):raise ValueError("invalid_source_batch")
     ticket=batch.json();keys={"schema_version","core_run_id","plan_id","scope_key","as_of_date","source_run_id","requirements"}
     if (set(ticket)!=keys or ticket["schema_version"]!="evidence-batch-v1" or ticket["core_run_id"]!=session.run_id or
@@ -92,7 +94,9 @@ def acquire(engine,session,policy,plan,packet,adapter,output):
         output["gaps"]=summary["gaps"]
         raise ValueError("missing_required_data")
     session.checkpoint()
-    result=bounded_call(batch.finish,EvidenceRequest(canonical(payload),session.remaining),session.remaining,session.control)
+    with session.action("source", "finish_batch", "verify_source_archives_and_construct_fact_packet", {"source_run_id":ticket["source_run_id"]}) as span:
+        result=bounded_call(batch.finish,EvidenceRequest(canonical(payload),session.remaining),session.remaining,session.control)
+        span.observe(packet_hash=digest(result))
     if not isinstance(result,dict) or set(result)!={"as_of_date","facts"}:raise ValueError("invalid_evidence")
     session.checkpoint()
     if plan!=payload["plan"] or not policy.unchanged():raise ValueError("plan_changed")

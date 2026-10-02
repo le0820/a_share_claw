@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+from pathlib import Path
 
 from .config import AppConfig
 from .db import Storage
@@ -20,6 +21,8 @@ def main() -> None:
     add_harness_parser(sub)
     chat = sub.add_parser("chat", help="Run one local chat turn")
     chat.add_argument("message")
+    chat.add_argument("--host-contract", type=Path, help="Explicit trusted-chat-host-v1 profile scoped to this exact conversation")
+    chat.add_argument("--date", help="Explicit as-of date; must match the trusted host profile")
     args = parser.parse_args()
     if args.command is None:
         parser.print_help()
@@ -53,9 +56,24 @@ async def async_main(args: argparse.Namespace) -> None:
         return
     if command == "chat":
         from .agent import InvestmentAgent
-        agent = InvestmentAgent(config, storage)
+        profile = None
+        if getattr(args,"host_contract",None) is not None:
+            from .chat_host import TrustedChatProfile
+            try:
+                profile = TrustedChatProfile.parse(json.loads(args.host_contract.read_text()))
+            except (ValueError,OSError,KeyError,TypeError):
+                print(json.dumps({"ok":False,"error_code":"invalid_chat_host_profile"}))
+                storage.close()
+                raise SystemExit(2)
+        agent = InvestmentAgent(config, storage, trusted_chat=profile)
         context = storage.get_or_create_context("local", "local-user", "local-chat", "local")
-        print(await agent.run(context, args.message))
+        try:
+            outcome = await agent.run_result(context,args.message,as_of_date=getattr(args,"date",None))
+            print(outcome.output)
+            if profile is not None and outcome.status.value != "succeeded":
+                raise SystemExit(2)
+        finally:
+            storage.close()
         return
     if command == "run":
         from .agent import InvestmentAgent

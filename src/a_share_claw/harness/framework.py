@@ -97,6 +97,14 @@ def checked_proposal(workflow, proposal, constraints, as_of_date):
 
 
 def compile_framework(session, policy, workflow, constraints, proposer, reviewer, adapter, archive):
+    with session.action("planning", "framework_compile", "propose_validate_and_independently_review",
+                        {"workflow":workflow,"constraints_hash":digest(constraints or {})}) as span:
+        result = _compile_framework(session,policy,workflow,constraints,proposer,reviewer,adapter,archive)
+        span.observe(framework_hash=digest(result))
+        return result
+
+
+def _compile_framework(session, policy, workflow, constraints, proposer, reviewer, adapter, archive):
     constraints=checked_constraints(workflow,constraints or {})
     if adapter is not None:
         if proposer is not None or reviewer is not None:

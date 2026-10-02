@@ -39,6 +39,8 @@ class RunSession:
         self.phase_started = None
         self.last_phase = None
         self.phase_events = []
+        self.action_lock = RLock()
+        self.open_actions = {}
         self.step("request", {"host": request.host, "mode": request.mode, "as_of_date": request.as_of_date})
 
     @property
@@ -87,10 +89,23 @@ class RunSession:
                   "events_hash": digest(self.phase_events)}, status)
         self.last_phase, self.active_phase = self.active_phase, None
 
+    def action(self, kind, operation, decision_code, inputs=None):
+        from .observability import ActionSpan
+        return ActionSpan(self, kind, operation, decision_code, inputs or {})
+
     def evaluate(self, result):
-        self.repository.evaluate(self.run_id, self.request.scope, result)
+        with self.action("evaluation", result.evaluator, "apply_core_gate", {"evaluation_hash": digest(result.json())}) as span:
+            self.repository.evaluate(self.run_id, self.request.scope, result)
+            span.observe(status="ok" if result.passed else "rejected", passed=result.passed, hard_gate=result.hard_gate, error_code=result.code)
 
     async def tool(self, name, arguments, callback, allowed):
+        with self.action("role", name, "check_permission_and_execute_bounded_callback", arguments) as span:
+            result = await self._tool(name, arguments, callback, allowed)
+            span.observe(status="ok" if result["ok"] else "denied" if result["status"] == "denied" else "error",
+                         output_hash=digest(result), error_code=result["error_code"])
+            return result
+
+    async def _tool(self, name, arguments, callback, allowed):
         started = time.monotonic()
         permission = "allow"
         self.tool_count += 1
@@ -123,6 +138,13 @@ class RunSession:
         return envelope
 
     def source_tool(self,name,arguments,callback,payload):
+        with self.action("source", name, "fetch_only_frozen_requirement", arguments) as span:
+            result = self._source_tool(name,arguments,callback,payload)
+            span.observe(status="ok" if result["ok"] else "error", output_hash=digest(result),
+                         error_code=result["error_code"], fallback_status=result["fallback_status"], truncated=result["truncated"])
+            return result
+
+    def _source_tool(self,name,arguments,callback,payload):
         """Host-only source callback; trace hashes facts instead of copying native rows."""
         from .research import bounded_call
         self.checkpoint();self.tool_count+=1
@@ -164,7 +186,14 @@ class RunSession:
                 "duration_ms": round((time.monotonic()-self.phase_started)*1000, 3),
                 "event_count": len(self.phase_events), "events_hash": digest(self.phase_events),
                 "observation": {"output_hash": digest(output), "action": action, "official_output_allowed": official}}
-        self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date, terminal_boundary=terminal_boundary)
+        with self.action_lock:
+            interrupted = [span.end_detail("interrupted") for span in reversed(list(self.open_actions.values()))]
+            self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date,
+                                   terminal_boundary=terminal_boundary, interrupted_actions=interrupted)
+            for span in self.open_actions.values():
+                span.ended = True
+            self.open_actions.clear()
+            self.closed = True
         if self.active_phase is not None:
             self.last_phase, self.active_phase = self.active_phase, None
         self.closed = True

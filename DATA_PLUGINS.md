@@ -131,7 +131,7 @@ macro_metrics 独立归档保留公式、冻结输入契约、原始事实与依
 
 按用户最新 AGENTS.md，默认主源五项现在为 NBS/PBC/easytdx/FRED/SEC。TickFlow 保留在注册表中，只有显式 ASCLAW_DATA_PROVIDERS=tickflow 才加载，不能进入 primary price handoff；没有暗用六个源完成同一研究问题。Agent 仍无取数/安装/改配置工具。
 
-`easytdx` 1.0.0 只提供本次捕获的指数事实：market.index_catalog（空 params）用于国际指数原生目录，保持 unverified/discovery；market.index_daily_snapshot params 恰为 symbol/provider_code/start_date/end_date/count，count 1..600。as_of_date 必须为捕获当天中国日期，历史请求直接拒绝。固定语义身份为 399006.SZ / 创业板指、000688.SH / 科创50、COMP.NASDAQ / NASDAQ Composite；unit=index_points、adjustment=none，币种/市场时区明确。provider_code 必须显式指定，国际代码先查目录再形成需求；QQQ/NDX、含糊名称、其他指数和重复/非法 OHLC 不准入。
+`easytdx` 1.1.0 只提供本次捕获的指数事实：market.index_catalog（空 params）用于国际指数原生目录，保持 unverified/discovery；market.index_daily_snapshot params 恰为 symbol/provider_code/start_date/end_date/count，count 1..600。as_of_date 必须为捕获当天中国日期，历史请求直接拒绝。固定语义身份为 399006.SZ / 创业板指、000688.SH / 科创50、COMP.NASDAQ / NASDAQ Composite，以及 SPX.SP500 / S&P 500、NDX.NASDAQ / NASDAQ 100、000300.SH / 沪深300；unit=index_points、adjustment=none，币种/市场时区明确。provider_code 必须显式指定，国际代码先查目录再形成需求；QQQ 或以综合指数替代 NDX、含糊名称、未列身份及窗口内重复/非法 OHLC 不准入。SDK 返回的窗口外历史仅留原始归档，不准入、不参与统计。新增 SPX/NDX 精确绑定 market=12 与 A_SPX/A_NDX。
 
 独立接口验收已从当前原生目录发现 market=12、A_IXIC / 纳斯达克综合，另有 A_NDX / 纳斯达克100；不将后者当综合指数。原先短窗口身份/字段验收保留；后续 c1b4ab9 实现基线的独立实际验收已取得完整 Q3 与锚点，逐日匹配审核日历并准备核心价格交接，范围见 E0_INFRA.md；尚未执行整合季度展望。
 
@@ -243,3 +243,9 @@ uv run --locked python -m a_share_claw harness run --workflow outlook --date YYY
 basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yoy_rate 或 level；清单不含值，历史事实仍须逐条来源绑定。全部原生月度需求都要被覆盖，并由 base_scenario/risk_monitoring 引用。核心归档并传入角色的 monthly_history 包含输入哈希、期间、公布值、百分点差和版本边界；不新增评分阈值、交易建议或发布权限。旧的无历史规格只是单期事实研究兼容入口。
 
 历史优先来自同版本官方发布；BEA 请求例为 macro.pce_history_snapshot + params {url: 官方发布中已核实的 XLSX URL, year: 2026, month: 8}，selector 的 year/month 则固定实际需要的当前/比较观测。缺少指定月时停止，不把 last-equal/larger/smaller 的稀疏日期补成连续月度历史。7/8 月 PCE 本机同版本验收见 monthly_history_sources_20261001_v2；中国两月为不同发布版本，只比较公布增速，不能认证修订一致趋势。两点不证明持续趋势，累计率不推单月，历史观测不等于历史可得版本。跨运行缓存/授权重准入留待后续，本次按明确官方历史链接重取，不拼接其他 Scope 的未授权包。
+
+## 2026-10-02 可视化与显式 chat 绑定增量
+
+当前捕获四指数 Q3 日线已通过宿主日历/锚点、核心价格准入及独立收益/最大回撤复算；原始归档、首次阻断及窗口外 OHLC 诊断均保留在 `data/harness_acceptance/market_visualization_20261002/`。不升级为历史 vintage 或正式评分。`data_plugins.watch.watch_source_contract` 只把核心冻结四指数规格映射到精确原生身份，核心规格不含 provider。
+
+`chat --host-contract` 显式读取 `trusted-chat-host-v1`，普通 run_result 仍不接受自由证据包或 official 权限。绑定校验早于模型/插件，随后复用现有 PluginEvidenceAdapter；默认无合同的 chat 仍只有规划/缺口。合成模型+四来源闭环与拒绝已通过；真实模型整合待验收。资金流向与申万一级轮动尚未具备生产能力；SDK 自带资金流计算/静默历史回退不能直接准入。

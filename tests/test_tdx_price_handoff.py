@@ -11,6 +11,8 @@ import pytest
 from a_share_claw.data_plugins import DataRun,default_registry
 from a_share_claw.data_plugins.core import DataError,Requirement
 from a_share_claw.data_plugins.tdx import EasyTDX,INDEXES,WorkerTransport
+
+LEGACY_INDEXES={k:INDEXES[k] for k in ("399006.SZ","000688.SH","COMP.NASDAQ")}
 from a_share_claw.harness.contracts import RunRequest,RunStatus,digest
 from a_share_claw.harness.outlook import derived_requirements
 from a_share_claw.harness.trace import TraceRepository
@@ -42,7 +44,7 @@ class IndexTransport:
 
 def index_spec():
     spec=quant_spec();spec["cutoff_timestamp"]=DAY+"T01:00:00Z";spec["assets"]=[]
-    for symbol,native in INDEXES.items():
+    for symbol,native in LEGACY_INDEXES.items():
         suffix="+08:00" if native["kind"]=="china" else "-04:00";hour="15" if native["kind"]=="china" else "16"
         spec["assets"].append({"symbol":symbol,**{key:native[key] for key in ("name","unit","currency","market_timezone")},
             "adjustment":"none","calendar_source":"synthetic explicitly declared sessions",
@@ -56,7 +58,7 @@ def price_plan():
     return {"framework":"Synthetic exact index contracts before acquisition","requirements":[
         requirement("easytdx","market.index_daily_snapshot",{"symbol":symbol,"provider_code":native["code"] or "SYNCOMP",
             "start_date":"2026-07-09","end_date":"2026-07-13","count":10},day=DAY,rid="price"+str(i)).json()
-        for i,(symbol,native) in enumerate(INDEXES.items())]}
+        for i,(symbol,native) in enumerate(LEGACY_INDEXES.items())]}
 
 
 def price_bindings():return [{"symbol":r["params"]["symbol"],"requirement_id":r["requirement_id"]} for r in price_plan()["requirements"]]
@@ -78,7 +80,7 @@ def test_three_native_indices_to_core_statistics_and_dual_report(environment,clo
     storage,scope,engine,tmp=environment;run,t=prepared(tmp/"source",scope);fetch_all(run);env=run.core_price_evidence()
     assert run.core_price_evidence()==env and len(t.calls)==3
     assert env["data"]["schema_version"]=="price-series-v2" and not run.summary()["official_output_allowed"]
-    assert {s["symbol"] for s in env["data"]["series"]}==set(INDEXES)
+    assert {s["symbol"] for s in env["data"]["series"]}==set(LEGACY_INDEXES)
     assert all(row["available_at"]==CAPTURE.isoformat() for s in env["data"]["series"] for row in s["rows"])
     out=engine.run(RunRequest(scope,"Synthetic exact-index implementation check",DAY,"research","quant"),{"as_of_date":DAY,"facts":[env]},
         quant_spec=index_spec(),clock=datetime(2026,7,14,2,tzinfo=timezone.utc))

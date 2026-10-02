@@ -9,7 +9,7 @@ from .config import AppConfig
 from .context import ConversationContext
 from .db import Storage
 from .memory import MemoryStore
-from .harness.contracts import RunRequest, Scope
+from .harness.contracts import RunRequest, Scope, digest
 from .harness.runtime import RunSession
 
 
@@ -36,7 +36,12 @@ def build_model_client(config: AppConfig) -> AsyncOpenAI | None:
 
 
 class InvestmentAgent:
-    def __init__(self, config: AppConfig, storage: Storage):
+    def __init__(self, config: AppConfig, storage: Storage, *, trusted_chat=None):
+        if trusted_chat is not None:
+            from .chat_host import TrustedChatProfile
+            if not isinstance(trusted_chat, TrustedChatProfile):
+                raise ValueError("invalid_chat_host_profile")
+        self.trusted_chat = trusted_chat
         self.config = config
         self.storage = storage
         self.memory = MemoryStore(storage, config.data_dir)
@@ -46,12 +51,18 @@ class InvestmentAgent:
 
     async def run_result(self, context: ConversationContext, message: str, role: str = "user", *,
                          as_of_date=None, workflow=None, planning_constraints=None):
-        """Chat owns no facts or official authority; all normal work enters the core."""
+        """Chat owns no tools or publication authority; an explicit host profile may bind facts."""
         dates = set(re.findall(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)", message))
         for value in re.findall(r"(?<!\d)20\d{6}(?!\d)", message):
             dates.add(f"{value[:4]}-{value[4:6]}-{value[6:]}")
         if as_of_date is None:
             as_of_date = next(iter(dates)) if len(dates) == 1 else None
+        if self.trusted_chat is not None:
+            profile = self.trusted_chat.json()
+            if as_of_date is None and not dates:
+                as_of_date = profile["as_of_date"]
+            if workflow is None:
+                workflow = profile["workflow"]
         try:
             request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
                                  as_of_date=as_of_date, workflow=workflow, host=context.platform)
@@ -60,6 +71,20 @@ class InvestmentAgent:
             request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
                                  workflow=workflow, host=context.platform)
         self.storage.add_message(context.conversation_id, role, message)
+        source_adapter = None
+        if self.trusted_chat is not None:
+            try:
+                planning_constraints = self.trusted_chat.authorize(request,planning_constraints)
+                source_adapter = self.trusted_chat.evidence_adapter(self.config.data_dir/"source_runs")
+            except ValueError as exc:
+                from .harness.contracts import EvalResult, RunStatus, canonical
+                trace=RunSession(self.storage,request)
+                trace.phase("context","authorize_explicit_chat_host_profile",{"profile_hash":digest(self.trusted_chat.document)})
+                trace.evaluate(EvalResult("trusted_chat_host",False,code=str(exc)))
+                outcome=trace.finish(canonical({"run_id":trace.run_id,"error_code":str(exc),"action":"NO_ACTION",
+                    "official_output_allowed":False,"completion":"host_binding_rejected"}),RunStatus.BLOCKED)
+                self.storage.add_message(context.conversation_id,"assistant",outcome.output)
+                return outcome
         if self.config.fake_ai:
             trace=RunSession(self.storage,request)
             trace.step("model_adapter", {"mode":"fake","network":False})
@@ -70,7 +95,7 @@ class InvestmentAgent:
             adapter=SDKResearchAdapter(self.config)
             outcome=await Harness(self.config.root_dir,self.storage,self.config.data_dir/"harness_runs",
                                   self.config.market_timezone).run_async(request,
-                framework_adapter=adapter,research_adapter=adapter,planning_constraints=planning_constraints)
+                framework_adapter=adapter,research_adapter=adapter,planning_constraints=planning_constraints,evidence_adapter=source_adapter)
         self.storage.add_message(context.conversation_id,"assistant",outcome.output)
         return outcome
 
@@ -119,11 +144,13 @@ class InvestmentAgent:
         """Trusted host reads through the same authorization/integrity gate as CLI."""
         from .harness.delivery import read_report
         from .harness.trace import TraceRepository
-        if format not in {"markdown", "json"}:
+        if format not in {"markdown", "html", "json"}:
             raise ValueError("Unknown report format")
         delivery = read_report(TraceRepository(self.storage), Scope.from_context(self.config.root_dir, context),
                                run_id, self.config.data_dir / "harness_runs", as_of_date=as_of_date)
-        return delivery["markdown"] if format == "markdown" else {k:v for k,v in delivery.items() if k != "markdown"}
+        if format == "html" and delivery["html"] is None:
+            raise LookupError("Legacy report has no HTML artifact")
+        return delivery[format] if format in {"markdown","html"} else {k:v for k,v in delivery.items() if k not in {"markdown","html"}}
 
     def _optional_codex_tools(self) -> list[object]:
         """Legacy flags cannot reopen unrestricted execution."""

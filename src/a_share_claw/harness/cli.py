@@ -32,6 +32,19 @@ def add_harness_parser(sub):
     report.add_argument("run_id")
     report.add_argument("--format", choices=["markdown", "html", "json"], default="markdown")
     report.add_argument("--date", help="Reject reports later than this cutoff")
+    watch = commands.add_parser("watch-plan", help="Freeze four-index spec with reviewed exchange calendars; no acquisition")
+    scope_options(watch)
+    watch.add_argument("--date", required=True)
+    watch.add_argument("--window-start", required=True)
+    watch.add_argument("--window-end", required=True)
+    watch.add_argument("--cutoff", required=True)
+    for name in ("nyse", "nasdaq", "sse", "szse"):
+        watch.add_argument("--"+name+"-calendar", type=Path, required=True)
+    ui = commands.add_parser("ui", help="Export an authorized offline report and ReAct workbench")
+    scope_options(ui)
+    ui.add_argument("--run-id")
+    ui.add_argument("--date", help="Only include runs with an explicit date at or before cutoff")
+    ui.add_argument("--limit", type=int, default=20)
     for name in ("plan", "run", "replay", "state"):
         command = commands.add_parser(name)
         scope_options(command)
@@ -79,6 +92,43 @@ def run_harness(args, config, storage):
             return 0
         except (LookupError, ValueError):
             print(json.dumps({"ok": False, "error_code": "trace_not_found"}))
+            return 2
+    if args.harness_command == "watch-plan":
+        from .market_watch import freeze_watch
+        from ..data_plugins.watch import watch_source_contract
+        from ..data_plugins.core import DataError
+        from .workbench import export_workbench
+        try:
+            host = freeze_watch(args.date,args.window_start,args.window_end,args.cutoff,
+                {"XNYS":args.nyse_calendar,"XNAS":args.nasdaq_calendar,"XSHG":args.sse_calendar,"XSHE":args.szse_calendar})
+            outcome = Harness(config.root_dir,storage,config.data_dir/"harness_runs",config.market_timezone).run(
+                RunRequest(scope,"Freeze S&P500/Nasdaq100/CSI300/ChiNext daily visualization",args.date,"plan","quant"),quant_spec=host["quant_spec"])
+            if outcome.status != RunStatus.SUCCEEDED:
+                print(outcome.output)
+                return 2
+            view = export_workbench(repo,scope,config.data_dir/"harness_runs",config.data_dir/"harness_views",run_id=outcome.run_id)
+            folder = Path(view["index"]).parent
+            (folder/"quant_spec.json").write_text(json.dumps(host["quant_spec"],ensure_ascii=False,indent=2),encoding="utf-8")
+            (folder/"source_contract.json").write_text(json.dumps(watch_source_contract(host["quant_spec"],args.date),ensure_ascii=False,indent=2),encoding="utf-8")
+            print(json.dumps({"ok":True,"run_id":outcome.run_id,"index":view["index"],
+                "quant_spec":str(folder/"quant_spec.json"),"source_contract":str(folder/"source_contract.json"),
+                "completion":"framework_only","action":"NO_ACTION"},ensure_ascii=False,indent=2))
+            return 0
+        except (ValueError,OSError,KeyError,TypeError,DataError):
+            print(json.dumps({"ok":False,"error_code":"invalid_watch_contract"}))
+            return 2
+    if args.harness_command == "ui":
+        from .workbench import export_workbench
+        try:
+            result = export_workbench(repo,scope,config.data_dir/"harness_runs",config.data_dir/"harness_views",
+                run_id=args.run_id,as_of_date=args.date,limit=args.limit)
+            print(json.dumps({"ok":True,**result},ensure_ascii=False,indent=2))
+            return 0
+        except LookupError:
+            print(json.dumps({"ok":False,"error_code":"view_not_found"}))
+            return 2
+        except (ValueError,OSError,KeyError,TypeError):
+            print(json.dumps({"ok":False,"error_code":"view_integrity_error"}))
             return 2
     if args.harness_command == "report":
         try:

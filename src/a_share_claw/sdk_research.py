@@ -124,6 +124,13 @@ class SDKResearchAdapter:
         return await self._roundtrip(session,payload,"framework_proposal",contract,purpose,outlook_framework_schema(payload.json()))
 
     async def _roundtrip(self, session, payload, operation, contract, purpose, schema=None):
+        with session.action("model", operation, "request_structured_tool_free_output",
+                            {"payload_hash": digest(payload.document), "schema_hash": digest(schema)}) as span:
+            result = await self._roundtrip_impl(session,payload,operation,contract,purpose,schema)
+            span.observe(output_hash=digest(result), response_kind="unadmitted_model_candidate")
+            return result
+
+    async def _roundtrip_impl(self, session, payload, operation, contract, purpose, schema=None):
         config=self.config
         if not all((config.model_provider,config.model_base_url,config.model_api_key,config.model_name)):
             raise ValueError("model_configuration_required")

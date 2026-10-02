@@ -113,7 +113,7 @@ class TraceRepository:
             if cursor.rowcount != 1:
                 raise ValueError("Model call is not open in this run")
 
-    def finish(self, outcome: RunOutcome, scope: Scope, state=None, as_of_date=None, *, terminal_boundary=None):
+    def finish(self, outcome: RunOutcome, scope: Scope, state=None, as_of_date=None, *, terminal_boundary=None, interrupted_actions=()):
         if outcome.status == RunStatus.RUNNING:
             raise ValueError("Terminal status required")
         if outcome.status != RunStatus.SUCCEEDED and (outcome.official_output_allowed or outcome.action != "NO_ACTION"):
@@ -160,6 +160,9 @@ class TraceRepository:
                 self.storage._conn.execute("INSERT INTO official_state_history VALUES (?,?,?,?,?)", (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
                 self.storage._conn.execute("INSERT INTO official_states VALUES (?,?,?,?,?) ON CONFLICT(scope_key,workflow) DO UPDATE SET run_id=excluded.run_id,as_of_date=excluded.as_of_date,state_json=excluded.state_json",
                                             (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
+            for detail in interrupted_actions:
+                self.storage._conn.execute("INSERT INTO run_steps (run_id,stage,status,recorded_at,detail_json) VALUES (?,?,?,?,?)",
+                    (outcome.run_id, "react_action", "interrupted", now(), canonical(redact(detail))))
             if terminal_boundary is not None:
                 self.storage._conn.execute("INSERT INTO run_steps (run_id,stage,status,recorded_at,detail_json) VALUES (?,?,?,?,?)",
                     (outcome.run_id, "react_phase", outcome.status.value, now(), canonical(redact(terminal_boundary))))

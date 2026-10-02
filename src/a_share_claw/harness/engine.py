@@ -168,20 +168,28 @@ class Harness:
                 if workflow == "mixed":
                     pass  # child evidence and combined review have passed; publisher below is shared
                 elif workflow == "macro":
-                    data = policy.score_macro(facts)
+                    with session.action("calculation", "macro_score", "apply_frozen_compiled_weights", {"facts_hash":digest(facts),"policy_version":policy.version}) as span:
+                        data = policy.score_macro(facts)
+                        span.observe(output_hash=digest(data))
                 elif workflow == "ai":
                     if not isinstance(current_ai_pct, (int, float)) or isinstance(current_ai_pct, bool) or not 0 <= current_ai_pct <= 100:
                         raise ValueError("invalid_current_position")
-                    data = policy.score_ai(facts, current_ai_pct)
+                    with session.action("calculation", "ai_overlay", "apply_frozen_overlay_and_risk_rules", {"facts_hash":digest(facts),"current_ai_pct":current_ai_pct}) as span:
+                        data = policy.score_ai(facts, current_ai_pct)
+                        span.observe(output_hash=digest(data))
                     if data["decision"]["action"] == "NO_ACTION":
                         raise ValueError("insufficient_coverage")
                 elif workflow == "quant":
-                    data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                    with session.action("calculation", "price_statistics", "validate_calendar_and_compute_local_price_metrics", {"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["price_history"])}) as span:
+                        data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                        span.observe(output_hash=digest(data))
                 elif workflow in {"company", "industry", "outlook"}:
                     if workflow == "outlook":
                         if not parameters:
                             raise ValueError("outlook_spec_required")
-                        quant = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                        with session.action("calculation", "outlook_price_statistics", "validate_calendar_and_compute_local_price_metrics", {"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["price_history"])}) as span:
+                            quant = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                            span.observe(output_hash=digest(quant))
                         quant_archive = self._archive(session, "quant_metrics", quant)
                         facts = outlook_facts(facts["macro_release_facts"], quant, quant_archive, cutoff, parameters["research_spec"],
                             macro_archive=lambda payload:self._archive(session,"macro_metrics",payload))
@@ -346,6 +354,13 @@ class Harness:
             raise
 
     def _evidence(self, session, policy, plan, packet, cutoff, *, record=True):
+        with session.action("evidence", "admit_packet", "check_scope_cutoff_provenance_and_coverage",
+                            {"plan_id":plan["plan_id"],"packet_hash":digest(packet),"record":record}) as span:
+            facts, provenance = self._evidence_impl(session,policy,plan,packet,cutoff,record=record)
+            span.observe(admitted_capabilities=sorted(facts), provenance_hash=digest(provenance))
+            return facts, provenance
+
+    def _evidence_impl(self, session, policy, plan, packet, cutoff, *, record=True):
         if packet is None:
             return {}, []
         if not isinstance(packet, dict) or set(packet) != {"as_of_date", "facts"} or packet["as_of_date"] != cutoff or not isinstance(packet["facts"], list):
@@ -426,6 +441,13 @@ class Harness:
         return self._archive_content(session, name + ".json", canonical(obj).encode())
 
     def _archive_content(self, session, filename, raw):
+        with session.action("artifact", filename, "archive_scoped_immutable_output",
+                            {"bytes_sha256": hashlib.sha256(raw).hexdigest()}) as span:
+            result = self._archive_content_impl(session,filename,raw)
+            span.observe(artifact_hash=result["sha256"], filename=filename)
+            return result
+
+    def _archive_content_impl(self, session, filename, raw):
         directory = self.artifact_root / session.request.scope.key / session.run_id
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / filename

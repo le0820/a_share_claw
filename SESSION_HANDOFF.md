@@ -77,3 +77,13 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 本机预览 `data/harness_acceptance/html_react_20261002/preview/report.html` 仅为合成数据验收，明确 Synthetic 标签；不是实际行情或投资输出。当前机器缺少 uv/3.11/3.12 验证环境，使用主 checkout 的 Python 3.13 venv，核心 SDK/pandas 已对齐 uv.lock 对应版本；不继承旧 CI 的双 Python 版本通过声明。
 
 本轮离线回归：Python 3.13，489 passed / 1 skipped / 41 subtests passed；`data/harness_acceptance/html_react_20261002/junit.xml` 与 acceptance.json 留存。未调用真实数据或模型；未跑 3.11/3.12 CI。
+
+## 2026-10-02 本轮增量与下一步
+
+同一开发 worktree：新增细粒度 react-action-v1、取消安全的原子 span 闭合、离线同 Scope 工作台（列表/冻结规格/门禁/公开时间轴/报告链接）。`harness ui` 可导出规划/缺口诊断 HTML，尚未自动在每个终态导出。模型候选与私有思维链不进入界面。
+
+新增核心四指数 watch 规格及外部精确 easytdx 来源合同；真实 Q3 当前捕获验收 run_id=`de3365db042640b0b75469ef99ffb034`，Scope/来源/HTML/工作台见 `data/harness_acceptance/market_visualization_20261002/acceptance.json`。4 次 source、0 次 model；收益/回撤独立复算通过；NO_ACTION。首次 NDX 阻断及诊断保留：异常在2025-05-08，落在冻结窗口外；仅调整筛选顺序，窗口内 OHLC 仍严格拒绝。不要把当前捕获改记为历史可用数据。
+
+普通 chat 增加显式 TrustedChatProfile / --host-contract，固定四字段 Scope、日期、workflow、规格和既有来源合同，校验先于模型/来源。合成 SDK+四来源真实代码链路、缺源、改规格、跨 Scope 拒绝通过；默认 chat 无绑定。真实模型整合验收尚未执行。
+
+完整 goal 继续 active：资金流向（待用户口径回复时按全市场成交方向先设计）、申万一级分类和轮动、每个终态自动 HTML、真实模型 chat 整合与业务质量仍需完成。全市场资金流必须完整声明股票集合/成交覆盖/单位，不能用几只样本或 SDK 静默回退冒充；申万分类须版本及31行业完整覆盖，交易行情继续 easytdx。下一轮从这些未完成边界推进，不重新开放旧工具或换用非授权行情商。

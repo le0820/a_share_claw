@@ -14,8 +14,11 @@ from zoneinfo import ZoneInfo
 
 from .core import DataError, Manifest, Payload, Provider, Requirement, Transport, iso_date
 
-# Identity aliases are exact, versioned and intentionally exclude ETFs and NDX.
+# Exact index identities; ETFs and distinct index families cannot be substituted.
 INDEXES={
+    "SPX.SP500":{"name":"S&P 500","market":12,"code":"A_SPX","kind":"international","currency":"USD","unit":"index_points","market_timezone":"America/New_York","native_names":["标普500","S&P 500"]},
+    "NDX.NASDAQ":{"name":"NASDAQ 100","market":12,"code":"A_NDX","kind":"international","currency":"USD","unit":"index_points","market_timezone":"America/New_York","native_names":["纳斯达克100","NASDAQ 100"]},
+    "000300.SH":{"name":"沪深300","market":1,"code":"000300","kind":"china","currency":"CNY","unit":"index_points","market_timezone":"Asia/Shanghai","native_names":["沪深300","沪深300指数"]},
     "399006.SZ":{"name":"创业板指","market":0,"code":"399006","kind":"china","currency":"CNY","unit":"index_points", "market_timezone":"Asia/Shanghai","native_names":["创业板指","创业板指数"]},
     "000688.SH":{"name":"科创50","market":1,"code":"000688","kind":"china","currency":"CNY","unit":"index_points", "market_timezone":"Asia/Shanghai","native_names":["科创50","科创50指数"]},
     "COMP.NASDAQ":{"name":"NASDAQ Composite","market":12,"code":None,"kind":"international","currency":"USD","unit":"index_points", "market_timezone":"America/New_York","native_names":["NASDAQ Composite","NASDAQ COMPOSITE","纳斯达克综合指数","纳斯达克综合"]},
@@ -55,7 +58,7 @@ def checked_params(r):
     if set(p)!={"symbol","provider_code","start_date","end_date","count"}:
         raise DataError("invalid_request","Index history requires symbol/code/window/count")
     if not isinstance(p["symbol"],str) or p["symbol"] not in INDEXES:
-        raise DataError("unsupported_instrument","Use the exact declared index identity, never ETF/NDX proxies")
+        raise DataError("unsupported_instrument","Use the exact declared index identity, never ETFs or other index proxies")
     spec=INDEXES[p["symbol"]]
     if (not isinstance(p["provider_code"],str) or not re.fullmatch(r"[A-Za-z0-9._#-]{1,32}",p["provider_code"]) or
             spec["code"] is not None and p["provider_code"]!=spec["code"]):
@@ -67,7 +70,7 @@ def checked_params(r):
 
 
 class EasyTDX(Provider):
-    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot"),HOSTS,version="1.0.0")
+    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot"),HOSTS,version="1.1.0")
     def __init__(self,settings,transport=None):
         self._settings=dict(settings)
         self.transport=WorkerTransport() if transport is None or isinstance(transport,Transport) else transport
@@ -98,6 +101,8 @@ class EasyTDX(Provider):
         for row in bars:
             if not isinstance(row,dict):raise DataError("invalid_schema","Native bar must be an object")
             day=iso_date(row["datetime"][:10]) if isinstance(row.get("datetime"),str) else iso_date(row.get("trade_date"))
+            if not r.params["start_date"]<=day<=r.params["end_date"]:
+                continue  # Raw archive retains unrelated SDK history; it is not an admitted observation.
             if day in seen:raise DataError("source_disagreement","Duplicate daily index observations are not overwritten")
             seen.add(day)
             values={key:row[key] for key in ("open","high","low","close")}
@@ -105,7 +110,7 @@ class EasyTDX(Provider):
                 raise DataError("invalid_schema","Index OHLC must be positive finite native levels")
             if not values["low"]<=min(values["open"],values["close"])<=max(values["open"],values["close"])<=values["high"]:
                 raise DataError("invalid_schema","Native OHLC bounds disagree")
-            if r.params["start_date"]<=day<=r.params["end_date"]:selected.append({"trade_date":day,**values})
+            selected.append({"trade_date":day,**values})
         if not selected:raise DataError("insufficient_coverage","Exact observation window is absent; no latest-value fallback")
         return Payload({"symbol":r.params["symbol"],**{k:spec[k] for k in ("name","unit","currency","market_timezone")},
             "adjustment":"none","frequency":"daily","native_identity":matches[0],"sdk_version":"1.20.4",
