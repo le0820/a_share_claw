@@ -58,7 +58,7 @@ class Harness:
         self.market_timezone = market_timezone
 
     def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None, evidence_adapter=None):
-        session = RunSession(self.storage, request, control)
+        session = RunSession(self.storage, request, control,artifact_root=self.artifact_root)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
         output = {"run_id": session.run_id, "scope_key": request.scope.key, "as_of_date": request.as_of_date, "mode": request.mode,

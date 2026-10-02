@@ -52,6 +52,22 @@ def checked_params(r):
     if (not isinstance(r.params,dict) and not hasattr(r.params,"items")):
         raise DataError("invalid_request","Index parameters must be explicit")
     p=dict(r.params)
+    if r.capability=="market.a_share_quote_snapshot":
+        if p!={"markets":["SH","SZ","BJ"],"max_rows":10000}:
+            raise DataError("invalid_request","Freeze complete SH/SZ/BJ quote coverage; no sampled whole-market claim")
+        return {"operation":"quote_snapshot","kind":"china","max_rows":10000}
+    if r.capability=="market.instrument_identity":
+        if set(p)!={"market","code"} or type(p["market"]) is not int or p["market"] not in {0,1,2} or not isinstance(p["code"],str) or not re.fullmatch(r"[0-9]{6}",p["code"]):
+            raise DataError("invalid_request","Native identity lookup requires exact domestic market and code; discovery only")
+        return {"operation":"identity","kind":"china",**p}
+    if r.capability=="market.board_catalog":
+        if p!={"classification":"native_industry_level1"}:
+            raise DataError("invalid_request","Native board catalog is discovery only, not certified SW classification")
+        return {"operation":"board_catalog","kind":"china"}
+    if r.capability=="market.extended_index_catalog":
+        if set(p)!={"market"} or type(p["market"]) is not int or p["market"] not in {62,70}:
+            raise DataError("invalid_request","Only declared native index catalog markets 62/70 are supported")
+        return {"operation":"extended_catalog","kind":"international","catalog_market":p["market"]}
     if r.capability=="market.index_catalog":
         if p:raise DataError("invalid_request","Catalog has no free-form provider parameters")
         return {"operation":"catalog","kind":"international"}
@@ -70,7 +86,7 @@ def checked_params(r):
 
 
 class EasyTDX(Provider):
-    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot"),HOSTS,version="1.1.0")
+    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot","market.board_catalog","market.extended_index_catalog","market.instrument_identity","market.a_share_quote_snapshot"),HOSTS,version="1.2.0")
     def __init__(self,settings,transport=None):
         self._settings=dict(settings)
         self.transport=WorkerTransport() if transport is None or isinstance(transport,Transport) else transport
@@ -82,12 +98,34 @@ class EasyTDX(Provider):
         raw=self.transport.request(request);obj=json.loads(raw)
         if obj.get("sdk_version")!="1.20.4" or obj.get("endpoint") not in {f"tcp://{host}:{7727 if host in HOSTS[2:] else 7709}" for host in HOSTS}:
             raise DataError("source_mismatch","Index response must identify the pinned SDK and declared feed endpoint")
+        if r.capability=="market.a_share_quote_snapshot":
+            totals=obj.get("market_totals");quotes=obj.get("quotes")
+            if not isinstance(totals,dict) or set(totals)!={"SH","SZ","BJ"} or any(type(v) is not int or not 0<v<=10000 for v in totals.values()) or not isinstance(quotes,list):
+                raise DataError("insufficient_coverage","Each exchange needs an explicit positive native universe count")
+            seen=set();counts={k:0 for k in totals};missing=[]
+            for row in quotes:
+                label=row.get("requested_market");code=row.get("code");fields=row.get("fields")
+                if label not in counts or row.get("market")!={"SH":1,"SZ":0,"BJ":2}[label] or not isinstance(code,str) or not re.fullmatch(r"[0-9]{6}",code) or not isinstance(fields,dict):
+                    raise DataError("source_mismatch","Quote identity disagrees with the frozen exchange universe")
+                key=(label,code)
+                if key in seen:raise DataError("source_disagreement","Duplicate quote identity cannot fill universe coverage")
+                seen.add(key);counts[label]+=1
+                for key in ("amount","main_net_amount","server_update_date","server_update_time"):
+                    value=fields.get(key)
+                    if value is None:missing.append({'market':label,'code':code,'field':key})
+                    elif type(value) not in (int,float) or not math.isfinite(value):raise DataError("invalid_schema","Quote fields must retain finite native values")
+            if counts!=totals:raise DataError("insufficient_coverage","Returned unique quote count must equal every exchange's native total")
+            return Payload({"quotes":quotes,"market_totals":totals,"page_counts":obj.get("page_counts"),"coverage_status":"complete_against_native_totals",
+                "native_units":{"amount":"CNY","main_net_amount":"CNY"},"missing_fields":missing,"snapshot_as_of_date":r.as_of_date,
+                "main_net_definition":"provider proprietary main-order net amount; thresholds not certified","historical_vintage_certified":False},raw,obj["endpoint"],"unverified",
+                ["Native quote snapshot discovery only; core still needs observation-date, frozen universe and classification admission",
+                 "Missing fields are gaps, never zero; main-order estimates are not total investor cash entering the equity market"])
         rows=obj.get("identity")
         if not isinstance(rows,list) or not rows:
             raise DataError("missing_identity","No native instrument identity was returned")
         if request["kind"]=="international" and len(rows)>=600:
             raise DataError("insufficient_coverage","International catalog may be truncated; do not certify identity from an incomplete page")
-        if r.capability=="market.index_catalog":
+        if r.capability in {"market.index_catalog","market.board_catalog","market.extended_index_catalog","market.instrument_identity"}:
             return Payload({"instruments":rows,"format":"native_sdk_instrument_catalog","historical_vintage_certified":False},raw,obj["endpoint"],"unverified",
                 ["Native catalog discovery only; canonical identity still needs explicit review before an index requirement"])
         spec=INDEXES[r.params["symbol"]]

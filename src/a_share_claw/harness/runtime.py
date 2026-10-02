@@ -25,7 +25,8 @@ class RunControl:
 
 
 class RunSession:
-    def __init__(self, storage, request: RunRequest, control=None):
+    def __init__(self, storage, request: RunRequest, control=None, *, artifact_root=None):
+        self.artifact_root=artifact_root
         self.control = control or RunControl()
         self.repository = TraceRepository(storage)
         self.request = request
@@ -167,9 +168,24 @@ class RunSession:
         with self.control.lock:
             if status == RunStatus.SUCCEEDED and self.failure is None:
                 self.checkpoint()
-            return self._finish(output, status, action=action, official=official, state=state)
+            try:
+                return self._finish(output, status, action=action, official=official, state=state)
+            except TerminalViewFailure as exc:
+                # Transaction rolled back: neither terminal success nor official state was committed.
+                import json
+                try:diagnostic=json.loads(output)
+                except (ValueError,TypeError):diagnostic={"run_id":self.run_id}
+                diagnostic.update(action="NO_ACTION",official_output_allowed=False,data=None,error_code="terminal_view_failure")
+                for key in ("report","report_markdown","report_html"):diagnostic.pop(key,None)
+                self.failure=FailureCategory.TOOL_RETURN_FAILURE
+                self.step("terminal_view_gate",{"passed":False,"exception_type":exc.failure_type},"error")
+                try:
+                    return self._finish(canonical(diagnostic),RunStatus.FAILED,action="NO_ACTION",official=False,state=None,minimal_view=True)
+                except TerminalViewFailure:
+                    diagnostic["terminal_html_unavailable"]=True
+                    return self._finish(canonical(diagnostic),RunStatus.FAILED,action="NO_ACTION",official=False,state=None,skip_view=True)
 
-    def _finish(self, output, status, *, action, official, state):
+    def _finish(self, output, status, *, action, official, state, minimal_view=False, skip_view=False):
         if self.closed:
             raise ValueError("Run already closed")
         if self.failure is not None:
@@ -188,8 +204,22 @@ class RunSession:
                 "observation": {"output_hash": digest(output), "action": action, "official_output_allowed": official}}
         with self.action_lock:
             interrupted = [span.end_detail("interrupted") for span in reversed(list(self.open_actions.values()))]
-            self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date,
-                                   terminal_boundary=terminal_boundary, interrupted_actions=interrupted)
+            writer=None
+            if self.artifact_root is not None and not skip_view:
+                from .terminal_view import TerminalView
+                writer=TerminalView(self.artifact_root,self.request.scope,self.run_id,minimal=minimal_view,checkpoint=self.checkpoint if status==RunStatus.SUCCEEDED else None)
+            try:
+                self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date,
+                    terminal_boundary=terminal_boundary, interrupted_actions=interrupted,terminal_writer=writer)
+            except (asyncio.CancelledError,TimeoutError):
+                raise
+            except Exception as exc:
+                # Promotion denials are still handled by the existing business gate.
+                if writer is not None and writer.created:
+                    writer.rollback()
+                if writer is not None and writer.attempted:
+                    raise TerminalViewFailure(type(exc).__name__) from exc
+                raise
             for span in self.open_actions.values():
                 span.ended = True
             self.open_actions.clear()
@@ -198,3 +228,7 @@ class RunSession:
             self.last_phase, self.active_phase = self.active_phase, None
         self.closed = True
         return outcome
+
+
+class TerminalViewFailure(Exception):
+    def __init__(self,failure_type):self.failure_type=failure_type

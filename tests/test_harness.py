@@ -161,7 +161,7 @@ def test_missing_core_policy_preserves_route_and_context_without_publication(env
     assert context["missing_files"] == [missing_file]
     assert missing_file not in context["loaded_files"]
     assert context["state_scope"] == scope.key and context["state_injected"] is False
-    assert not trace["artifacts"] and repository.read_state(scope, "macro") is None
+    assert all(a["detail"]["mode"]=="diagnostic" for a in trace["artifacts"]) and repository.read_state(scope, "macro") is None
 
 
 @pytest.mark.parametrize("mutation,code", [
@@ -375,7 +375,7 @@ def test_frozen_plan_pins_identity_and_archives_before_evidence(environment):
     trace = TraceRepository(storage).read(outcome.run_id, scope)
     plan = json.loads(outcome.output)["plan"]
     assert plan["plan_id"] == frozen.plan_id
-    archived = [json.loads(Path(a["detail"]["path"]).read_text()) for a in trace["artifacts"]]
+    archived = [json.loads(Path(a["detail"]["path"]).read_text()) for a in trace["artifacts"] if Path(a["detail"]["path"]).name=="plan.json"]
     assert archived == [plan] and not trace["tool_calls"]
     assert "workflow_executed" in plan["completion_criteria"]
 

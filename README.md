@@ -213,11 +213,11 @@ tests/                      # 现有单元与路由回归测试
 
 核心运行增加 `react-boundary-v1` 阶段状态机：context → planning → evidence → compute → output → publish。代码约束合法后继，SQLite `run_steps` 保存成对开始/结束、公开决策码、输入/阶段事件哈希和时长；失败/取消结束当前阶段。规划模式从 planning 进入 publish。mixed 的子运行各自记录边界，父运行记录切片编排。公开摘要不是模型私有思维链。新增 `react-action-v1` 成对 span 覆盖来源、模型请求、角色及其校验、评价、证据准入、计算和归档；失败/取消原子闭合未结束 span，迟到回调不能续写终态。`harness ui` 展示公开决策码、输入哈希、观测与耗时。
 
-成功业务报告新增 `report.html`，与 JSON/Markdown 在同 run/Scope 归档、哈希读取、确定性重渲染验证；HTML 失败阻止本次交付和正式状态更新。CLI `harness report RUN_ID --format html` 仅返回授权且校验通过的 HTML。旧报告没有 HTML 时明确返回缺失，不静默生成或改写历史产物。纯规划/缺口运行可由 `harness ui` 导出独立 HTML 诊断页；自动随所有终态生成该诊断页仍待补齐。
+成功业务报告新增 `report.html`，与 JSON/Markdown 在同 run/Scope 归档、哈希读取、确定性重渲染验证；HTML 失败阻止本次交付和正式状态更新。CLI `harness report RUN_ID --format html` 仅返回授权且校验通过的 HTML。旧报告没有 HTML 时明确返回缺失，不静默生成或改写历史产物。纯规划/缺口运行可由 `harness ui` 导出独立 HTML 诊断页；核心和普通 chat 自动在终态事务中归档 `run.html` 与 `run_view.json`，含规划、缺口、失败和取消；`harness view RUN_ID --date DATE` 按 Scope/日期/哈希读取。渲染失败回滚正式状态，尽可能交付最小失败诊断；磁盘不可写则终态明确标记 HTML 不可用，禁止正式发布。
 
 页面采用本地 CSS/SVG，呈现完整报告表格、已准入收盘序列和月度公布率对照，包含数值表和来源边界。无远程资源或脚本；模型/来源文案按文字转义。`chart_series` 来自核心价格准入后的原始序列，与统计同一输入哈希。
 
-2026-10-02 当前捕获的真实四指数 Q3 取证、完整日历/锚点校验、收益/回撤独立复算、HTML 与工作台浏览已通过。验收位于 `data/harness_acceptance/market_visualization_20261002/acceptance.json`，保持 NO_ACTION，不证明历史 PIT 或第二行情商一致性。资金流向、申万一级轮动、所有终态的自动 HTML，以及真实模型普通 chat 整合验收仍未完成；无数据时不得造图或补零。
+2026-10-02 当前捕获的真实四指数 Q3 取证、完整日历/锚点校验、收益/回撤独立复算、HTML 与工作台浏览已通过。验收位于 `data/harness_acceptance/market_visualization_20261002/acceptance.json`，保持 NO_ACTION，不证明历史 PIT 或第二行情商一致性。资金流向、申万一级轮动，以及真实模型普通 chat 整合验收仍未完成；无数据时不得造图或补零。
 
 显式普通聊天配置使用 `InvestmentAgent(..., trusted_chat=TrustedChatProfile.parse(document))` 或 `chat --host-contract HOST.json --date YYYY-MM-DD`。`trusted-chat-host-v1` 恰含 schema_version、四字段 scope、as_of_date、workflow、parameters、source_contract；parameters 使用完整 research_spec / quant_spec / outlook_spec，source_contract 使用既有宿主审核绑定。主体、会话、日期、workflow 和规格在模型/来源调用前校验。默认 chat 仍无绑定；配置不会从消息文字或模型输出生成，模型仍无工具。合成 SDK+四来源端到端、缺源、改规格与跨 Scope 拒绝已验收，真实模型质量尚未验收。
 

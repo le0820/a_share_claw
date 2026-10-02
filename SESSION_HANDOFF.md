@@ -87,3 +87,13 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 普通 chat 增加显式 TrustedChatProfile / --host-contract，固定四字段 Scope、日期、workflow、规格和既有来源合同，校验先于模型/来源。合成 SDK+四来源真实代码链路、缺源、改规格、跨 Scope 拒绝通过；默认 chat 无绑定。真实模型整合验收尚未执行。
 
 完整 goal 继续 active：资金流向（待用户口径回复时按全市场成交方向先设计）、申万一级分类和轮动、每个终态自动 HTML、真实模型 chat 整合与业务质量仍需完成。全市场资金流必须完整声明股票集合/成交覆盖/单位，不能用几只样本或 SDK 静默回退冒充；申万分类须版本及31行业完整覆盖，交易行情继续 easytdx。下一轮从这些未完成边界推进，不重新开放旧工具或换用非授权行情商。
+
+## 2026-10-02 终态 HTML 与资金/行业发现进展
+
+`RunSession` 在 Harness/普通 chat 的 artifact_root 下自动生成 run.html/run_view.json；SQLite 终态/正式状态与诊断描述符在同一事务。工作台渲染失败回滚发布，降级最小失败诊断；持续磁盘故障仍结束为 failed，明确 terminal_html_unavailable。迟到回调不再改写 trace。`harness view RUN_ID --date` 校验同 Scope、截止日、哈希、终态/输出绑定；业务 report.html 继续原独立门禁。普通 RunSession 无 artifact_root 的内部工具测试不是业务报告入口。
+
+已冻结资金/行业要求，新增 easytdx 原生发现能力（未核心准入）：三市全量原生报价按逐页header总数校验、代码排序且不排除类别。真实发现 SH2320/SZ2906/BJ351=5577只，所有 server_update_date=20260930，amount/main_net_amount/date/time 无缺字段；原始字段包含3/5日主力净额和原生行业代码。`data/harness_acceptance/market_sector_20261002/framework.json`、flow-discovery-result.json/flow_discovery 保存明确 Scope 与原始捕获。不跑 SDK get_fund_flow/get_history_fund_flow/get_board_summary（有静默回退/缺值转0/聚合风险）。资金图下一步需核心 provider-independent 冻结规格、原生语义/单位/日期/全量 universe 准入，核心计算聚合与signed金额图，先验证真实数值再接普通chat。
+
+申万真实绑定仍缺口：通达信原生一级目录128项不是申万31行业；扩展70目录374项无申万匹配；扩展62目录截断拒绝；market1精确801010调用失败；申万官方分类页网络/网页工具均失败。来源计划/原始响应均已保留，不反复重启相同已结束任务。下一步可检查申万官方元数据可达性、明确原生分类层级到SW2021的审核映射或SDK其他精确identity；不能换未经授权行情商或用通达信板块代替。无合法来源仍须缺口页，不造轮动图。
+
+完整 goal 仍 active：资金图、申万轮动真实准入与图表、真实模型普通chat整合验收尚未完成。终态HTML合成故障/取消与开发实际plan/gap已验证，示例在 `data/harness_acceptance/terminal_html_20261002/acceptance.json`。当前工作树为本增量，提交后记录commit；不要将发现成功当成整个研究/图表验收完成。

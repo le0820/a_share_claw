@@ -78,7 +78,7 @@ class InvestmentAgent:
                 source_adapter = self.trusted_chat.evidence_adapter(self.config.data_dir/"source_runs")
             except ValueError as exc:
                 from .harness.contracts import EvalResult, RunStatus, canonical
-                trace=RunSession(self.storage,request)
+                trace=RunSession(self.storage,request,artifact_root=self.config.data_dir/"harness_runs")
                 trace.phase("context","authorize_explicit_chat_host_profile",{"profile_hash":digest(self.trusted_chat.document)})
                 trace.evaluate(EvalResult("trusted_chat_host",False,code=str(exc)))
                 outcome=trace.finish(canonical({"run_id":trace.run_id,"error_code":str(exc),"action":"NO_ACTION",
@@ -86,7 +86,7 @@ class InvestmentAgent:
                 self.storage.add_message(context.conversation_id,"assistant",outcome.output)
                 return outcome
         if self.config.fake_ai:
-            trace=RunSession(self.storage,request)
+            trace=RunSession(self.storage,request,artifact_root=self.config.data_dir/"harness_runs")
             trace.step("model_adapter", {"mode":"fake","network":False})
             outcome=trace.finish(f"[fake-ai] received: {message}\nrun_id={trace.run_id}")
         else:

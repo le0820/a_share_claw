@@ -249,3 +249,11 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 当前捕获四指数 Q3 日线已通过宿主日历/锚点、核心价格准入及独立收益/最大回撤复算；原始归档、首次阻断及窗口外 OHLC 诊断均保留在 `data/harness_acceptance/market_visualization_20261002/`。不升级为历史 vintage 或正式评分。`data_plugins.watch.watch_source_contract` 只把核心冻结四指数规格映射到精确原生身份，核心规格不含 provider。
 
 `chat --host-contract` 显式读取 `trusted-chat-host-v1`，普通 run_result 仍不接受自由证据包或 official 权限。绑定校验早于模型/插件，随后复用现有 PluginEvidenceAdapter；默认无合同的 chat 仍只有规划/缺口。合成模型+四来源闭环与拒绝已通过；真实模型整合待验收。资金流向与申万一级轮动尚未具备生产能力；SDK 自带资金流计算/静默历史回退不能直接准入。
+
+## 原生市场发现（1.2.0，尚未成为资金/行业核心证据）
+
+`market.board_catalog` 仅允许 classification=native_industry_level1，原生通达信板块不等于申万2021一级。`market.extended_index_catalog` 只允许 market=62/70；`market.instrument_identity` 只允许国内精确 market/code。上述均为 unverified/discovery，不能用原生目录标签发布核心价格或申万轮动。
+
+`market.a_share_quote_snapshot` 冻结 markets=[SH,SZ,BJ]、max_rows=10000，固定 MAC 主机。逐页保留原生总数并检查稳定，按代码排序，不排除 ST/科创/创业/北交所；唯一证券数量必须逐市匹配原生总数。返回原生嵌套 fields、交易日字段及主力净额，缺字段列为 missing_fields，禁止补0和 SDK 汇总/历史回退。整体仍 unverified，直到核心校验日期、完整冻结 universe、供应商主力口径与绑定；不代表投资者真实净现金流。
+
+2026-10-02 发现层实际取得 SH2320/SZ2906/BJ351，共5577只；原生 server_update_date 均20260930，amount/main_net_amount/date/time 未缺失。原始归档在 `data/harness_acceptance/market_sector_20261002/flow_discovery/`；未映射为评分或正式输入。通达信目录128项、扩展70目录374项均未确认申万一级；market62截断拒绝，精确801010身份调用失败，官方分类页连接失败。不能拿通达信目录冒充31申万行业。

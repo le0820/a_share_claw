@@ -32,6 +32,10 @@ def add_harness_parser(sub):
     report.add_argument("run_id")
     report.add_argument("--format", choices=["markdown", "html", "json"], default="markdown")
     report.add_argument("--date", help="Reject reports later than this cutoff")
+    view = commands.add_parser("view",help="Read automatic scoped terminal HTML, including gaps and failures")
+    scope_options(view)
+    view.add_argument("run_id")
+    view.add_argument("--date")
     watch = commands.add_parser("watch-plan", help="Freeze four-index spec with reviewed exchange calendars; no acquisition")
     scope_options(watch)
     watch.add_argument("--date", required=True)
@@ -92,6 +96,18 @@ def run_harness(args, config, storage):
             return 0
         except (LookupError, ValueError):
             print(json.dumps({"ok": False, "error_code": "trace_not_found"}))
+            return 2
+    if args.harness_command == "view":
+        from .terminal_view import read_terminal_html
+        try:
+            content,_=read_terminal_html(repo,scope,args.run_id,config.data_dir/"harness_runs",as_of_date=args.date)
+            print(content)
+            return 0
+        except LookupError:
+            print(json.dumps({"ok":False,"error_code":"terminal_view_not_found"}))
+            return 2
+        except (ValueError,OSError,KeyError,TypeError):
+            print(json.dumps({"ok":False,"error_code":"terminal_view_integrity_error"}))
             return 2
     if args.harness_command == "watch-plan":
         from .market_watch import freeze_watch
