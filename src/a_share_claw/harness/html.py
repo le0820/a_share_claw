@@ -64,11 +64,26 @@ def line_chart(title, points, unit, note):
 <details><summary>原始图表数值（{escape(unit)}）</summary><table><thead><tr><th>日期/期间</th><th>数值</th></tr></thead><tbody>{rows}</tbody></table></details></section>'''
 
 
+def flow_chart(data):
+    c=data['flow_chart'];values=c['values'];scale=max([abs(v['value']) for v in values]+[1]);escape=lambda v:html.escape(str(v),quote=True)
+    pending=sum(len(v['unfinalized_native_zero_quotes']) for v in data['series_audit'].values())
+    disclosure=('<p>当前捕获快照：'+str(pending)+' 条原生零值未确认收盘更新；全市场汇总未认证最终收盘成交完整性，逐条审计见下文。</p>') if pending else ''
+    zeros=[m for m,v in data['series_audit'].items() if v['uniform_zero_net_with_positive_turnover']]
+    if zeros:disclosure+='<p>'+escape(','.join(zeros))+' 全部主力净额为原生零值但有成交额；字段支持待确认，不代表真实买卖平衡，ALL同受此限制。</p>'
+    bars=[];rows=[]
+    for i,row in enumerate(values):
+        y=42+i*48;v=row['value'];width=abs(v)/scale*280;x=410 if v>=0 else 410-width;color='#c7383e' if v>=0 else '#11856a'
+        bars.append(f'<text x="8" y="{y+17}">{escape(row["market"])}</text><rect x="{x}" y="{y}" width="{width}" height="26" fill="{color}"><title>{escape(v)} CNY</title></rect><text x="710" y="{y+17}">{v/1e8:.3f}亿</text>')
+        rows.append(f'<tr><td>{escape(row["market"])}</td><td>{escape(v)}</td></tr>')
+    return '<section class="chart"><h3>资金流向：供应商主力净额估计</h3><p>'+escape(c['observation_date'])+' · 单位亿元；正值向右，负值向左。ALL为三市汇总，不能与分市场重复相加。</p>'+disclosure+'<svg viewBox="0 0 840 260" role="img" aria-label="三市及全市场主力净额估计"><path d="M410 25 V245" stroke="#7a8b9c"/>'+''.join(bars)+'</svg><details><summary>原始金额（元）</summary><table><thead><tr><th>范围</th><th>元</th></tr></thead><tbody>'+''.join(rows)+'</tbody></table></details></section>'
+
+
 def charts(workflow, data):
     rendered = []
     if workflow == 'mixed':
         return ''.join(charts(c['workflow'], c['data']) for c in data['slices'])
     quant = data if workflow == 'quant' else data.get('market_statistics', {})
+    if quant.get("schema_version")=="flow-output-v1":rendered.append(flow_chart(quant))
     for symbol, series in quant.get('chart_series', {}).items():
         rendered.append(line_chart(symbol+' / '+series['name'], [(r['trade_date'],r['close']) for r in series['rows']], series['unit'],
             '本地币种原生收盘价；来源：'+series['source_file']+'。当前捕获版本不证明历史 PIT；无分红、费用或汇率换算。'))
@@ -82,7 +97,7 @@ def render_html(report):
     report = json.loads(canonical(report))
     if report.get('html_version') != VERSION:
         raise ValueError('report_contract_failure')
-    title = html.escape(TITLES[report['workflow']]+'报告', quote=True)
+    title = html.escape(('资金流向（主力口径）' if report['data'].get('schema_version')=='flow-output-v1' else TITLES[report['workflow']])+'报告', quote=True)
     return f'''<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'none'; base-uri 'none'; form-action 'none'">

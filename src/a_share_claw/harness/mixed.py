@@ -44,7 +44,8 @@ def checked_mixed_spec(spec):
             raise ValueError("invalid_mixed_spec")
         if any(v is None for v in item["parameters"].values()):
             raise ValueError("invalid_mixed_spec")
-        workflow_parameters(item["workflow"], **item["parameters"])
+        checked=workflow_parameters(item["workflow"], **item["parameters"])
+        if item["workflow"]=="quant" and checked["quant_spec"]["operation"]=="fund_flow_snapshot":raise ValueError("invalid_mixed_spec")
         ids.add(item["slice_id"])
     return json.loads(canonical(spec))
 

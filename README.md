@@ -217,7 +217,7 @@ tests/                      # 现有单元与路由回归测试
 
 页面采用本地 CSS/SVG，呈现完整报告表格、已准入收盘序列和月度公布率对照，包含数值表和来源边界。无远程资源或脚本；模型/来源文案按文字转义。`chart_series` 来自核心价格准入后的原始序列，与统计同一输入哈希。
 
-2026-10-02 当前捕获的真实四指数 Q3 取证、完整日历/锚点校验、收益/回撤独立复算、HTML 与工作台浏览已通过。验收位于 `data/harness_acceptance/market_visualization_20261002/acceptance.json`，保持 NO_ACTION，不证明历史 PIT 或第二行情商一致性。资金流向、申万一级轮动，以及真实模型普通 chat 整合验收仍未完成；无数据时不得造图或补零。
+2026-10-02 当前捕获的真实四指数 Q3 取证、完整日历/锚点校验、收益/回撤独立复算、HTML 与工作台浏览已通过。验收位于 `data/harness_acceptance/market_visualization_20261002/acceptance.json`，保持 NO_ACTION，不证明历史 PIT 或第二行情商一致性。新增全市场原生主力净额快照的冻结规格、核心聚合和正负金额图，真实5577只报价已独立复算；6条零值未确认收盘更新、北交所全零净额字段支持待确认，图表显式披露且不进入评分。`data/harness_acceptance/fund_flow_20261002/acceptance.json` 保存准入范围，最终收盘资金方向、申万一级轮动及真实模型普通 chat 整合仍未完成。
 
 显式普通聊天配置使用 `InvestmentAgent(..., trusted_chat=TrustedChatProfile.parse(document))` 或 `chat --host-contract HOST.json --date YYYY-MM-DD`。`trusted-chat-host-v1` 恰含 schema_version、四字段 scope、as_of_date、workflow、parameters、source_contract；parameters 使用完整 research_spec / quant_spec / outlook_spec，source_contract 使用既有宿主审核绑定。主体、会话、日期、workflow 和规格在模型/来源调用前校验。默认 chat 仍无绑定；配置不会从消息文字或模型输出生成，模型仍无工具。合成 SDK+四来源端到端、缺源、改规格与跨 Scope 拒绝已验收，真实模型质量尚未验收。
 
@@ -230,7 +230,7 @@ tests/                      # 现有单元与路由回归测试
 | 顺序 | 待办 / 当前状态 | 依赖与最小验收 |
 | --- | --- | --- |
 | 已完成 | E0 最小五项 → 五源选定能力 → 含历史的 Q4 case | PR #2 已合并；Python 3.11/3.12 各 479 passed / 41 subtests；真实 case 经宿主复核，保持 NO_ACTION |
-| 下一步 | 显式普通 chat 配置已接线；真实模型整合、资金流向与申万一级轮动待验收 | 复用现有显式宿主适配器；先冻结规格，后取缺口；真实请求报告与无凭据/缺数据的正确阻止均验收，不给模型开放工具 |
+| 下一步 | 显式普通 chat 配置、原生资金快照图已接线；真实模型整合、资金字段支持和申万一级轮动待验收 | 确认北交所全零主力字段与未收盘更新记录；申万2021一级31行业须完整身份/版本/行情；真实模型请求与缺数据拒绝均验收，不给模型开放工具 |
 | 随后 | E2：历史事实复用、月度更新与上下文生命周期 | 明确按 Scope/日期/版本重验和授权；跨运行/跨会话不能直接拼包；验收修订、缺月、跨主体、重复月更及恢复 |
 | 并行质量工作 | E1 旧 ToolRuntime/MCP 结果迁移；E3 固定评测与故障归因 | 按实际迁移/质量缺口收口；覆盖因果越界、编造阈值、单位与版本误读；独立模型审查通过不替代人工质量验收 |
 | 后续 | 五源补足日评分/AI 所需输入，恢复连续正式日更 | 当前来源仍不足以覆盖全部旧评分字段；缺必需数据不评分，L2 保持禁用；连续产物、状态事务和可审计回滚验收 |

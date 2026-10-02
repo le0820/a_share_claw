@@ -52,6 +52,12 @@ def checked_params(r):
     if (not isinstance(r.params,dict) and not hasattr(r.params,"items")):
         raise DataError("invalid_request","Index parameters must be explicit")
     p=dict(r.params)
+    if r.capability=="market.a_share_flow_snapshot":
+        if set(p)!={"markets","max_rows","observation_date"} or iso_date(p["observation_date"])>r.as_of_date:
+            raise DataError("invalid_request","Native flow requires an explicit nonfuture observation date")
+        base={k:v for k,v in p.items() if k!="observation_date"}
+        if base!={"markets":["SH","SZ","BJ"],"max_rows":10000}:raise DataError("invalid_request","Freeze all three exchanges and bounded coverage")
+        return {"operation":"quote_snapshot","kind":"china","max_rows":10000}
     if r.capability=="market.a_share_quote_snapshot":
         if p!={"markets":["SH","SZ","BJ"],"max_rows":10000}:
             raise DataError("invalid_request","Freeze complete SH/SZ/BJ quote coverage; no sampled whole-market claim")
@@ -86,7 +92,7 @@ def checked_params(r):
 
 
 class EasyTDX(Provider):
-    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot","market.board_catalog","market.extended_index_catalog","market.instrument_identity","market.a_share_quote_snapshot"),HOSTS,version="1.2.0")
+    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot","market.board_catalog","market.extended_index_catalog","market.instrument_identity","market.a_share_quote_snapshot","market.a_share_flow_snapshot"),HOSTS,version="1.3.0")
     def __init__(self,settings,transport=None):
         self._settings=dict(settings)
         self.transport=WorkerTransport() if transport is None or isinstance(transport,Transport) else transport
@@ -98,7 +104,7 @@ class EasyTDX(Provider):
         raw=self.transport.request(request);obj=json.loads(raw)
         if obj.get("sdk_version")!="1.20.4" or obj.get("endpoint") not in {f"tcp://{host}:{7727 if host in HOSTS[2:] else 7709}" for host in HOSTS}:
             raise DataError("source_mismatch","Index response must identify the pinned SDK and declared feed endpoint")
-        if r.capability=="market.a_share_quote_snapshot":
+        if r.capability in {"market.a_share_quote_snapshot","market.a_share_flow_snapshot"}:
             totals=obj.get("market_totals");quotes=obj.get("quotes")
             if not isinstance(totals,dict) or set(totals)!={"SH","SZ","BJ"} or any(type(v) is not int or not 0<v<=10000 for v in totals.values()) or not isinstance(quotes,list):
                 raise DataError("insufficient_coverage","Each exchange needs an explicit positive native universe count")
@@ -115,10 +121,21 @@ class EasyTDX(Provider):
                     if value is None:missing.append({'market':label,'code':code,'field':key})
                     elif type(value) not in (int,float) or not math.isfinite(value):raise DataError("invalid_schema","Quote fields must retain finite native values")
             if counts!=totals:raise DataError("insufficient_coverage","Returned unique quote count must equal every exchange's native total")
+            admitted=r.capability=="market.a_share_flow_snapshot"
+            if admitted:
+                if missing:raise DataError("insufficient_coverage","Required native flow fields cannot become zero")
+                day=r.params["observation_date"].replace('-','')
+                for row in quotes:
+                    f=row['fields']
+                    if type(f['server_update_date']) is not int or str(f['server_update_date'])!=day:
+                        raise DataError("source_mismatch","Every native quote must match the frozen observation date")
+                    if type(f['server_update_time']) is not int or not 0<=f['server_update_time']<=235959 or f['server_update_time']%100>=60 or f['server_update_time']//100%100>=60:
+                        raise DataError("invalid_schema","Native quote time is invalid")
+                    if f['amount']<0 or abs(f['main_net_amount'])>f['amount']+.01:raise DataError("invalid_schema","Native directional estimate cannot exceed the reported turnover")
             return Payload({"quotes":quotes,"market_totals":totals,"page_counts":obj.get("page_counts"),"coverage_status":"complete_against_native_totals",
                 "native_units":{"amount":"CNY","main_net_amount":"CNY"},"missing_fields":missing,"snapshot_as_of_date":r.as_of_date,
-                "main_net_definition":"provider proprietary main-order net amount; thresholds not certified","historical_vintage_certified":False},raw,obj["endpoint"],"unverified",
-                ["Native quote snapshot discovery only; core still needs observation-date, frozen universe and classification admission",
+                "main_net_definition":"provider proprietary main-order net amount; thresholds not certified","historical_vintage_certified":False,"observation_date":r.params.get("observation_date")},raw,obj["endpoint"],"verified" if admitted else "unverified",
+                ["Native fields and observation date checked; core must validate the frozen universe, close time and measurement basis" if admitted else "Native quote snapshot discovery only; core still needs observation-date, frozen universe and classification admission",
                  "Missing fields are gaps, never zero; main-order estimates are not total investor cash entering the equity market"])
         rows=obj.get("identity")
         if not isinstance(rows,list) or not rows:

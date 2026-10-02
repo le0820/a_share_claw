@@ -85,3 +85,30 @@ def test_missing_bound_provider_returns_gap_without_fabricated_report(host,nativ
         out=asyncio.run(InvestmentAgent(configured(config),storage,trusted_chat=binding).run_result(context,'synthetic unavailable source'))
     assert out.status==RunStatus.BLOCKED,out.output
     assert out.action=='NO_ACTION' and 'report_html' not in json.loads(out.output)
+
+
+@pytest.mark.parametrize('change_policy',[False,True])
+def test_chat_native_flow_binding_preserves_frozen_freshness_policy_before_fetch(host,native_clock,change_policy):
+    from test_flows import spec as flow_spec
+    from test_tdx_market_discovery import Transport
+    from a_share_claw.data_plugins.flow_handoff import flow_source_contract
+    config,storage,context,tmp=host;quant=flow_spec()
+    doc={'schema_version':'trusted-chat-host-v1','scope':Scope.from_context(ROOT,context).__dict__,
+        'as_of_date':DAY,'workflow':'quant','parameters':{'quant_spec':quant},'source_contract':flow_source_contract(quant,DAY)}
+    binding=TrustedChatProfile.parse(doc);transport=Transport();transport.calls=[]
+    original=transport.request
+    def counted(p):transport.calls.append(p);return original(p)
+    transport.request=counted
+    adapter=PluginEvidenceAdapter(tmp/'sources',doc['source_contract'],providers={'easytdx':EasyTDX({},transport)})
+    parameters=copy.deepcopy(doc['parameters'])
+    if change_policy:parameters['quant_spec']['native_update_policy']='retain_unfinalized_native_zero'
+    endpoint=endpoint_for(parameters)
+    with patch('a_share_claw.agent.build_model_client',side_effect=endpoint.client),patch.object(TrustedChatProfile,'evidence_adapter',return_value=adapter):
+        out=asyncio.run(InvestmentAgent(configured(config),storage,trusted_chat=binding).run_result(context,'展示冻结口径的全市场主力净额估计'))
+    if change_policy:
+        assert out.status!=RunStatus.SUCCEEDED and not transport.calls
+        assert json.loads(out.output)['error_code']=='planning_constraint_changed'
+    else:
+        assert out.status==RunStatus.SUCCEEDED,out.output
+        assert len(transport.calls)==1 and len(endpoint.requests)==2
+        assert '资金流向：供应商主力净额估计' in InvestmentAgent(config,storage).read_core_report(context,out.run_id,format='html')

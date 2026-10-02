@@ -256,4 +256,8 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 
 `market.a_share_quote_snapshot` 冻结 markets=[SH,SZ,BJ]、max_rows=10000，固定 MAC 主机。逐页保留原生总数并检查稳定，按代码排序，不排除 ST/科创/创业/北交所；唯一证券数量必须逐市匹配原生总数。返回原生嵌套 fields、交易日字段及主力净额，缺字段列为 missing_fields，禁止补0和 SDK 汇总/历史回退。整体仍 unverified，直到核心校验日期、完整冻结 universe、供应商主力口径与绑定；不代表投资者真实净现金流。
 
+1.3.0 增加 `market.a_share_flow_snapshot`，在上述范围外要求 observation_date；verified 只表示原生字段、日期及覆盖检查，不认证主力分类阈值。宿主先冻结 `flow-spec-v1`：operation=fund_flow_snapshot、逐只 market/code/name universe、observation_date、cutoff_timestamp、close_at、calendar_source、measurement_basis=provider_defined_main_order_net_estimate、unit=CNY、native_update_policy。`flow_source_contract()` 冻结来源合同，PluginEvidenceAdapter 将精确匹配结果交给核心 `fund_flow_snapshot`；普通 chat 仍要求完整可信宿主合同，模型不能改变规格。混合/展望暂不接受此操作，正式评分直接拒绝。
+
+核心仅聚合原生金额，缺字段不补0，负值不截断，ALL不重复计数。native_update_policy=all_rows_post_close 拒绝任何收盘前更新；显式 retain_unfinalized_native_zero 只保留同日原生成交额与主力净额均为0的记录，逐条披露并拒绝最终收盘完整性声明。市场净额全部为0且有成交额时，标记字段支持未认证并提示ALL同受限制。真实快照范围及独立Decimal复算保存在 `data/harness_acceptance/fund_flow_20261002/acceptance.json`；不作为北向、融资融券、全市场现金流或L2输入。
+
 2026-10-02 发现层实际取得 SH2320/SZ2906/BJ351，共5577只；原生 server_update_date 均20260930，amount/main_net_amount/date/time 未缺失。原始归档在 `data/harness_acceptance/market_sector_20261002/flow_discovery/`；未映射为评分或正式输入。通达信目录128项、扩展70目录374项均未确认申万一级；market62截断拒绝，精确801010身份调用失败，官方分类页连接失败。不能拿通达信目录冒充31申万行业。

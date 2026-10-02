@@ -30,6 +30,9 @@ class EvidenceBatch:
 
 def checked_existing(plan,facts,reference,market_timezone):
     p=plan["parameters"];workflow=plan["workflow"]
+    if "fund_flow_snapshot" in facts:
+        from .flows import compute_flows
+        compute_flows(p["quant_spec"],facts["fund_flow_snapshot"],reference,plan["as_of_date"])
     if "price_history" in facts:
         compute_quant(p["quant_spec"],facts["price_history"],reference,plan["as_of_date"],market_timezone)
     if "primary_documents" in facts:

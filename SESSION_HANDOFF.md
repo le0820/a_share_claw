@@ -97,3 +97,13 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 申万真实绑定仍缺口：通达信原生一级目录128项不是申万31行业；扩展70目录374项无申万匹配；扩展62目录截断拒绝；market1精确801010调用失败；申万官方分类页网络/网页工具均失败。来源计划/原始响应均已保留，不反复重启相同已结束任务。下一步可检查申万官方元数据可达性、明确原生分类层级到SW2021的审核映射或SDK其他精确identity；不能换未经授权行情商或用通达信板块代替。无合法来源仍须缺口页，不造轮动图。
 
 完整 goal 仍 active：资金图、申万轮动真实准入与图表、真实模型普通chat整合验收尚未完成。终态HTML合成故障/取消与开发实际plan/gap已验证，示例在 `data/harness_acceptance/terminal_html_20261002/acceptance.json`。当前工作树为本增量，提交后记录commit；不要将发现成功当成整个研究/图表验收完成。
+
+## 2026-10-02 原生资金快照核心与图表增量
+
+新增 provider-independent flow-spec-v1 / flow-output-v1、精确来源 handoff、核心 SH/SZ/BJ/ALL 聚合、signed SVG及原始金额表，沿用ReAct/HTML/NO_ACTION门禁。缺字段、集合/名称不匹配、日期/单位错误、收盘前非零值、模型改规格均拒绝；研究快照不能正式发布，混合和展望暂不接此操作。普通chat合成SDK整合与修改freshness策略的拒绝已通过，真实模型尚未验收。
+
+真实冻结5577只后重新采集：严格首运行 `84db4ca219f74afcbef4de843407fd23` 因6条00:00:01原生零值阻断。随后明确冻结 retain_unfinalized_native_zero，仅保留原生0并逐条披露，不认证停牌/未上市/全天无交易或最终收盘完整性。原始采集成功 `5400ce513c924c6bbfc65d2f5b51373d`，1source/0model；同Scope哈希复验后复用该捕获，最终审计报告 `c3aa09dc22b443b1b3ab1a802ca4d22e`，0新增source/0model。实际汇总Decimal独立复算通过，HTML布局与异常披露浏览器检查通过。证据与失败/旧报告均保留在 `data/harness_acceptance/fund_flow_20261002/`，最新acceptance.json指向最终报告。
+
+尚缺：北交所351条原生主力净额全部为0且有成交额，SDK/源字段支持需要认证，不能据此认定资金平衡；ALL同受限制。BSE日历只保存官方主站索引摘录及明确403失败，未冒充原始全文。申万2021一级31行业仍没有合法完整分类/行情，不能以128项通达信行业替代。下一步可检查已安装SDK ex/mac_client.goods_count(market)及goods_list分页以解决market62目录截断，再验证官方申万元数据和精确身份；当前资金图是有限快照验收，不是整个goal完成。继续真实模型普通chat整合、申万轮动、资金语义/最终收盘覆盖，并维护完整Issue #1未完成边界。
+
+本增量最终离线回归：Python3.13，541 passed / 41 subtests；未重跑3.11/3.12 CI。真实资金源调用2次（首严格运行阻断、显式快照运行成功），后续2次同Scope原始哈希复验复用、0新增来源；没有模型调用。临时localhost验收服务与浏览器页已关闭。main未修改，开发提交后develop快进镜像。

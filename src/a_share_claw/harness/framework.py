@@ -125,7 +125,7 @@ def _compile_framework(session, policy, workflow, constraints, proposer, reviewe
     except ValueError:
         archive(session,"rejected_framework",raw)
         raise
-    declared=mixed_plan(policy,checked["parameters"].get("mixed_spec")) if workflow=="mixed" else policy.plan(workflow)
+    declared=mixed_plan(policy,checked["parameters"].get("mixed_spec")) if workflow=="mixed" else policy.plan(workflow,checked["parameters"])
     candidate={"schema_version":"framework-proposal-v1","workflow":workflow,"as_of_date":session.request.as_of_date,
                "scope_key":session.request.scope.key,"framework":checked["framework"],"parameters":checked["arguments"],
                "unresolved_constraints":checked["planning_gaps"],"policy_version":policy.version,

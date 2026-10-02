@@ -35,6 +35,13 @@ def bullets(values):
 def statistics(data, level):
     heading = "#" * level
     spec = data["specification"]
+    if data.get("schema_version")=="flow-output-v1":
+        result=[heading+" 冻结资金口径",""]+bullets(["交易日："+spec['observation_date'],"捕获截止："+spec['cutoff_timestamp'],"口径：供应商定义的主力净额估计；原生单位元",spec['calendar_source']])
+        result += table(["范围","主力净额估计（元）","成交额（元）"],[[m,v['native_main_order_net_amount'],v['turnover_amount']] for m,v in data['metrics'].items()])
+        result += [heading+" 全量覆盖审计",""]+table(["市场","证券数","状态","交易日"],[[m,v['instruments'],v['coverage_status'],v['observation_date']] for m,v in data['series_audit'].items()])
+        pending=[[m,r['code'],r['name'],r['native_updated_at']] for m,v in data['series_audit'].items() for r in v['unfinalized_native_zero_quotes']]
+        if pending:result += [heading+" 未确认收盘更新的原生零值",""]+table(["市场","代码","名称","原生更新时间"],pending)
+        return result+[heading+" 限制与缺口",""]+bullets(data['limitations']+data['unknowns'])
     result = [heading + " 冻结窗口与价格口径", ""]
     result += bullets(["窗口：" + spec["window_start"] + " 至 " + spec["window_end"],
                        "截止：" + spec["cutoff_timestamp"], "基准：" + str(spec["benchmark"]),
@@ -128,7 +135,8 @@ def _render(report):
     workflow = report["workflow"]
     if report.get("markdown_version") != VERSION or workflow not in TITLES:
         raise ValueError("report_contract_failure")
-    result = ["# " + TITLES[workflow] + "报告", "", "归档状态：staged。该文件本身不证明正式发布；以授权读取的运行终态和状态事务为准。", "",
+    title = "资金流向（主力口径）" if report.get("data",{}).get("schema_version")=="flow-output-v1" else TITLES[workflow]
+    result = ["# " + title + "报告", "", "归档状态：staged。该文件本身不证明正式发布；以授权读取的运行终态和状态事务为准。", "",
               "## 运行与数据口径", ""]
     result += table(["字段", "值"], [[k,report[k]] for k in ("run_id", "plan_id", "scope_key", "workflow", "as_of_date", "generated_at", "mode", "fallback_status", "policy_version")])
     result += ["JSON 报告哈希：" + digest(report), "", "## 来源表", ""]

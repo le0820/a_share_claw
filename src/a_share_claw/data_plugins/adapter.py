@@ -32,6 +32,9 @@ class PluginEvidenceAdapter:
                 not needed<=set(plan["required_capabilities"])):raise ValueError("source_contract_mismatch")
         ticket={"schema_version":"evidence-batch-v1","core_run_id":e["core_run_id"],"plan_id":plan["plan_id"],"scope_key":scope.key,
             "as_of_date":plan["as_of_date"],"source_run_id":None,"requirements":[]}
+        if needed=={"fund_flow_snapshot"}:
+            from .flow_handoff import prepare_flow
+            return prepare_flow(self,request)
         if not needed:
             return EvidenceBatch(canonical(ticket),lambda _:None,lambda _:json.loads(canonical(existing)))
         c=json.loads(self._configuration);source_plan=c["source_plan"]

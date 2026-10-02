@@ -24,6 +24,9 @@ def timestamp(value):
 
 
 def checked_quant_spec(spec):
+    if isinstance(spec,dict) and spec.get("operation")=="fund_flow_snapshot":
+        from .flows import checked_flow_spec
+        return checked_flow_spec(spec)
     keys = {"schema_version", "operation", "frequency", "window_start", "window_end", "cutoff_timestamp", "assets", "benchmark", "metrics", "annualization_factor"}
     if not isinstance(spec, dict) or set(spec) != keys or spec["schema_version"] != "quant-spec-v1":
         raise ValueError("invalid_quant_spec")

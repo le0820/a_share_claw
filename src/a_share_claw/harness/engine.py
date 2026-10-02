@@ -98,7 +98,7 @@ class Harness:
                     research_spec=research_spec, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec)
             if require_official_close:
                 parameters["official_close_required"] = True
-            declared = mixed_plan(policy, parameters.get("mixed_spec")) if workflow == "mixed" else policy.plan(workflow)
+            declared = mixed_plan(policy, parameters.get("mixed_spec")) if workflow == "mixed" else policy.plan(workflow,parameters)
             if compiled is not None:
                 declared.update(framework=compiled["framework"],planning_gaps=compiled["planning_gaps"])
             frozen_plan = freeze_plan(request, declared, parameters)
@@ -179,6 +179,12 @@ class Harness:
                         span.observe(output_hash=digest(data))
                     if data["decision"]["action"] == "NO_ACTION":
                         raise ValueError("insufficient_coverage")
+                elif workflow == "quant" and parameters["quant_spec"]["operation"]=="fund_flow_snapshot":
+                    if request.mode=="official":raise ValueError("flow_official_not_supported")
+                    from .flows import compute_flows
+                    with session.action("calculation","fund_flow_snapshot","validate_complete_universe_and_sum_native_estimates",{"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["fund_flow_snapshot"])}) as span:
+                        data=compute_flows(parameters["quant_spec"],facts["fund_flow_snapshot"],reference,cutoff)
+                        span.observe(output_hash=digest(data))
                 elif workflow == "quant":
                     with session.action("calculation", "price_statistics", "validate_calendar_and_compute_local_price_metrics", {"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["price_history"])}) as span:
                         data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
@@ -262,7 +268,7 @@ class Harness:
             known = {"source_acquisition_not_authorized","invalid_source_batch","source_contract_mismatch","WAIT_FOR_CUTOFF","future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
-                     "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
+                     "invalid_flow_spec", "flow_contract_mismatch", "flow_official_not_supported", "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
                      "mixed_spec_required", "invalid_mixed_spec", "invalid_mixed_packet", "invalid_mixed_link", "mixed_incomplete",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
                      "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
@@ -389,6 +395,8 @@ class Harness:
             if capability=="primary_documents" and item["data"].get("schema_version")=="research-facts-v2":
                 if p.get("research_spec_hash")!=digest(plan["parameters"].get("research_spec")):
                     raise ValueError("research_fact_contract_mismatch")
+            if capability=="fund_flow_snapshot" and p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
+                raise ValueError("flow_contract_mismatch")
             if capability=="price_history" and item["data"].get("schema_version")=="price-series-v2":
                 if p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
                     raise ValueError("price_contract_mismatch")
