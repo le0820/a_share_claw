@@ -3,11 +3,12 @@ from .core import DataError, DataRun, Manifest, Provider, Registry, Requirement,
 from .providers import FRED, NBS, PBC, SEC, TickFlow
 from .tdx import EasyTDX
 from .bea import BEA
+from .swresearch import SWResearch
 
 
 def default_registry() -> Registry:
     registry = Registry()
-    for provider in (NBS, PBC, EasyTDX, BEA, FRED, SEC, TickFlow):
+    for provider in (NBS, PBC, EasyTDX, BEA, FRED, SEC, TickFlow, SWResearch):
         registry.register(provider)
     return registry
 

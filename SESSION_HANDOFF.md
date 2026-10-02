@@ -125,3 +125,14 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 已向用户异步请求限定来源扩展（仅申万官方分类/原生指数）。原因是AGENTS.md:42明确主源限NBS/PBC/easytdx/BEA/SEC，easytdx原生目录实际没有SW31；DATA_PLUGINS.md已写具体受限接口、数据要求和验收方案。未获得回复，不将等待时间视为批准，不启用或实现新网络插件；等待答复期间只完成独立核心/合成验收。剩余仍含真实SW源绑定与31行业数值/日历验收、真实模型普通chat质量、沪深最终收盘快照覆盖；北交所按用户指令排除。
 
 本增量最终回归Python3.13：564 passed / 41 subtests；未执行3.11/3.12 CI。临时浏览器/localhost服务均已关闭，当前合成acceptance保留独立复算及真实未完成项；开发提交后develop快进镜像，main不修改。
+
+
+## 2026-10-02 用户授权申万官方与低频统计口径
+
+用户明确“加入申万官方”，并说明以周线为主、月线为辅的低频策略。来源扩展已获授权，不再等待确认；AGENTS.md、DATA_PLUGINS.md已更新，北交所仍排除。新增swresearch注册（显式ASCLAW_DATA_PROVIDERS启用，默认集合保持原有五源）；仅官方HTTPS current/trend原生接口，保持TLS验证、禁止跨域替代或SDK聚合。目录必须原生count/results完整31条，但仍unverified：当前目录不能证明SW2021版本/生效日/分类与指数映射/成分股市场范围。缺复核分类时核心在行情取数前停止。
+
+已接source-core-quant冻结SW31日行情绑定，要求现有分类先通过Scope/hash/version/effective-window检查；HTTP原始bytes/hash、原生代码、当前捕获和非PIT声明通过price-series-v3保留，不伪装easytdx的SDK证据。错身份、重复日期、异常OHLC、缺锚点/最后会话、缺声明会话、捕获越界拒绝；分类生效日晚于窗口时，在任何HTTP前停止。周/月数据都由核心用同一准入日收盘计算，不采供应商周月汇总；月收益以前月末为锚点，窗口边缘保守标记window_segment，不冒充完整日历月。不执行交易或修改正式评分。
+
+真实来源运行fd62ebed19ba4b0f80beb101af7338c3，Scope host:development_acceptance/sw-official-20261002，先冻结缺口框架，1source/0model，官方目录访问network_error，没有行情取数/正式状态。归档data/harness_acceptance/sw_official_20261002/capture-result.json和gap.html；查询已结束，勿无条件重复同一失败任务。合成HTML最新run=5d841ab081ca4c4c98880983d0215dea，保留醒目Synthetic、周热力图及月线辅助表，IAB已确认排版；Decimal跨月复算、并列排名、部分月份标识及31HTTP合成闭环通过。全套578 passed / 41 subtests（本地Python3.13），不代表3.11/3.12或真实来源验收。
+
+下一步：恢复官方可达性后取得原始分类/指数身份/生效文件并审核沪深范围，冻结真实31项与会话/锚点后才采原生日行情，独立复算周/月收益、排名与变化并验收HTML。真实模型chat质量、沪深最终收盘覆盖、完整Issue #1仍未完成，goal保持active。不能将来源授权或合成闭环当作真实轮动已接通。

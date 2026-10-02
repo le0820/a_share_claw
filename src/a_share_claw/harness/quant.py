@@ -88,10 +88,10 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
     cutoff = timestamp(spec["cutoff_timestamp"])
     if cutoff > reference or cutoff.astimezone(ZoneInfo(market_timezone)).date().isoformat() > as_of_date:
         raise ValueError("future_data")
-    if (not isinstance(data, dict) or set(data) != {"schema_version", "series"} or data["schema_version"] not in {"price-series-v1","price-series-v2"} or
+    if (not isinstance(data, dict) or set(data) != {"schema_version", "series"} or data["schema_version"] not in {"price-series-v1","price-series-v2","price-series-v3"} or
             not isinstance(data["series"], list)):
         raise ValueError("price_contract_mismatch")
-    current_snapshot=data["schema_version"]=="price-series-v2"
+    current_snapshot=data["schema_version"] in {"price-series-v2","price-series-v3"}
     expected = {a["symbol"]: a for a in spec["assets"]}
     received, prices, metadata = {}, {}, {}
     for series in data["series"]:
@@ -107,7 +107,7 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
                 series["publication_date"] > timestamp(series["source_timestamp"]).astimezone(ZoneInfo(series["market_timezone"])).date().isoformat() or
                 timestamp(series["source_timestamp"]) > cutoff):
             raise ValueError("price_contract_mismatch")
-        if current_snapshot:
+        if current_snapshot and data["schema_version"]=="price-series-v2":
             meta=series["current_snapshot"];captured=timestamp(series["source_timestamp"])
             if (not isinstance(meta,dict) or set(meta)!={"basis","snapshot_as_of_date","historical_vintage_certified","source_run_id","raw_sha256","sdk_version","native_identity","raw_format"} or
                     meta["basis"]!="observed_current_snapshot" or meta["historical_vintage_certified"] is not False or
@@ -120,6 +120,19 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
                     any(not isinstance(meta["native_identity"].get(k),str) or not meta["native_identity"][k].strip() for k in ("code","name")) or
                     series["publication_date"]!=captured.astimezone(ZoneInfo(series["market_timezone"])).date().isoformat()):
                 raise ValueError("price_contract_mismatch")
+        if data["schema_version"]=="price-series-v3":
+            meta=series["current_snapshot"];captured=timestamp(series["source_timestamp"])
+            required={"basis","snapshot_as_of_date","historical_vintage_certified","source_run_id","raw_sha256","provider","adapter_version","native_identity","raw_format"}
+            if (spec['schema_version']!='quant-spec-v2' or not isinstance(meta,dict) or set(meta)!=required or
+                    meta['basis']!='observed_current_snapshot' or meta['snapshot_as_of_date']!=as_of_date or
+                    meta['historical_vintage_certified'] is not False or meta['provider']!='swresearch' or
+                    meta['adapter_version']!='0.1.0' or meta['raw_format']!='native_http_json' or
+                    meta['native_identity']!={'code':symbol[:-3],'name':asset['name'],'publisher':'申万宏源研究'} or
+                    captured.astimezone(ZoneInfo('Asia/Shanghai')).date().isoformat()!=as_of_date or
+                    not isinstance(meta['source_run_id'],str) or not re.fullmatch(r'[a-f0-9]{32}',meta['source_run_id']) or
+                    not isinstance(meta['raw_sha256'],str) or not re.fullmatch(r'[a-f0-9]{64}',meta['raw_sha256']) or
+                    series['publication_date']!=as_of_date):
+                raise ValueError('price_contract_mismatch')
         sessions = [asset["anchor"], *asset["sessions"]]
         if not isinstance(series["rows"], list) or len(series["rows"]) != len(sessions):
             raise ValueError("insufficient_coverage:price_sessions")

@@ -1,6 +1,6 @@
 """Code-owned SW2021 level-1 weekly rotation over a complete frozen price universe."""
 from __future__ import annotations
-import json,re
+import calendar,json,re
 from datetime import date
 from .contracts import canonical,digest,validate_date
 
@@ -55,7 +55,26 @@ def compute_rotation(spec,prices,classification,as_of_date):
         for symbol in received:
             history[symbol].append({'week':window['week'],'anchor_date':anchor,'last_trade_date':end,'period_return':returns[symbol],'rank':ranks[symbol],'rank_change':None if symbol not in previous else previous[symbol]-ranks[symbol]})
         previous=ranks;anchor=end
-    industries=[{**row,'observations':history[row['index_symbol']]} for row in rotation['industries']]
+    # Monthly context uses exactly the admitted daily series. Window edges are
+    # conservatively labelled partial rather than claiming a full calendar month.
+    months=sorted({d[:7] for d in days});monthly={symbol:[] for symbol in received}
+    month_anchor=spec['assets'][0]['anchor']['trade_date'];prior_ranks={}
+    for month in months:
+        selected=[d for d in days if d.startswith(month)];end=selected[-1]
+        year,number=map(int,month.split('-'));first=month+'-01';last=f'{month}-{calendar.monthrange(year,number)[1]:02d}'
+        partial=spec['window_start']>first or spec['window_end']<last
+        returns={s:v[end]/v[month_anchor]-1 for s,v in received.items()}
+        rounded={s:round(v,12) for s,v in returns.items()}
+        ranks={s:1+sum(v>rounded[s] for v in rounded.values()) for s in rounded}
+        for symbol in received:
+            monthly[symbol].append({'month':month,'anchor_date':month_anchor,'last_trade_date':end,
+                'period_return':returns[symbol],'rank':ranks[symbol],
+                'rank_change':None if symbol not in prior_ranks else prior_ranks[symbol]-ranks[symbol],
+                'coverage':'window_segment' if partial else 'calendar_month',
+                'period_complete':not partial})
+        month_anchor=end;prior_ranks=ranks
+    industries=[{**row,'observations':history[row['index_symbol']],
+                 'monthly_context':monthly[row['index_symbol']]} for row in rotation['industries']]
     industries.sort(key=lambda row:(row['observations'][-1]['rank'],row['industry_code']))
     return {'schema_version':'sw-rotation-output-v1','classification_version':'SW2021','level':1,'market_scope':['SH','SZ'],'windows':rotation['windows'],'industries':industries,'ranking':'competition_12_decimal','input_hash':digest(prices),'classification_hash':digest(classification),'classification_source':classification['source_file'],'classification_basis':'synthetic_fixture' if classification['source_file'].startswith('fixture:') else 'host_reviewed_publisher_document','document_sha256':classification['document_sha256'],
-        'limitations':['周收益以该周最后交易日/前周最后交易日计算；首周用冻结锚点，短周按实际会话，不补价。','排名按周收益降序，四舍五入12位后同收益同排名；并列采用竞争排名，代码排序只用于展示。','rank_change为前周排名减本周排名，正值表示提升；首周未定义。行业排名仅比较当周31个已准入行业。','分类与指数身份须有宿主复核的申万2021一级原始文件；计算不证明文件真实性或历史PIT，不构成交易动作。']}
+        'limitations':['周线为主、月线为辅；月度辅助收益使用相同日收盘，不增加取数或独立交易信号。window_segment为窗口内部分月份，不能视作完整月收益。','周收益以该周最后交易日/前周最后交易日计算；首周用冻结锚点，短周按实际会话，不补价。','排名按周收益降序，四舍五入12位后同收益同排名；并列采用竞争排名，代码排序只用于展示。','rank_change为前周排名减本周排名，正值表示提升；首周未定义。行业排名仅比较当周31个已准入行业。','分类与指数身份须有宿主复核的申万2021一级原始文件；计算不证明文件真实性或历史PIT，不构成交易动作。']}
