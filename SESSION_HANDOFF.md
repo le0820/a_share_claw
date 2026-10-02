@@ -107,3 +107,11 @@ ASCLAW_DATA_PROVIDERS='' uv run --no-sync pytest -q
 尚缺：北交所351条原生主力净额全部为0且有成交额，SDK/源字段支持需要认证，不能据此认定资金平衡；ALL同受限制。BSE日历只保存官方主站索引摘录及明确403失败，未冒充原始全文。申万2021一级31行业仍没有合法完整分类/行情，不能以128项通达信行业替代。下一步可检查已安装SDK ex/mac_client.goods_count(market)及goods_list分页以解决market62目录截断，再验证官方申万元数据和精确身份；当前资金图是有限快照验收，不是整个goal完成。继续真实模型普通chat整合、申万轮动、资金语义/最终收盘覆盖，并维护完整Issue #1未完成边界。
 
 本增量最终离线回归：Python3.13，541 passed / 41 subtests；未重跑3.11/3.12 CI。真实资金源调用2次（首严格运行阻断、显式快照运行成功），后续2次同Scope原始哈希复验复用、0新增来源；没有模型调用。临时localhost验收服务与浏览器页已关闭。main未修改，开发提交后develop快进镜像。
+
+## 2026-10-02 用户范围修正与完整目录检查
+
+用户明确“不需要北交所，我不关注北交所”。当前资金图只采沪深，不再将北交所字段支持作为剩余目标。新增flow-spec-v2/markets=[SH,SZ]；worker、来源合同、核心集合/ALL和HTML都使用同一冻结范围；旧v1三市仅归档兼容。真实新采5226只（SH2320/SZ2906），run=`6ac64f6a0aa242bd8d9d89dbdb58a14a`，1source/0model，Decimal独立复算通过，3条SZ00:00:01原生零值明确披露；来源与报告位于 `data/harness_acceptance/fund_flow_shsz_20261002/acceptance.json`。旧三市记录保留，不改写或删除。
+
+申万目录方向取得新证据：初试全global目录106798条超限，保留失败；改用SDK market排序契约，原生count+二分相邻边界探针+完整目标连续页，严格header/offset/count。market62实际2320条、3页、28探针、6个重复代码，重复身份原样保留并标记，整体仍unverified。raw及 `complete-catalog-acceptance.json` 位于market_sector验收目录；没有801xxx/申万31，唯一名称含申万的是931595中证申万通胀防御，不替代申万一级。原官方申万发布页仍超时；下一步须合法SW元数据及行情绑定，或者继续核心轮动规格/计算/图表实现并保留真实来源缺口，不能把TDX/中证分类改名成SW。
+
+本增量最终离线回归Python3.13：549 passed / 41 subtests；沪深真实HTML浏览器布局及无BJ条目检查通过，临时服务/页已关闭。普通四指数、ReAct、所有终态HTML仍保留既有验收；整体goal未完成，继续SW轮动核心与真实绑定、真实模型聊天整合，北交所已从当前研究范围和剩余验收要求排除。

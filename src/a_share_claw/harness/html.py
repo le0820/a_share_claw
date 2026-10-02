@@ -70,12 +70,14 @@ def flow_chart(data):
     disclosure=('<p>当前捕获快照：'+str(pending)+' 条原生零值未确认收盘更新；全市场汇总未认证最终收盘成交完整性，逐条审计见下文。</p>') if pending else ''
     zeros=[m for m,v in data['series_audit'].items() if v['uniform_zero_net_with_positive_turnover']]
     if zeros:disclosure+='<p>'+escape(','.join(zeros))+' 全部主力净额为原生零值但有成交额；字段支持待确认，不代表真实买卖平衡，ALL同受此限制。</p>'
+    scope_name='沪深两市' if data['specification'].get('markets')==['SH','SZ'] else '三市'
+    aria_label='沪深两市及观察范围汇总主力净额估计' if scope_name=='沪深两市' else '三市及全市场主力净额估计'
     bars=[];rows=[]
     for i,row in enumerate(values):
         y=42+i*48;v=row['value'];width=abs(v)/scale*280;x=410 if v>=0 else 410-width;color='#c7383e' if v>=0 else '#11856a'
         bars.append(f'<text x="8" y="{y+17}">{escape(row["market"])}</text><rect x="{x}" y="{y}" width="{width}" height="26" fill="{color}"><title>{escape(v)} CNY</title></rect><text x="710" y="{y+17}">{v/1e8:.3f}亿</text>')
         rows.append(f'<tr><td>{escape(row["market"])}</td><td>{escape(v)}</td></tr>')
-    return '<section class="chart"><h3>资金流向：供应商主力净额估计</h3><p>'+escape(c['observation_date'])+' · 单位亿元；正值向右，负值向左。ALL为三市汇总，不能与分市场重复相加。</p>'+disclosure+'<svg viewBox="0 0 840 260" role="img" aria-label="三市及全市场主力净额估计"><path d="M410 25 V245" stroke="#7a8b9c"/>'+''.join(bars)+'</svg><details><summary>原始金额（元）</summary><table><thead><tr><th>范围</th><th>元</th></tr></thead><tbody>'+''.join(rows)+'</tbody></table></details></section>'
+    return '<section class="chart"><h3>资金流向：供应商主力净额估计</h3><p>'+escape(c['observation_date'])+' · 单位亿元；正值向右，负值向左。ALL为'+scope_name+'汇总，不能与分市场重复相加。</p>'+disclosure+'<svg viewBox="0 0 840 260" role="img" aria-label="'+aria_label+'"><path d="M410 25 V245" stroke="#7a8b9c"/>'+''.join(bars)+'</svg><details><summary>原始金额（元）</summary><table><thead><tr><th>范围</th><th>元</th></tr></thead><tbody>'+''.join(rows)+'</tbody></table></details></section>'
 
 
 def charts(workflow, data):

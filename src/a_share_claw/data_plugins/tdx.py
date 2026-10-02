@@ -56,8 +56,8 @@ def checked_params(r):
         if set(p)!={"markets","max_rows","observation_date"} or iso_date(p["observation_date"])>r.as_of_date:
             raise DataError("invalid_request","Native flow requires an explicit nonfuture observation date")
         base={k:v for k,v in p.items() if k!="observation_date"}
-        if base!={"markets":["SH","SZ","BJ"],"max_rows":10000}:raise DataError("invalid_request","Freeze all three exchanges and bounded coverage")
-        return {"operation":"quote_snapshot","kind":"china","max_rows":10000}
+        if base.get('markets') not in (["SH","SZ"],["SH","SZ","BJ"]) or base.get('max_rows')!=10000:raise DataError("invalid_request","Freeze SH/SZ or explicitly include BJ, with bounded coverage")
+        return {"operation":"quote_snapshot","kind":"china","max_rows":10000,'markets':p['markets']}
     if r.capability=="market.a_share_quote_snapshot":
         if p!={"markets":["SH","SZ","BJ"],"max_rows":10000}:
             raise DataError("invalid_request","Freeze complete SH/SZ/BJ quote coverage; no sampled whole-market claim")
@@ -92,7 +92,7 @@ def checked_params(r):
 
 
 class EasyTDX(Provider):
-    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot","market.board_catalog","market.extended_index_catalog","market.instrument_identity","market.a_share_quote_snapshot","market.a_share_flow_snapshot"),HOSTS,version="1.3.0")
+    manifest=Manifest("easytdx",("market.index_catalog","market.index_daily_snapshot","market.board_catalog","market.extended_index_catalog","market.instrument_identity","market.a_share_quote_snapshot","market.a_share_flow_snapshot"),HOSTS,version="1.4.0")
     def __init__(self,settings,transport=None):
         self._settings=dict(settings)
         self.transport=WorkerTransport() if transport is None or isinstance(transport,Transport) else transport
@@ -106,7 +106,7 @@ class EasyTDX(Provider):
             raise DataError("source_mismatch","Index response must identify the pinned SDK and declared feed endpoint")
         if r.capability in {"market.a_share_quote_snapshot","market.a_share_flow_snapshot"}:
             totals=obj.get("market_totals");quotes=obj.get("quotes")
-            if not isinstance(totals,dict) or set(totals)!={"SH","SZ","BJ"} or any(type(v) is not int or not 0<v<=10000 for v in totals.values()) or not isinstance(quotes,list):
+            if not isinstance(totals,dict) or set(totals)!=set(r.params['markets']) or any(type(v) is not int or not 0<v<=10000 for v in totals.values()) or not isinstance(quotes,list):
                 raise DataError("insufficient_coverage","Each exchange needs an explicit positive native universe count")
             seen=set();counts={k:0 for k in totals};missing=[]
             for row in quotes:
@@ -140,10 +140,30 @@ class EasyTDX(Provider):
         rows=obj.get("identity")
         if not isinstance(rows,list) or not rows:
             raise DataError("missing_identity","No native instrument identity was returned")
-        if request["kind"]=="international" and len(rows)>=600:
+        if r.capability=='market.extended_index_catalog':
+            catalog=obj.get('native_catalog',{})
+            all_rows=catalog.get('rows')
+            start=catalog.get('market_start');end=catalog.get('market_end');total=catalog.get('native_total')
+            if (catalog.get('coverage_status')!='complete_against_native_market_boundaries' or type(catalog.get('native_total')) is not int or
+                not isinstance(all_rows,list) or len(all_rows)!=catalog.get('market_total') or catalog['native_total']>250000 or
+                type(start) is not int or type(end) is not int or not 0<=start<end<=total or not 0<len(all_rows)<=10000 or end-start!=len(all_rows) or
+                [row.get('native_offset') for row in all_rows]!=list(range(start,end)) or
+                rows!=[{k:v for k,v in row.items() if k!='raw_hex'} for row in all_rows if row.get('market')==r.params['market']]):
+                raise DataError('insufficient_coverage','Extended catalog must match the complete retained native market interval and boundary probes')
+            probes=catalog.get('boundary_probes')
+            if not isinstance(probes,list) or not probes or any(not isinstance(p,dict) or set(p)!={'offset','row'} or type(p['offset']) is not int or not 0<=p['offset']<total or not isinstance(p['row'],dict) or type(p['row'].get('market')) is not int for p in probes):
+                raise DataError('insufficient_coverage','Native boundary probes must be retained')
+            indexed={p['offset']:p['row']['market'] for p in probes};market=r.params['market'];ordered=sorted(indexed)
+            if (len(indexed)!=len(probes) or indexed.get(start)!=market or indexed.get(end-1)!=market or
+                start>0 and indexed.get(start-1,market)>=market or end<total and indexed.get(end,market)<=market or
+                any(indexed[a]>indexed[b] for a,b in zip(ordered,ordered[1:]))):
+                raise DataError('insufficient_coverage','Native probes disagree with the declared market-sorted interval')
+        elif request["kind"]=="international" and len(rows)>=600:
             raise DataError("insufficient_coverage","International catalog may be truncated; do not certify identity from an incomplete page")
         if r.capability in {"market.index_catalog","market.board_catalog","market.extended_index_catalog","market.instrument_identity"}:
-            return Payload({"instruments":rows,"format":"native_sdk_instrument_catalog","historical_vintage_certified":False},raw,obj["endpoint"],"unverified",
+            data={"instruments":rows,"format":"native_sdk_instrument_catalog","historical_vintage_certified":False}
+            if r.capability=='market.extended_index_catalog':data['catalog_audit']={k:v for k,v in catalog.items() if k!='rows'}
+            return Payload(data,raw,obj["endpoint"],"unverified",
                 ["Native catalog discovery only; canonical identity still needs explicit review before an index requirement"])
         spec=INDEXES[r.params["symbol"]]
         matches=[row for row in rows if row.get("market")==spec["market"] and row.get("code")==request["code"]]

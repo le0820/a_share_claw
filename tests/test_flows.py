@@ -92,3 +92,21 @@ def test_uniform_zero_net_on_positive_turnover_is_disclosed_as_uncertified_field
     delivery=read_report(TraceRepository(storage),scope,out.run_id,engine.artifact_root)
     assert delivery['report']['data']['series_audit']['BJ']['uniform_zero_net_with_positive_turnover']
     assert '字段支持待确认，不代表真实买卖平衡，ALL同受此限制' in delivery['html']
+
+
+def test_sh_sz_only_is_frozen_before_source_and_never_requires_or_aggregates_bj(environment):
+    storage,scope,engine,tmp=environment;s=spec();s.update(schema_version='flow-spec-v2',markets=['SH','SZ'])
+    s['universe']=[r for r in s['universe'] if r['market']!='BJ']
+    t=Transport();t.obj['quotes']=t.obj['quotes'][:2];del t.obj['market_totals']['BJ'];del t.obj['page_counts']['BJ']
+    calls=[];original=t.request
+    def counted(p):calls.append(p);return original(p)
+    t.request=counted
+    out=engine.run(RunRequest(scope,'Synthetic SH SZ only market snapshot',DAY,'research','quant'),quant_spec=s,evidence_adapter=adapter(tmp,s,t),clock=datetime(2026,7,14,2,tzinfo=timezone.utc))
+    assert out.status==RunStatus.SUCCEEDED,out.output
+    assert calls[0]['markets']==['SH','SZ']
+    delivery=read_report(TraceRepository(storage),scope,out.run_id,engine.artifact_root)
+    assert set(delivery['report']['data']['metrics'])=={'SH','SZ','ALL'}
+    assert delivery['report']['data']['metrics']['ALL']=={'native_main_order_net_amount':-40,'turnover_amount':200}
+    assert 'ALL为沪深两市汇总' in delivery['html'] and '>BJ<' not in delivery['html']
+    bad=copy.deepcopy(s);bad['universe'].append({'market':'BJ','code':'920001','name':'Synthetic'})
+    with pytest.raises(ValueError,match='insufficient_coverage'):checked_flow_spec(bad)

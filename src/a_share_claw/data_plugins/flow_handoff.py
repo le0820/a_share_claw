@@ -13,7 +13,7 @@ from .core import DataRun,Requirement,DataError
 
 def flow_source_contract(spec,as_of_date):
     s=checked_flow_spec(spec)
-    return {'source_plan':{'framework':'Acquire only complete frozen three-exchange native main-order estimates; no scoring or trading','requirements':[{'requirement_id':'flows','provider':'easytdx','capability':'market.a_share_flow_snapshot','as_of_date':as_of_date,'params':{'markets':['SH','SZ','BJ'],'max_rows':10000,'observation_date':s['observation_date']},'required':True}]},
+    return {'source_plan':{'framework':'Acquire only complete frozen three-exchange native main-order estimates; no scoring or trading' if s['schema_version']=='flow-spec-v1' else 'Acquire only the explicitly frozen exchange universe native main-order estimates; no scoring or trading','requirements':[{'requirement_id':'flows','provider':'easytdx','capability':'market.a_share_flow_snapshot','as_of_date':as_of_date,'params':{'markets':s.get('markets',['SH','SZ','BJ']),'max_rows':10000,'observation_date':s['observation_date']},'required':True}]},
         'bindings':[{'requirement_id':'flows','capability':'fund_flow_snapshot','measurement_basis':BASIS}],'price_bindings':[],'cutoff_timestamp':s['cutoff_timestamp']}
 
 
