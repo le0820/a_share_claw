@@ -5,6 +5,7 @@ import asyncio
 import json
 from pathlib import Path
 
+from .aisdi import add_aisdi_parser, run_aisdi
 from .config import AppConfig
 from .db import Storage
 from .data_plugins.cli import add_data_parser, run_data
@@ -17,6 +18,7 @@ def main() -> None:
     sub.add_parser("run", help="Run Telegram polling bot and scheduler")
     sub.add_parser("init-db", help="Initialize SQLite database")
     sub.add_parser("show-config", help="Print resolved non-secret config")
+    add_aisdi_parser(sub)
     add_data_parser(sub)
     add_harness_parser(sub)
     chat = sub.add_parser("chat", help="Run one local chat turn")
@@ -37,6 +39,8 @@ async def async_main(args: argparse.Namespace) -> None:
     config = AppConfig.from_env()
     if args.command == "data":
         raise SystemExit(await run_data(args, config))
+    if args.command == "aisdi":
+        raise SystemExit(run_aisdi(args, config))
     config.ensure_dirs()
     storage = Storage(config.database_path)
     storage.init()

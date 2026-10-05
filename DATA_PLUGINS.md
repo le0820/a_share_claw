@@ -279,3 +279,8 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 核心仅聚合原生金额，缺字段不补0，负值不截断，ALL不重复计数。native_update_policy=all_rows_post_close 拒绝任何收盘前更新；显式 retain_unfinalized_native_zero 只保留同日原生成交额与主力净额均为0的记录，逐条披露并拒绝最终收盘完整性声明。市场净额全部为0且有成交额时，标记字段支持未认证并提示ALL同受限制。真实快照范围及独立Decimal复算保存在 `data/harness_acceptance/fund_flow_20261002/acceptance.json`；不作为北向、融资融券、全市场现金流或L2输入。
 
 2026-10-02 发现层实际取得 SH2320/SZ2906/BJ351，共5577只；原生 server_update_date 均20260930，amount/main_net_amount/date/time 未缺失。原始归档在 `data/harness_acceptance/market_sector_20261002/flow_discovery/`；未映射为评分或正式输入。通达信目录128项、扩展70目录374项均未确认申万一级；market62截断拒绝，精确801010身份调用失败，官方分类页连接失败。不能拿通达信目录冒充31申万行业。
+
+
+## AISDI 来源能力评估
+
+2026-10-04：用户要求将领先AI供需规格配置为tool并评估来源。已接入无来源调用的规格/日期化缺口工具；现有SEC标准全公司事实仅覆盖部分财务字段。新增官方IR/SEC原文、OpenRouter、Artificial Analysis、电力/产业数据为待评估绑定能力，尚未注册或启用，不修改默认五源和来源准入规则。完整字段缺口、平台样本/吞吐/有效供给限制及核对链接见 [AISDI.md](AISDI.md)。

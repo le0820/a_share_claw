@@ -188,3 +188,12 @@ SDK 使用 ModelSettings.extra_body 传递这些明确授权的请求设置，�
 用户附件 StockClassifyUse_stock.xls 已原样留存并提取：Sheet1 A1:D12926，12925条历史记录、5930个股票代码，3914个代码有多条记录；列为股票代码/计入日期/行业代码/更新日期。最新表内更新时间2026-09-29，不能视作独立核验的发布日期。SHA256=98fe3b4ccccd1639ebee0adcadb338c30736710fab32533c86b69eec971e1283。没有声明分类版本、一级行业名称及31指数映射、正式生效日期或沪深范围证明；保留 user_supplied_unreviewed，不按更新时间自动晋升最新成分、不自动准入核心价格计算。
 
 证据在主 checkout data/harness_acceptance/user_classification_20261004/ 与 deepseek_live_20261004/；未同步到正式状态。当前策略仍为周线主、日线辅，北交所排除。剩余是分类元数据审核、真实SW31行情与周/日验收、沪深最终收盘完整性；不能因为新密钥或附件关闭整体目标。
+
+
+## 2026-10-04 AISDI 领先指标规格工具与来源评估
+
+用户提供 AI_Supply_Demand_Index_Q4_2026_Model_Spec.md，要求作为tool配置并评估新增来源。新增按需规格引用（哈希验证）、独立compiled配置、aisdi plan/spec CLI 与宿主函数/ResearchRuntime入口；无模型/网络/状态调用，不给无数据主观分数。20支柱、60/40主权重、每侧60%覆盖要求、周主日辅季度复核已配置；计分/长表准入/PIT回测/图表/调度/普通chat自动调用尚未实现。不是新的正式仓位信号，不替换旧AI宏观策略/L2。附件执行要求只作reference data。
+
+来源结论需补充：先复用SEC原生标准公司事实，优先评估官方IR/原始财报、OpenRouter平台用量、Artificial Analysis测试性能；电力/产业供应链数据按具体缺口后补。现有SEC无分部自定义标签/原文解析，Token平台样本非全市场，测试吞吐非总算力容量，电网统计非AI已投运供给。新增来源仅评估未启用；来源规则无改动。公式窗口、字段权重、MAD=0、半衰期定义、有效覆盖/总confidence、四象限不确定组合、CFCE/AICEI完整口径仍待明确，用户过去季度原始长表未提供。完整说明索引 AISDI.md。
+
+Python3.13全量612 passed /41 subtests；最后配置/哈希输出扩充后针对性17 passed。真实CLI输出在主 checkout data/harness_acceptance/aisdi_tool_20261004/，只验证规格/需求工具，不是经济数据或领先性验收。开发分支提交后同步develop，main代码及凭据保持本次之前版本。
