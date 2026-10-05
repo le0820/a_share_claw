@@ -201,3 +201,12 @@ Python3.13全量612 passed /41 subtests；最后配置/哈希输出扩充后针�
 ## 2026-10-04 AISDI免费来源全规格核查
 
 新增 src/compiled/aisdi_free_sources.json：153字段与原文15–21节精确匹配、20支柱、24主体条目、9派生输出、元数据及汇率/市场/图表回测补充要求均登记候选与缺口。31来源渠道非31免费已验收API。无新插件、凭据、模型、经济准入或正式状态。完整免费覆盖不足；训练实际遥测、全球有效供给、成功任务、产品级供应链历史、私有信用结构和定义缺口保留。源查找/缺口报告目标完成，不代表原AISDI计分或研究系统整体验收。报告/CSV/JSON/audit见主checkout data/research/output/aisdi_free_sources_20261004/，访问证据见data/harness_acceptance/aisdi_free_sources_20261004/。仅目录/文档变更；独立完整性验证通过，不重跑无关代码回归。
+
+
+## 2026-10-05 研究报告公开交付与增量复核
+
+已核查main与原开发分支，开发基线9349d8b的此前15个提交尚未推送。本次沿原开发分支提交报告和评估，再快进develop镜像，经PR交付main。完整对照及后续验收见 [SHENWAN_DELIVERY_REVIEW.md](SHENWAN_DELIVERY_REVIEW.md)，HTML及公开验证摘要在data/research/output/shenwan_20261004/published/；仅3个公开产物定向解除忽略，原始响应、trace、密钥和会话仍本机保留。
+
+本次使用main上的规划及quant函数产生宿主HTML；官方31行业历史各424点、五源背景及AI财务代理完成，167份原始来源哈希本机通过。没有追认为开发分支核心周/日轮动准入，也未实现原AISDI20支柱计分。恢复官网可达性解决取证障碍，不等于分类版本/生效/沪深范围、完整日历或PIT认证。下一步按增量评估补真实SW核心准入、AISDI口径与长表、DeepSeek真实研究结构及质量、缓存/月更；完整Issue #1保持open。
+
+本次重跑开发代码离线回归：Python3.13，612 passed /41 subtests（22.05秒）；GitHub最终提交CI须单独核实，不继承旧CI。报告原观察截止2026-10-04，发布整理日期2026-10-05，没有按整理日期补取新市场数据。

@@ -229,6 +229,10 @@ tests/                      # 现有单元与路由回归测试
 
 `harness watch-plan --date DATE --window-start START --window-end END --cutoff TIMESTAMP --nyse-calendar FILE --nasdaq-calendar FILE --sse-calendar FILE --szse-calendar FILE` 只冻结四指数规格与来源合同，无网络取数。随后显式 `harness run quant --quant-spec FILE --source-contract FILE`；`harness ui --run-id RUN_ID --date DATE` 导出同 Scope 离线列表、诊断/时间轴和已校验报告链接。使用相同的 platform/user/chat/agent-key。HTML 快照没有运行/取数按钮或正式发布权限。
 
+## 本次研究交付
+
+[申万31行业与五源宏观金融/AI财务代理HTML](data/research/output/shenwan_20261004/published/report.html)（下载后离线打开）及[交接增量评估](SHENWAN_DELIVERY_REVIEW.md)。真实长历史图表已交付；核心周主日辅准入、完整AISDI及历史PIT仍未完成，详见评估。
+
 ## 待办与下一会话入口
 
 开发基线为原 PR #2 分支 `docs/portable-harness-data-plugins`；`develop` 是同步镜像，不作为第二条独立开发线。开发、来源验收和业务 case 通过后，经 PR 合并到 `main`，再快进同步两个开发引用；不强推或直接在 main 开发。

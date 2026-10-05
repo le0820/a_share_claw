@@ -1,0 +1,212 @@
+{
+  "as_of_date": "2026-10-04",
+  "sector_count": 31,
+  "common_observations": 424,
+  "ai_events": 29,
+  "quant_reconciliation": "passed",
+  "AI_component_arithmetic_and_disclosure_dates": "passed",
+  "UI": {
+    "browser": "headless Chromium",
+    "errors": [],
+    "sector_charts": [
+      {
+        "code": "801770",
+        "width": 1138,
+        "height": 690,
+        "ink": 37612
+      },
+      {
+        "code": "801080",
+        "width": 1138,
+        "height": 690,
+        "ink": 37373
+      },
+      {
+        "code": "801050",
+        "width": 1138,
+        "height": 690,
+        "ink": 38595
+      },
+      {
+        "code": "801230",
+        "width": 1138,
+        "height": 690,
+        "ink": 38211
+      },
+      {
+        "code": "801890",
+        "width": 1138,
+        "height": 690,
+        "ink": 38430
+      },
+      {
+        "code": "801710",
+        "width": 1138,
+        "height": 690,
+        "ink": 37911
+      },
+      {
+        "code": "801030",
+        "width": 1138,
+        "height": 690,
+        "ink": 38163
+      },
+      {
+        "code": "801730",
+        "width": 1138,
+        "height": 690,
+        "ink": 37763
+      },
+      {
+        "code": "801960",
+        "width": 1138,
+        "height": 690,
+        "ink": 38242
+      },
+      {
+        "code": "801950",
+        "width": 1138,
+        "height": 690,
+        "ink": 38538
+      },
+      {
+        "code": "801740",
+        "width": 1138,
+        "height": 690,
+        "ink": 38308
+      },
+      {
+        "code": "801970",
+        "width": 1138,
+        "height": 690,
+        "ink": 38132
+      },
+      {
+        "code": "801150",
+        "width": 1138,
+        "height": 690,
+        "ink": 38091
+      },
+      {
+        "code": "801780",
+        "width": 1138,
+        "height": 690,
+        "ink": 38207
+      },
+      {
+        "code": "801760",
+        "width": 1138,
+        "height": 690,
+        "ink": 38434
+      },
+      {
+        "code": "801160",
+        "width": 1138,
+        "height": 690,
+        "ink": 38246
+      },
+      {
+        "code": "801010",
+        "width": 1138,
+        "height": 690,
+        "ink": 37949
+      },
+      {
+        "code": "801040",
+        "width": 1138,
+        "height": 690,
+        "ink": 38143
+      },
+      {
+        "code": "801140",
+        "width": 1138,
+        "height": 690,
+        "ink": 37895
+      },
+      {
+        "code": "801880",
+        "width": 1138,
+        "height": 690,
+        "ink": 38374
+      },
+      {
+        "code": "801130",
+        "width": 1138,
+        "height": 690,
+        "ink": 37994
+      },
+      {
+        "code": "801750",
+        "width": 1138,
+        "height": 690,
+        "ink": 38602
+      },
+      {
+        "code": "801110",
+        "width": 1138,
+        "height": 690,
+        "ink": 38161
+      },
+      {
+        "code": "801720",
+        "width": 1138,
+        "height": 690,
+        "ink": 38016
+      },
+      {
+        "code": "801790",
+        "width": 1138,
+        "height": 690,
+        "ink": 37886
+      },
+      {
+        "code": "801180",
+        "width": 1138,
+        "height": 690,
+        "ink": 38527
+      },
+      {
+        "code": "801170",
+        "width": 1138,
+        "height": 690,
+        "ink": 38221
+      },
+      {
+        "code": "801210",
+        "width": 1138,
+        "height": 690,
+        "ink": 37922
+      },
+      {
+        "code": "801980",
+        "width": 1138,
+        "height": 690,
+        "ink": 38168
+      },
+      {
+        "code": "801120",
+        "width": 1138,
+        "height": 690,
+        "ink": 38269
+      },
+      {
+        "code": "801200",
+        "width": 1138,
+        "height": 690,
+        "ink": 38734
+      }
+    ],
+    "date_toggle": true,
+    "sector_filter": true,
+    "mobile_overflow": false
+  },
+  "original_local_html_sha256": "da288af790c6fc0510f0b9a69ba7d9a8426a915dbdad20c746c77448df94de1d",
+  "published_html_sha256": "b0445c147fa956fa5521b47fedecd0786c4116a327669acbce197a0115a8be76",
+  "redaction": {
+    "local_paths": "LOCAL_WORKSPACE/USER_SUPPLIED_SHENWAN",
+    "principal_and_session": "redacted",
+    "economic_values_and_source_hashes": "unchanged",
+    "raw_source_files_uploaded": false
+  },
+  "source_hashes_verified": 167
+}
