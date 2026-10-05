@@ -197,3 +197,7 @@ SDK 使用 ModelSettings.extra_body 传递这些明确授权的请求设置，�
 来源结论需补充：先复用SEC原生标准公司事实，优先评估官方IR/原始财报、OpenRouter平台用量、Artificial Analysis测试性能；电力/产业供应链数据按具体缺口后补。现有SEC无分部自定义标签/原文解析，Token平台样本非全市场，测试吞吐非总算力容量，电网统计非AI已投运供给。新增来源仅评估未启用；来源规则无改动。公式窗口、字段权重、MAD=0、半衰期定义、有效覆盖/总confidence、四象限不确定组合、CFCE/AICEI完整口径仍待明确，用户过去季度原始长表未提供。完整说明索引 AISDI.md。
 
 Python3.13全量612 passed /41 subtests；最后配置/哈希输出扩充后针对性17 passed。真实CLI输出在主 checkout data/harness_acceptance/aisdi_tool_20261004/，只验证规格/需求工具，不是经济数据或领先性验收。开发分支提交后同步develop，main代码及凭据保持本次之前版本。
+
+## 2026-10-04 AISDI免费来源全规格核查
+
+新增 src/compiled/aisdi_free_sources.json：153字段与原文15–21节精确匹配、20支柱、24主体条目、9派生输出、元数据及汇率/市场/图表回测补充要求均登记候选与缺口。31来源渠道非31免费已验收API。无新插件、凭据、模型、经济准入或正式状态。完整免费覆盖不足；训练实际遥测、全球有效供给、成功任务、产品级供应链历史、私有信用结构和定义缺口保留。源查找/缺口报告目标完成，不代表原AISDI计分或研究系统整体验收。报告/CSV/JSON/audit见主checkout data/research/output/aisdi_free_sources_20261004/，访问证据见data/harness_acceptance/aisdi_free_sources_20261004/。仅目录/文档变更；独立完整性验证通过，不重跑无关代码回归。
