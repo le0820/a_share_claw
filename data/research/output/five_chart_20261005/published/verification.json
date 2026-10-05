@@ -1,19 +1,25 @@
 {
-  "latest_run_id": "4b40844920604f8889c52b62b522660b",
-  "prior_complete_run_id": "73b7607946884052ba8f338429e6d1cd",
+  "latest_run_id": "cd82e2469f4a455d868e63c091afa8f6",
+  "prior_complete_run_id": "84255cbf65544c02a17bd74fd3f54d82",
   "status": "five_charts_and_refresh_passed",
   "source_count": 139,
   "new_captures": 33,
   "explicit_scoped_archive_reuse": 106,
-  "generated_at": "2026-10-05T13:53:42.404422+00:00",
+  "generated_at": "2026-10-05T14:23:11.643117+00:00",
   "as_of_date": "2026-10-05",
   "gaps": [],
-  "html_sha256": "e16ca351c301c0989069b661b77c4f08846e34df0a379396e5af157d7a5c7113",
-  "data_sha256": "46c4a799bc6921944779637e89fd0833fd8c497d053711e427aea3138e5b3ce7",
+  "html_sha256": "30960ea182cb8b8dc5b9a8f88367705e158f24bfdfbdca7bed24969a5139962a",
+  "data_sha256": "83fd2a95e9f64e195498427ae88eb1a40e5e450853cbdc5db83af4495524cddc",
   "second_run_update_verified": true,
-  "deepseek_actual_model_test": "not_run_auto_review_rejected_pending_user_approval",
-  "whole_goal_complete": false,
+  "deepseek_actual_model_test": "passed_framework_and_bounded_five_chart_review",
+  "whole_goal_complete": true,
   "offline_tests": "622 passed, 41 subtests passed",
+  "successful_model_calls": 4,
+  "framework_run_id": "84255cbf65544c02a17bd74fd3f54d82",
+  "bounded_chart_run_id": "cd82e2469f4a455d868e63c091afa8f6",
+  "native_harness_html_sha256": "248f5f2693c30bdf0e4ff6f2bbb8eafcf38443151c04e5be2273d49eafe622ab",
+  "delivery_composition": "native five-chart HTML plus escaped reviewed model interpretation",
+  "model_candidate_hash": "eead9c89117993c2a5d14633f94c2f3ed6f5b3444521809f554974d261c6ddde",
   "ui_verification": {
     "cards": [
       {
@@ -35,6 +41,10 @@
       {
         "id": "us_real_inflation",
         "svg": 3
+      },
+      {
+        "id": "model-review",
+        "svg": 0
       }
     ],
     "paths": 28,

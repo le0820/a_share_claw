@@ -239,7 +239,7 @@ tests/                      # 现有单元与路由回归测试
 
 所有有产物根目录的核心终态均归档 `five_charts.html/json` 并在 `run.html` 中展示五图；未绑定来源、未定日期、失败/取消保留明确缺口。研究运行可显式传 `five_chart_adapter=FiveChartHost(...)`；CLI `harness run --mode research --five-chart-contract HOST.json` 或 `chat --host-contract CHAT.json --date YYYY-MM-DD --five-chart-contract HOST.json`。五图契约恰含 `schema_version=five-chart-host-v1`、本Scope key、当前日期和审核过的documents列表；SDK无工具，模型不能生成授权。限定官方目录可新增既定指标的发布，新增列表先冻结；行情/当前版本刷新，历史原生发布只复用本Scope已成功运行的哈希证据，保留原捕获时钟并标明复用。网络忽略代理，系统证书验证保留。来源失败/脚本挑战页保留缺口，不读旧行情替代。
 
-真实五图刷新和复算已通过；DeepSeek实际SDK测试因自动出站审批拒绝尚未执行，本轮整体目标未完成。离线测试与真实取证不能替代模型验收。
+真实五图刷新和复算已通过；用户解除外发限制后，DeepSeek Flash实际SDK框架提案、独立审核及五图有界解读/独立审核共四次成功调用通过，详见公开包model_acceptance.json。最终HTML追加已审核解读；只证明本例，不代表一般模型质量、正式评分或原AISDI完成。
 
 
 ## 待办与下一会话入口
