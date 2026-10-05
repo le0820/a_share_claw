@@ -187,13 +187,20 @@ class SDKResearchAdapter:
         session.step("model_adapter", {"provider": config.model_provider, "model": config.model_name,
                                        "operation": operation, "instructions_hash": digest(instructions), "tools": [],
                                        "response_format": response_format["type"] if response_format else None,
-                                       "response_schema_hash":digest(schema) if schema is not None else None})
+                                       "response_schema_hash":digest(schema) if schema is not None else None,
+                                       "thinking": "enabled" if config.model_provider == "deepseek" else None,
+                                       "reasoning_effort": "high" if config.model_provider == "deepseek" else None})
         disable_remote_tracing()
         hooks = TraceHooks(session, config.model_provider, config.model_name, config.model_base_url, operation=operation)
         client = build_model_client(config)
         try:
             async with client:
-                settings=ModelSettings(extra_args={"response_format": response_format}) if response_format else ModelSettings()
+                extra_args={"response_format": response_format} if response_format else {}
+                # Vendor fields belong in ModelSettings.extra_body; extra_args is
+                # expanded alongside the SDK's own extra_body keyword.
+                extra_body=({"thinking":{"type":"enabled"}, "reasoning_effort":"high", "stream":False}
+                            if config.model_provider == "deepseek" else None)
+                settings=ModelSettings(extra_args=extra_args or None, extra_body=extra_body)
                 agent = Agent(name=operation, instructions=instructions,model_settings=settings,
                               model=OpenAIChatCompletionsModel(model=config.model_name, openai_client=client),
                               tools=[], mcp_servers=[], handoffs=[])

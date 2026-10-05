@@ -177,3 +177,14 @@ swresearch 0.2.0 增加 industry.publisher_document，显式宿主计划固定�
 按官方create-chat-completion文档（https://api-docs.deepseek.com/api/create-chat-completion/），deepseek提供商发送response_format=json_object，不再发送该接口不支持的json_schema；model_adapter trace记录格式和完整schema hash。其他提供商保持原格式，结构/参数引用/事实引用/Scope/日期/独立评估/发布仍由核心拥有，JSON模式不提升证据权限。不改变思考模式、预算或将私有思维链送入工作台。README与.env.example同步DeepSeek配置示例，API key留空/占位，不提交真实密钥。
 
 实际SDK+MockTransport验证DeepSeek provider的8角色/评估调用、框架提案与独立审核引用协议，错误JSON/伪造引用/评审失败仍阻断，无工具、无来源调用。Python3.13全量603 passed /41 subtests；针对性22 passed。证据data/harness_acceptance/deepseek_protocol_20261002/acceptance.json及offline-junit.xml。仅离线协议验收，真实官方401仍待用户确认服务地址，未重新调用模型或向其他网关发送密钥。真实SW31及沪深最终收盘边界不变，整体goal仍未完成。
+
+
+## 2026-10-04 新 DeepSeek 配置与用户分类附件
+
+用户确认官方 base_url=https://api.deepseek.com、model_name=deepseek-flash，并提供替换密钥。main 与开发工作树的本地忽略 .env 已更新；权限0600，真实凭据不入 Git、报告或日志。官方 chat/completions 最小调用 HTTP 200，JSON 已验证；请求明确 thinking=enabled、reasoning_effort=high、stream=false。旧401仅是历史记录，不再作为当前鉴权阻碍。
+
+SDK 使用 ModelSettings.extra_body 传递这些明确授权的请求设置，避免 extra_args 与 SDK 内部 extra_body 重复关键字；Trace 只记录公开设置，不输出私有推理内容。实际 SDK MockTransport 断言序列化正文及无效输出拦截；Python3.13 全量603 passed /41 subtests，针对性40 passed。最小接口成功不代表研究语义质量或完整目标完成；真实 SDK 框架运行4bf31ddbb0f9439ca526106f9a24ebbb 收到1次模型回复、0来源调用，但候选框架被核心 invalid_schema 拒绝，未进入独立审核，NO_ACTION、无正式发布。结果见主 checkout deepseek_live_20261004/sdk-live-check.json；该语义/结构验收仍未通过，不重复将通信成功当作端到端研究成功。
+
+用户附件 StockClassifyUse_stock.xls 已原样留存并提取：Sheet1 A1:D12926，12925条历史记录、5930个股票代码，3914个代码有多条记录；列为股票代码/计入日期/行业代码/更新日期。最新表内更新时间2026-09-29，不能视作独立核验的发布日期。SHA256=98fe3b4ccccd1639ebee0adcadb338c30736710fab32533c86b69eec971e1283。没有声明分类版本、一级行业名称及31指数映射、正式生效日期或沪深范围证明；保留 user_supplied_unreviewed，不按更新时间自动晋升最新成分、不自动准入核心价格计算。
+
+证据在主 checkout data/harness_acceptance/user_classification_20261004/ 与 deepseek_live_20261004/；未同步到正式状态。当前策略仍为周线主、日线辅，北交所排除。剩余是分类元数据审核、真实SW31行情与周/日验收、沪深最终收盘完整性；不能因为新密钥或附件关闭整体目标。

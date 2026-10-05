@@ -79,7 +79,9 @@ def test_real_sdk_roles_review_and_report_share_core_run(host, provider):
     assert len(endpoint.requests) == 8 and all(client.is_closed() for client in endpoint.clients)
     expected='json_object' if provider=='deepseek' else 'json_schema'
     assert all(body['response_format']['type']==expected for body in endpoint.bodies)
-    if provider=='deepseek':assert all(body['response_format']=={'type':'json_object'} for body in endpoint.bodies)
+    if provider=='deepseek':
+        assert all(body['response_format']=={'type':'json_object'} for body in endpoint.bodies)
+        assert all(body['thinking']=={'type':'enabled'} and body['reasoning_effort']=='high' and body['stream'] is False for body in endpoint.bodies)
     roles = endpoint.requests[:-1]
     assert len({entry["packet_id"] for entry in roles}) == 1
     trace = TraceRepository(storage).read(outcome.run_id, scope)
