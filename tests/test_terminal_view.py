@@ -24,6 +24,7 @@ def test_each_core_terminal_has_automatic_hash_bound_html(environment,kind):
     repo=TraceRepository(storage);text,descriptor=read_terminal_html(repo,scope,out.run_id,engine.artifact_root)
     assert Path(descriptor['path']).read_text()==text and '<!doctype html>' in text and '<script' not in text
     assert out.status.value in text and 'ReAct 执行时间轴' in text
+    assert all('id="'+cid+'"' in text for cid in ('cn_consumption','cn_ai','us_ai','banks_rates','us_real_inflation'))
     if kind=='success':assert 'href="report.html"' in text
     else:assert '打开已校验报告与图表' not in text
     other=Scope(scope.workspace,'other',scope.session)

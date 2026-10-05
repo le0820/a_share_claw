@@ -279,3 +279,8 @@ NBS 八月国民经济页面与 PBC 八月金融统计页面均实际抓取成�
 按官方create-chat-completion文档（https://api-docs.deepseek.com/api/create-chat-completion/），deepseek提供商发送response_format=json_object，不再发送该接口不支持的json_schema；model_adapter trace记录格式和完整schema hash。其他提供商保持原格式，结构/参数引用/事实引用/Scope/日期/独立评估/发布仍由核心拥有，JSON模式不提升证据权限。不改变思考模式、预算或将私有思维链送入工作台。README与.env.example同步DeepSeek配置示例，API key留空/占位，不提交真实密钥。
 
 实际SDK+MockTransport验证DeepSeek provider的8角色/评估调用、框架提案与独立审核引用协议，错误JSON/伪造引用/评审失败仍阻断，无工具、无来源调用。Python3.13全量603 passed /41 subtests；针对性22 passed。证据data/harness_acceptance/deepseek_protocol_20261002/acceptance.json及offline-junit.xml。仅离线协议验收，真实官方401仍待用户确认服务地址，未重新调用模型或向其他网关发送密钥。真实SW31及沪深最终收盘边界不变，整体goal仍未完成。
+
+
+### 2026-10-05 五图研究增量
+
+终态每次归档同Scope五图HTML/JSON，显式宿主在冻结后的取证阶段刷新既定原生来源，固定历史发布带原捕获时钟复用；当前行情/版本和最新目录刷新。指标/40-30-25-5权重在代码固定，缺项不重分配、无官方动作/状态提升。多源线程显式共同父span，防止并行取证互相成为父子。当前622项/41子测试及有限真实五图刷新通过，详见SHENWAN_DELIVERY_REVIEW.md；DeepSeek新实际测试被自动出站审批拒绝，0模型调用，待用户批准公开脱敏范围，整体目标仍未完成。

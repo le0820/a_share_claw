@@ -16,6 +16,8 @@ from .core import DataError, Manifest, Payload, Provider, Requirement, Transport
 
 # Exact index identities; ETFs and distinct index families cannot be substituted.
 INDEXES={
+    "SOX.PHLX":{"name":"PHLX Semiconductor","market":12,"code":"A_SOX","kind":"international","currency":"USD","unit":"index_points","market_timezone":"America/New_York","native_names":["纳指费城半导体"]},
+    "HSTECH.HK":{"name":"Hang Seng Tech","market":27,"code":"HZ5017","kind":"international","currency":"HKD","unit":"index_points","market_timezone":"Asia/Hong_Kong","native_names":["恒生科技指数"]},
     "SPX.SP500":{"name":"S&P 500","market":12,"code":"A_SPX","kind":"international","currency":"USD","unit":"index_points","market_timezone":"America/New_York","native_names":["标普500","S&P 500"]},
     "NDX.NASDAQ":{"name":"NASDAQ 100","market":12,"code":"A_NDX","kind":"international","currency":"USD","unit":"index_points","market_timezone":"America/New_York","native_names":["纳斯达克100","NASDAQ 100"]},
     "000300.SH":{"name":"沪深300","market":1,"code":"000300","kind":"china","currency":"CNY","unit":"index_points","market_timezone":"Asia/Shanghai","native_names":["沪深300","沪深300指数"]},
@@ -88,7 +90,7 @@ def checked_params(r):
     start,end=iso_date(p["start_date"]),iso_date(p["end_date"])
     if not start<=end<=r.as_of_date or type(p["count"]) is not int or not 1<=p["count"]<=600:
         raise DataError("invalid_request","Use a nonfuture window and bounded daily count 1..600")
-    return {"operation":"bars","kind":spec["kind"],"market":spec["market"],"code":p["provider_code"],"count":p["count"]}
+    return {"operation":"bars","kind":spec["kind"],"market":spec["market"],"code":p["provider_code"],"count":p["count"],**({"catalog_market":spec["market"]} if spec["kind"]=="international" else {})}
 
 
 class EasyTDX(Provider):

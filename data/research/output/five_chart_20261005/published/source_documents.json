@@ -1,0 +1,641 @@
+[
+  {
+    "id": "pbc_m2_yoy_2026_03",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026041317011944771/index.html"
+  },
+  {
+    "id": "sw_catalog_valid",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/current/",
+    "params": {
+      "page": 1,
+      "page_size": 50,
+      "indextype": "一级行业"
+    }
+  },
+  {
+    "id": "pbc_m2_yoy_2025_06",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2025080618505071886/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2026_05",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026061217051611931/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_12",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026011515015720511/index.html"
+  },
+  {
+    "id": "nvda_dc_2026_q3",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2026"
+  },
+  {
+    "id": "sw_801880",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801880",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "sw_801770",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801770",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "pbc_m2_yoy_2026_08",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026091417020862747/index.html"
+  },
+  {
+    "id": "sec_goog",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json"
+  },
+  {
+    "id": "nvda_dc_2027_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027"
+  },
+  {
+    "id": "nvda_dc_2026_q4",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2026"
+  },
+  {
+    "id": "pbc_m2_yoy_2026_02",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026031317020260950/index.html"
+  },
+  {
+    "id": "sw_801120",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801120",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "nvda_dc_2025_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2025"
+  },
+  {
+    "id": "nvda_dc_2026_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2026"
+  },
+  {
+    "id": "sw_801200",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801200",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "pbc_m2_yoy_2025_07",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2972dbe4d53540e5a9d0b5781c71480d/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2026_04",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026051417030520490/index.html"
+  },
+  {
+    "id": "pbc_jan_official_reprint",
+    "url": "https://jrj.sh.gov.cn/SCGK194/20250217/01ac96e8b04e4226b2bfbe1b28c0f4ab.html"
+  },
+  {
+    "id": "sw_801780",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801780",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "pbc_m2_yoy_2026_01",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026021317031040775/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_02",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2025080618505068053/index.html"
+  },
+  {
+    "id": "nvda_dc_2025_q4",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2025"
+  },
+  {
+    "id": "nvda_dc_2027_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2027"
+  },
+  {
+    "id": "sw_801140",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801140",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "sw_801980",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801980",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "sec_msft",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json"
+  },
+  {
+    "id": "pbc_m2_yoy_2026_07",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026081416320925645/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_04",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2025080618505010475/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_10",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/f294561578884c22878d115780ba7c08/index.html"
+  },
+  {
+    "id": "nvda_dc_2026_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2026"
+  },
+  {
+    "id": "nvda_dc_2024_q4",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2024"
+  },
+  {
+    "id": "nvda_dc_2025_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2025"
+  },
+  {
+    "id": "sec_amzn",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_09",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/dded7449c74144a19171f582bec9ed36/index.html"
+  },
+  {
+    "id": "sw_801110",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801110",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "sw_801210",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801210",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "pbc_m2_yoy_2025_03",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2025080618505039987/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_11",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2025121217132789688/index.html"
+  },
+  {
+    "id": "nvda_dc_2025_q3",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2025"
+  },
+  {
+    "id": "pbc_m2_yoy_2026_06",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2026071515025183948/index.html"
+  },
+  {
+    "id": "pbc_m2_yoy_2025_05",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/2025080618505081124/index.html"
+  },
+  {
+    "id": "sw_801130",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801130",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "pbc_m2_yoy_2025_08",
+    "url": "https://www.pbc.gov.cn/diaochatongjisi/116219/116225/e3120f58ec724fe1811d9dadf67232d2/index.html"
+  },
+  {
+    "id": "nbs_econ_t20250915_1961177",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202509/t20250915_1961177.html"
+  },
+  {
+    "id": "nbs_econ_t20260817_1965054",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202608/t20260817_1965054.html"
+  },
+  {
+    "id": "nbs_econ_t20250715_1960413",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202507/t20250715_1960413.html"
+  },
+  {
+    "id": "nbs_econ_t20250616_1960171",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202506/t20250616_1960171.html"
+  },
+  {
+    "id": "nbs_gdp_t20251021_1961646",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202510/t20251021_1961646.html"
+  },
+  {
+    "id": "nbs_econ_t20260715_1964127",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202607/t20260715_1964127.html"
+  },
+  {
+    "id": "nbs_econ_t20260316_1962786",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202603/t20260316_1962786.html"
+  },
+  {
+    "id": "nbs_econ_t20250317_1959014",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202503/t20250317_1959014.html"
+  },
+  {
+    "id": "bea_native_nipa",
+    "url": "https://apps.bea.gov/national/Release/XLS/Survey/Section2All_xls.xlsx"
+  },
+  {
+    "id": "nbs_gdp_t20260716_1964142",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202607/t20260716_1964142.html"
+  },
+  {
+    "id": "china_curve_2026",
+    "url": "https://yield.chinabond.com.cn/cbweb-czb-web/czb/historyQuery",
+    "params": {
+      "startDate": "2026-01-01",
+      "endDate": "2026-10-05",
+      "gjqx": "0",
+      "locale": "cn_ZH",
+      "qxmc": "1"
+    }
+  },
+  {
+    "id": "nbs_econ_t20260616_1963953",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202606/t20260616_1963953.html"
+  },
+  {
+    "id": "nbs_econ_t20260915_1965309",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202609/t20260915_1965309.html"
+  },
+  {
+    "id": "news_dc_2024_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2024"
+  },
+  {
+    "id": "news_dc_2023_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2023"
+  },
+  {
+    "id": "news_dc_2021_q4",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2021"
+  },
+  {
+    "id": "nbs_econ_t20260518_1963731",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202605/t20260518_1963731.html"
+  },
+  {
+    "id": "treasury_nominal_2025",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+    "params": {
+      "data": "daily_treasury_yield_curve",
+      "field_tdr_date_value": "2025"
+    }
+  },
+  {
+    "id": "china_curve_dec31",
+    "url": "https://yield.chinabond.com.cn/cbweb-czb-web/czb/historyQuery",
+    "params": {
+      "startDate": "2025-12-31",
+      "endDate": "2025-12-31",
+      "gjqx": "0",
+      "locale": "cn_ZH",
+      "qxmc": "1"
+    }
+  },
+  {
+    "id": "nbs_econ_t20250317_1959012",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202503/t20250317_1959012.html"
+  },
+  {
+    "id": "nbs_gdp_t20260417_1963336",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202604/t20260417_1963336.html"
+  },
+  {
+    "id": "nbs_econ_t20260416_1963328",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202604/t20260416_1963328.html"
+  },
+  {
+    "id": "nbs_econ_t20251020_1961611",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202510/t20251020_1961611.html"
+  },
+  {
+    "id": "nbs_econ_t20260817_1965052",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202608/t20260817_1965052.html"
+  },
+  {
+    "id": "nbs_econ_t20250416_1959320",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202504/t20250416_1959320.html"
+  },
+  {
+    "id": "news_dc_2021_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2021"
+  },
+  {
+    "id": "nbs_econ_t20250915_1961180",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202509/t20250915_1961180.html"
+  },
+  {
+    "id": "nbs_gdp_t20250716_1960426",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202507/t20250716_1960426.html"
+  },
+  {
+    "id": "news_dc_2022_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2022"
+  },
+  {
+    "id": "nbs_econ_t20251114_1961856",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202511/t20251114_1961856.html"
+  },
+  {
+    "id": "nbs_econ_t20250416_1959318",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202504/t20250416_1959318.html"
+  },
+  {
+    "id": "nbs_econ_t20260416_1963325",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202604/t20260416_1963325.html"
+  },
+  {
+    "id": "nbs_econ_t20260817_1965055",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202608/t20260817_1965055.html"
+  },
+  {
+    "id": "nbs_econ_t20250715_1960412",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202507/t20250715_1960412.html"
+  },
+  {
+    "id": "nbs_econ_t20260915_1965311",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202609/t20260915_1965311.html"
+  },
+  {
+    "id": "nbs_econ_t20250317_1959015",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202503/t20250317_1959015.html"
+  },
+  {
+    "id": "nbs_econ_t20251215_1962071",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202512/t20251215_1962071.html"
+  },
+  {
+    "id": "nbs_econ_t20260915_1965308",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202609/t20260915_1965308.html"
+  },
+  {
+    "id": "nbs_gdp_t20250417_1959334",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202504/t20250417_1959334.html"
+  },
+  {
+    "id": "tdx_HZ5017",
+    "kind": "tdx",
+    "symbol": "HSTECH.HK"
+  },
+  {
+    "id": "tdx_A_SPX",
+    "kind": "tdx",
+    "symbol": "SPX.SP500"
+  },
+  {
+    "id": "nbs_econ_t20250616_1960169",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202506/t20250616_1960169.html"
+  },
+  {
+    "id": "nbs_econ_t20260518_1963730",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202605/t20260518_1963730.html"
+  },
+  {
+    "id": "treasury_real_2026",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+    "params": {
+      "data": "daily_treasury_real_yield_curve",
+      "field_tdr_date_value": "2026"
+    }
+  },
+  {
+    "id": "nbs_econ_t20251020_1961610",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202510/t20251020_1961610.html"
+  },
+  {
+    "id": "nbs_econ_t20260416_1963329",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202604/t20260416_1963329.html"
+  },
+  {
+    "id": "nbs_econ_t20250519_1959862",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202505/t20250519_1959862.html"
+  },
+  {
+    "id": "news_dc_2021_q3",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2021"
+  },
+  {
+    "id": "nbs_econ_t20260119_1962326",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202601/t20260119_1962326.html"
+  },
+  {
+    "id": "nbs_econ_t20260316_1962784",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202603/t20260316_1962784.html"
+  },
+  {
+    "id": "nbs_econ_t20251114_1961852",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202511/t20251114_1961852.html"
+  },
+  {
+    "id": "news_dc_2024_q3",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2024"
+  },
+  {
+    "id": "news_dc_2023_q3",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2023"
+  },
+  {
+    "id": "nbs_econ_t20260518_1963727",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202605/t20260518_1963727.html"
+  },
+  {
+    "id": "nbs_econ_t20250815_1960783",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202508/t20250815_1960783.html"
+  },
+  {
+    "id": "nbs_econ_t20250915_1961178",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202509/t20250915_1961178.html"
+  },
+  {
+    "id": "nbs_econ_t20260616_1963951",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202606/t20260616_1963951.html"
+  },
+  {
+    "id": "nbs_econ_t20260119_1962323",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202601/t20260119_1962323.html"
+  },
+  {
+    "id": "treasury_real_2025",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+    "params": {
+      "data": "daily_treasury_real_yield_curve",
+      "field_tdr_date_value": "2025"
+    }
+  },
+  {
+    "id": "nbs_gdp_t20260120_1962349",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202601/t20260120_1962349.html"
+  },
+  {
+    "id": "nbs_econ_t20251215_1962074",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202512/t20251215_1962074.html"
+  },
+  {
+    "id": "nbs_econ_t20250815_1960788",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202508/t20250815_1960788.html"
+  },
+  {
+    "id": "nbs_econ_t20250416_1959317",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202504/t20250416_1959317.html"
+  },
+  {
+    "id": "nbs_econ_t20260316_1962782",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202603/t20260316_1962782.html"
+  },
+  {
+    "id": "nbs_econ_t20260715_1964123",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202607/t20260715_1964123.html"
+  },
+  {
+    "id": "news_dc_2022_q3",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-third-quarter-fiscal-2022"
+  },
+  {
+    "id": "nbs_econ_t20251114_1961854",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202511/t20251114_1961854.html"
+  },
+  {
+    "id": "nbs_econ_t20260715_1964124",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202607/t20260715_1964124.html"
+  },
+  {
+    "id": "nbs_econ_t20251215_1962073",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202512/t20251215_1962073.html"
+  },
+  {
+    "id": "sw_secondary_catalog_retry",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/current/",
+    "params": {
+      "page": 1,
+      "page_size": 150,
+      "indextype": "二级行业"
+    }
+  },
+  {
+    "id": "nbs_econ_t20250616_1960172",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202506/t20250616_1960172.html"
+  },
+  {
+    "id": "nbs_econ_t20260616_1963949",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202606/t20260616_1963949.html"
+  },
+  {
+    "id": "sw_semiconductor_retry",
+    "url": "https://www.swsresearch.com/institute-sw/api/index_publish/trend/",
+    "params": {
+      "swindexcode": "801081",
+      "period": "DAY"
+    }
+  },
+  {
+    "id": "news_dc_2024_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2024"
+  },
+  {
+    "id": "news_dc_2022_q4",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2022"
+  },
+  {
+    "id": "news_dc_2023_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2023"
+  },
+  {
+    "id": "china_curve_2025",
+    "url": "https://yield.chinabond.com.cn/cbweb-czb-web/czb/historyQuery",
+    "params": {
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-30",
+      "gjqx": "0",
+      "locale": "cn_ZH",
+      "qxmc": "1"
+    }
+  },
+  {
+    "id": "nbs_econ_t20250715_1960409",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202507/t20250715_1960409.html"
+  },
+  {
+    "id": "nbs_econ_t20260119_1962329",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202601/t20260119_1962329.html"
+  },
+  {
+    "id": "nbs_econ_t20251020_1961606",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202510/t20251020_1961606.html"
+  },
+  {
+    "id": "nbs_econ_t20250519_1959860",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202505/t20250519_1959860.html"
+  },
+  {
+    "id": "treasury_nominal_2026",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+    "params": {
+      "data": "daily_treasury_yield_curve",
+      "field_tdr_date_value": "2026"
+    }
+  },
+  {
+    "id": "treasury_real_2024",
+    "url": "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml",
+    "params": {
+      "data": "daily_treasury_real_yield_curve",
+      "field_tdr_date_value": "2024"
+    }
+  },
+  {
+    "id": "news_dc_2022_q2",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2022"
+  },
+  {
+    "id": "nbs_econ_t20250519_1959858",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202505/t20250519_1959858.html"
+  },
+  {
+    "id": "news_dc_2023_q4",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2023"
+  },
+  {
+    "id": "news_dc_2021_q1",
+    "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-first-quarter-fiscal-2021"
+  },
+  {
+    "id": "tdx_A_SOX",
+    "kind": "tdx",
+    "symbol": "SOX.PHLX"
+  },
+  {
+    "id": "tdx_A_NDX",
+    "kind": "tdx",
+    "symbol": "NDX.NASDAQ"
+  },
+  {
+    "id": "nbs_econ_t20250815_1960790",
+    "url": "https://www.stats.gov.cn/sj/zxfb/202508/t20250815_1960790.html"
+  }
+]

@@ -57,7 +57,7 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None, evidence_adapter=None):
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None, evidence_adapter=None, five_chart_adapter=None):
         session = RunSession(self.storage, request, control,artifact_root=self.artifact_root)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
@@ -133,6 +133,13 @@ class Harness:
                 if workflow in {"macro", "ai"} and (request.mode == "official" or require_official_close) and cutoff == market_now.date().isoformat() and market_now.hour < 15:
                     raise ValueError("WAIT_FOR_CLOSE")
                 session.checkpoint()
+                if five_chart_adapter is not None and request.mode == "research":
+                    with session.action("source", "five_chart_refresh", "refresh_frozen_descriptive_dashboard", {"plan_id":plan["plan_id"]}) as span:
+                        from .five_charts import validate_packet
+                        session.chart_packet=validate_packet(five_chart_adapter.collect(session),request.scope.key,session.run_id,request.as_of_date)
+                        session.checkpoint()
+                        output["five_charts"]={"gap_count":len(session.chart_packet["gaps"]),"source_plan_hash":session.chart_packet.get("source_plan_hash"),"generated_at":session.chart_packet["generated_at"],"complete":not session.chart_packet["gaps"]}
+                        span.observe(status="ok",output_hash=digest(session.chart_packet),gap_count=len(session.chart_packet["gaps"]))
                 if evidence_adapter is not None:
                     from .acquisition import acquire
                     quant_cutoff=parameters.get("quant_spec",{}).get("cutoff_timestamp")

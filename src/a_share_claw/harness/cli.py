@@ -67,6 +67,7 @@ def add_harness_parser(sub):
                 command.add_argument("--model-executor",choices=["configured"],help="Propose and review a tool-free core framework")
                 command.add_argument("--planning-constraints",type=Path,help="Trusted immutable planner constraints")
             if name == "run":
+                command.add_argument("--five-chart-contract",type=Path,help="Scoped public source refresh; research only")
                 command.add_argument("packet_file", type=Path,nargs="?")
                 command.add_argument("--source-contract",type=Path,help="Explicit trusted-host plugin bindings; research mode only")
                 command.add_argument("--mode", choices=["replay", "research", "official"], default="replay")
@@ -217,6 +218,11 @@ def run_harness(args, config, storage):
         try:
             packet = json.loads(args.packet_file.read_text()) if args.harness_command == "run" and args.packet_file else None
             source_adapter=None
+            chart_adapter=None
+            if getattr(args,"five_chart_contract",None):
+                if args.mode!="research":raise ValueError("five_charts_research_only")
+                from ..data_plugins.five_chart_host import load_host_contract
+                chart_adapter=load_host_contract(args.five_chart_contract,scope_key=scope.key,as_of_date=args.date,archive_root=config.data_dir/"five_chart_sources")
             if getattr(args,"source_contract",None):
                 from ..data_plugins.adapter import PluginEvidenceAdapter
                 source_adapter=PluginEvidenceAdapter(config.data_dir/"source_runs",json.loads(args.source_contract.read_text()))
@@ -226,7 +232,7 @@ def run_harness(args, config, storage):
             outlook_spec = json.loads(args.outlook_spec.read_text()) if getattr(args, "outlook_spec", None) else None
             mixed_spec = json.loads(args.mixed_spec.read_text()) if getattr(args, "mixed_spec", None) else None
             request = RunRequest(scope, getattr(args, "question", None) or "Provider-independent " + args.workflow, args.date,
-                                 "plan" if args.harness_command == "plan" else args.mode, args.workflow, host="cli")
+                                 "plan" if args.harness_command == "plan" else args.mode, args.workflow, host="cli",**({"wall_clock_seconds":600,"max_tool_calls":200} if chart_adapter else {}))
         except (ValueError, OSError):
             print(json.dumps({"ok": False, "error_code": "invalid_request"}))
             return 2
@@ -253,6 +259,6 @@ def run_harness(args, config, storage):
             from ..sdk_research import SDKResearchAdapter
             adapter = SDKResearchAdapter(config)
         outcome = engine.run(request, packet, current_ai_pct=getattr(args, "current_ai_pct", 57.5),
-                             research_spec=research_spec, research_adapter=adapter, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec,evidence_adapter=source_adapter)
+                             research_spec=research_spec, research_adapter=adapter, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec,evidence_adapter=source_adapter,five_chart_adapter=chart_adapter)
     print(outcome.output)
     return 0 if outcome.status == RunStatus.SUCCEEDED else 2

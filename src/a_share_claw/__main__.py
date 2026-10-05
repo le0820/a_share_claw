@@ -25,6 +25,7 @@ def main() -> None:
     chat.add_argument("message")
     chat.add_argument("--host-contract", type=Path, help="Explicit trusted-chat-host-v1 profile scoped to this exact conversation")
     chat.add_argument("--date", help="Explicit as-of date; must match the trusted host profile")
+    chat.add_argument("--five-chart-contract",type=Path,help="Explicit scoped five-chart-host-v1 public source plan")
     args = parser.parse_args()
     if args.command is None:
         parser.print_help()
@@ -69,8 +70,15 @@ async def async_main(args: argparse.Namespace) -> None:
                 print(json.dumps({"ok":False,"error_code":"invalid_chat_host_profile"}))
                 storage.close()
                 raise SystemExit(2)
-        agent = InvestmentAgent(config, storage, trusted_chat=profile)
         context = storage.get_or_create_context("local", "local-user", "local-chat", "local")
+        chart_adapter=None
+        if getattr(args,"five_chart_contract",None):
+            from .data_plugins.five_chart_host import load_host_contract
+            from .harness.contracts import Scope
+            try:chart_adapter=load_host_contract(args.five_chart_contract,scope_key=Scope.from_context(config.root_dir,context).key,as_of_date=args.date,archive_root=config.data_dir/"five_chart_sources")
+            except (ValueError,OSError,TypeError,KeyError):
+                storage.close();raise SystemExit("invalid_five_chart_host_contract")
+        agent = InvestmentAgent(config,storage,trusted_chat=profile,five_chart_adapter=chart_adapter,run_budget={"wall_clock_seconds":600,"max_tool_calls":200} if chart_adapter else None)
         try:
             outcome = await agent.run_result(context,args.message,as_of_date=getattr(args,"date",None))
             print(outcome.output)

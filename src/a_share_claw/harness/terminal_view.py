@@ -10,8 +10,8 @@ from .workbench import snapshot,render_run,page,esc
 
 
 class TerminalView:
-    def __init__(self,root,scope,run_id,*,minimal=False,checkpoint=None):
-        self.root=Path(root).resolve();self.scope=scope;self.run_id=run_id;self.minimal=minimal;self.created=[];self.attempted=False;self.checkpoint=checkpoint
+    def __init__(self,root,scope,run_id,*,minimal=False,checkpoint=None,chart_packet=None):
+        self.root=Path(root).resolve();self.scope=scope;self.run_id=run_id;self.minimal=minimal;self.created=[];self.attempted=False;self.checkpoint=checkpoint;self.chart_packet=chart_packet
 
     def prepare(self,repository):
         self.attempted=True
@@ -23,11 +23,17 @@ class TerminalView:
             text=page('运行诊断',body)
         else:
             text=render_run(view).replace('<a href="index.html">← 运行列表</a>','<span>单次运行归档</span>').replace('href="'+self.run_id+'.report.html"','href="report.html"')
+        from .five_charts import missing_packet,validate_packet,render
+        chart_packet=missing_packet(self.scope.key,self.run_id,trace["request"]["as_of_date"]) if self.minimal or self.chart_packet is None else self.chart_packet
+        validate_packet(chart_packet,self.scope.key,self.run_id,trace["request"]["as_of_date"])
+        chart_body=render(chart_packet)
+        text=text.replace("</main>",chart_body+"</main>")
+        chart_html=page("五图联动研究",chart_body)
         directory=self.root/self.scope.key/self.run_id
         directory.resolve().relative_to(self.root/self.scope.key/self.run_id)
         directory.mkdir(parents=True,exist_ok=True)
         descriptors=[]
-        for name,content in [('run_view.json',canonical(view)),('run.html',text)]:
+        for name,content in [('run_view.json',canonical(view)),('five_charts.json',canonical(chart_packet)),('five_charts.html',chart_html),('run.html',text)]:
             path=directory/name;raw=content.encode('utf-8')
             with path.open('xb') as stream:
                 self.created.append(path);stream.write(raw)
@@ -38,7 +44,7 @@ class TerminalView:
         return descriptors
 
     def rollback(self):
-        # Only the two files this instance exclusively created; never existing reports.
+        # Only files exclusively created by this transaction; never existing reports.
         for path in self.created:path.unlink(missing_ok=True)
         self.created.clear()
 

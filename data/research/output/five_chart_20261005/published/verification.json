@@ -1,0 +1,50 @@
+{
+  "latest_run_id": "4b40844920604f8889c52b62b522660b",
+  "prior_complete_run_id": "73b7607946884052ba8f338429e6d1cd",
+  "status": "five_charts_and_refresh_passed",
+  "source_count": 139,
+  "new_captures": 33,
+  "explicit_scoped_archive_reuse": 106,
+  "generated_at": "2026-10-05T13:53:42.404422+00:00",
+  "as_of_date": "2026-10-05",
+  "gaps": [],
+  "html_sha256": "e16ca351c301c0989069b661b77c4f08846e34df0a379396e5af157d7a5c7113",
+  "data_sha256": "46c4a799bc6921944779637e89fd0833fd8c497d053711e427aea3138e5b3ce7",
+  "second_run_update_verified": true,
+  "deepseek_actual_model_test": "not_run_auto_review_rejected_pending_user_approval",
+  "whole_goal_complete": false,
+  "offline_tests": "622 passed, 41 subtests passed",
+  "ui_verification": {
+    "cards": [
+      {
+        "id": "cn_consumption",
+        "svg": 2
+      },
+      {
+        "id": "cn_ai",
+        "svg": 2
+      },
+      {
+        "id": "us_ai",
+        "svg": 2
+      },
+      {
+        "id": "banks_rates",
+        "svg": 1
+      },
+      {
+        "id": "us_real_inflation",
+        "svg": 3
+      }
+    ],
+    "paths": 28,
+    "polygons": 8,
+    "invalid": false,
+    "gaps": [],
+    "mobile": {
+      "width": 390,
+      "documentWidth": 390
+    },
+    "errors": []
+  }
+}

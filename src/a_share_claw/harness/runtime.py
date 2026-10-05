@@ -27,6 +27,7 @@ class RunControl:
 class RunSession:
     def __init__(self, storage, request: RunRequest, control=None, *, artifact_root=None):
         self.artifact_root=artifact_root
+        self.chart_packet=None
         self.control = control or RunControl()
         self.repository = TraceRepository(storage)
         self.request = request
@@ -90,9 +91,9 @@ class RunSession:
                   "events_hash": digest(self.phase_events)}, status)
         self.last_phase, self.active_phase = self.active_phase, None
 
-    def action(self, kind, operation, decision_code, inputs=None):
+    def action(self, kind, operation, decision_code, inputs=None, *, parent_id=...):
         from .observability import ActionSpan
-        return ActionSpan(self, kind, operation, decision_code, inputs or {})
+        return ActionSpan(self, kind, operation, decision_code, inputs or {},parent_id=parent_id)
 
     def evaluate(self, result):
         with self.action("evaluation", result.evaluator, "apply_core_gate", {"evaluation_hash": digest(result.json())}) as span:
@@ -207,7 +208,7 @@ class RunSession:
             writer=None
             if self.artifact_root is not None and not skip_view:
                 from .terminal_view import TerminalView
-                writer=TerminalView(self.artifact_root,self.request.scope,self.run_id,minimal=minimal_view,checkpoint=self.checkpoint if status==RunStatus.SUCCEEDED else None)
+                writer=TerminalView(self.artifact_root,self.request.scope,self.run_id,minimal=minimal_view,checkpoint=self.checkpoint if status==RunStatus.SUCCEEDED else None,chart_packet=self.chart_packet)
             try:
                 self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date,
                     terminal_boundary=terminal_boundary, interrupted_actions=interrupted,terminal_writer=writer)

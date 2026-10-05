@@ -36,12 +36,15 @@ def build_model_client(config: AppConfig) -> AsyncOpenAI | None:
 
 
 class InvestmentAgent:
-    def __init__(self, config: AppConfig, storage: Storage, *, trusted_chat=None):
+    def __init__(self, config: AppConfig, storage: Storage, *, trusted_chat=None, five_chart_adapter=None, run_budget=None):
         if trusted_chat is not None:
             from .chat_host import TrustedChatProfile
             if not isinstance(trusted_chat, TrustedChatProfile):
                 raise ValueError("invalid_chat_host_profile")
         self.trusted_chat = trusted_chat
+        self.five_chart_adapter = five_chart_adapter
+        self.run_budget = dict(run_budget or {})
+        if set(self.run_budget)-{"wall_clock_seconds","max_tool_calls"}:raise ValueError("invalid_host_run_budget")
         self.config = config
         self.storage = storage
         self.memory = MemoryStore(storage, config.data_dir)
@@ -65,11 +68,11 @@ class InvestmentAgent:
                 workflow = profile["workflow"]
         try:
             request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
-                                 as_of_date=as_of_date, workflow=workflow, host=context.platform)
+                                 as_of_date=as_of_date, workflow=workflow, host=context.platform,**self.run_budget)
         except ValueError:
             # A malformed date still reaches the core's explicit-date gate and trace.
             request = RunRequest(Scope.from_context(self.config.root_dir, context), message,
-                                 workflow=workflow, host=context.platform)
+                                 workflow=workflow, host=context.platform,**self.run_budget)
         self.storage.add_message(context.conversation_id, role, message)
         source_adapter = None
         if self.trusted_chat is not None:
@@ -95,7 +98,7 @@ class InvestmentAgent:
             adapter=SDKResearchAdapter(self.config)
             outcome=await Harness(self.config.root_dir,self.storage,self.config.data_dir/"harness_runs",
                                   self.config.market_timezone).run_async(request,
-                framework_adapter=adapter,research_adapter=adapter,planning_constraints=planning_constraints,evidence_adapter=source_adapter)
+                framework_adapter=adapter,research_adapter=adapter,planning_constraints=planning_constraints,evidence_adapter=source_adapter,five_chart_adapter=self.five_chart_adapter)
         self.storage.add_message(context.conversation_id,"assistant",outcome.output)
         return outcome
 

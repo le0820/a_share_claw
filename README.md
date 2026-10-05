@@ -233,6 +233,15 @@ tests/                      # 现有单元与路由回归测试
 
 [申万31行业与五源宏观金融/AI财务代理HTML](data/research/output/shenwan_20261004/published/report.html)（下载后离线打开）及[交接增量评估](SHENWAN_DELIVERY_REVIEW.md)。真实长历史图表已交付；核心周主日辅准入、完整AISDI及历史PIT仍未完成，详见评估。
 
+### 五图联动与四权重压力（2026-10-05）
+
+[本轮五图HTML](data/research/output/five_chart_20261005/published/report.html)及[增量验收](SHENWAN_DELIVERY_REVIEW.md#五图目标增量2026-10-05)。八个消费行业分别展示；通信/申万二级半导体及SOX/NDX分别叠加自建40/30/25/5压力；银行叠加中国减美国10年利差与10年TIPS；标普500与BEA原生核心PCE水平/TIPS保持单位。四权重来自用户参考图，公式为公开财务代理，不复刻中金原式，也不替代原60/40 AISDI或正式仓位规则。
+
+所有有产物根目录的核心终态均归档 `five_charts.html/json` 并在 `run.html` 中展示五图；未绑定来源、未定日期、失败/取消保留明确缺口。研究运行可显式传 `five_chart_adapter=FiveChartHost(...)`；CLI `harness run --mode research --five-chart-contract HOST.json` 或 `chat --host-contract CHAT.json --date YYYY-MM-DD --five-chart-contract HOST.json`。五图契约恰含 `schema_version=five-chart-host-v1`、本Scope key、当前日期和审核过的documents列表；SDK无工具，模型不能生成授权。限定官方目录可新增既定指标的发布，新增列表先冻结；行情/当前版本刷新，历史原生发布只复用本Scope已成功运行的哈希证据，保留原捕获时钟并标明复用。网络忽略代理，系统证书验证保留。来源失败/脚本挑战页保留缺口，不读旧行情替代。
+
+真实五图刷新和复算已通过；DeepSeek实际SDK测试因自动出站审批拒绝尚未执行，本轮整体目标未完成。离线测试与真实取证不能替代模型验收。
+
+
 ## 待办与下一会话入口
 
 开发基线为原 PR #2 分支 `docs/portable-harness-data-plugins`；`develop` 是同步镜像，不作为第二条独立开发线。开发、来源验收和业务 case 通过后，经 PR 合并到 `main`，再快进同步两个开发引用；不强推或直接在 main 开发。

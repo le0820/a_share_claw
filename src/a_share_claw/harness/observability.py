@@ -12,10 +12,11 @@ KINDS = {'source', 'model', 'role', 'evaluation', 'artifact', 'planning', 'evide
 
 
 class ActionSpan:
-    def __init__(self, session, kind, operation, decision, inputs):
+    def __init__(self, session, kind, operation, decision, inputs, *, parent_id=...):
         if kind not in KINDS or not all(isinstance(s,str) and s.strip() for s in (operation,decision)):
             raise ValueError('invalid_action_span')
         self.session, self.kind, self.operation = session, kind, operation
+        self.explicit_parent_id=parent_id
         self.decision, self.inputs = decision, inputs
         self.span_id, self.observation, self.status = uuid4().hex, {}, 'ok'
         self.ended = False
@@ -23,7 +24,8 @@ class ActionSpan:
     def __enter__(self):
         session = self.session
         with session.action_lock:
-            self.parent_id = next(reversed(session.open_actions), None)
+            self.parent_id = next(reversed(session.open_actions), None) if self.explicit_parent_id is ... else self.explicit_parent_id
+            if self.parent_id is not None and self.parent_id not in session.open_actions:raise ValueError("invalid_action_parent")
             self.started = time.monotonic()
             self.phase = session.active_phase
             session.step('react_action', {'schema_version':'react-action-v1', 'span_id':self.span_id,

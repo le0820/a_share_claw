@@ -114,7 +114,7 @@ def main():
                         print(json.dumps({'sdk_version':version('easy-tdx'),'endpoint':f'tcp://{host}:{port}',
                             'identity':target,'bars':[],'native_catalog':catalog},ensure_ascii=False,allow_nan=False));return
                     identity=client.goods_list(p.get("catalog_market",ExMarket.INTL_INDEX),start=0,count=600)
-                    bars=None if p["operation"] in {"catalog","extended_catalog"} else client.goods_kline(ExMarket.INTL_INDEX,p["code"],Period.DAILY,count=p["count"],adjust=Adjust.NONE)
+                    bars=None if p["operation"] in {"catalog","extended_catalog"} else client.goods_kline(p.get("market",ExMarket.INTL_INDEX),p["code"],Period.DAILY,count=p["count"],adjust=Adjust.NONE)
                 else:
                     if p["operation"]=="identity":
                         identity=client.get_symbol_info(p["market"],p["code"]);bars=None

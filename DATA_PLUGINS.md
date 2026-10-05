@@ -284,3 +284,10 @@ basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yo
 ## AISDI 来源能力评估
 
 2026-10-04：用户要求将领先AI供需规格配置为tool并评估来源。已接入无来源调用的规格/日期化缺口工具；现有SEC标准全公司事实仅覆盖部分财务字段。新增官方IR/SEC原文、OpenRouter、Artificial Analysis、电力/产业数据为待评估绑定能力，尚未注册或启用，不修改默认五源和来源准入规则。完整字段缺口、平台样本/吞吐/有效供给限制及核对链接见 [AISDI.md](AISDI.md)。
+
+
+## 显式五图宿主适配器（研究图表）
+
+`FiveChartHost` 只接受同Scope、当前日期的冻结原生文档列表，默认五源不变。用户另选的申万、NVIDIA官方披露、美国财政部/XML与中国财政部国债曲线作为本轮图表来源；不成为L1/L2/L3/AISDI正式评分输入。easy-tdx另声明 HSTECH.HK=market27/HZ5017、SOX.PHLX=market12/A_SOX，均核对原生名称，国际worker按已声明market取日线。
+
+来源与指标解析在数据层，40/30/25/5权重、稳健标准化、缺项不重分配在核心。固定原生发布可复用本Scope成功运行的哈希证据；行情、SEC当前快照、BEA当前NIPA版本和收益率刷新，NBS/PBC/NVIDIA最新目录限定发现。每次输出保留原生期间、公布日、捕获/复用时钟及错误；HTTP200的JS挑战不准入。TLS采用显式系统truststore，不全局注入或关闭验证。五图HTML为研究诊断产物，不能从 `unverified/current vintage` 提升成正式动作。
