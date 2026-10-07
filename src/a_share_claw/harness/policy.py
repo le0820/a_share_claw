@@ -67,12 +67,16 @@ class PolicyBundle:
         spec.loader.exec_module(module)
         return module
 
-    def plan(self, workflow):
+    def plan(self, workflow, parameters=None):
         required = {"macro": ["cn_macro", "us_macro", "market_history"],
                     "ai": ["ai_growth", "ai_market", "ai_macro", "ai_cn"],
                     "company": ["primary_documents"], "industry": ["primary_documents"],
                     "mixed": ["cn_macro", "us_macro", "market_history", "primary_documents"],
                     "quant": ["price_history"], "outlook": ["macro_release_facts", "price_history"], "general": []}
+        if workflow=="quant" and ((parameters or {}).get("quant_spec") or {}).get("operation")=="fund_flow_snapshot":
+            required["quant"]=["fund_flow_snapshot"]
+        if workflow=='quant' and ((parameters or {}).get('quant_spec') or {}).get('schema_version')=='quant-spec-v2':
+            required['quant']=['industry_classification','price_history']
         if workflow not in required:
             raise ValueError("Unsupported workflow")
         return {"workflow": workflow, "policy_version": self.version, "required_capabilities": required[workflow],

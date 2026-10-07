@@ -113,7 +113,7 @@ class TraceRepository:
             if cursor.rowcount != 1:
                 raise ValueError("Model call is not open in this run")
 
-    def finish(self, outcome: RunOutcome, scope: Scope, state=None, as_of_date=None):
+    def finish(self, outcome: RunOutcome, scope: Scope, state=None, as_of_date=None, *, terminal_boundary=None, interrupted_actions=(), terminal_writer=None):
         if outcome.status == RunStatus.RUNNING:
             raise ValueError("Terminal status required")
         if outcome.status != RunStatus.SUCCEEDED and (outcome.official_output_allowed or outcome.action != "NO_ACTION"):
@@ -122,42 +122,65 @@ class TraceRepository:
             raise ValueError("Official output requires an atomic state publication")
         # Do not persist free model prose as trace; its hash can audit delivery.
         record = {**outcome.json(), "output": {"sha256": digest(outcome.output), "chars": len(outcome.output)}}
-        with self.storage._lock, self.storage._conn:
-            row = self._authorized(outcome.run_id, scope, running=True)
-            if state is not None:
-                request = json.loads(row["request_json"])
-                checks = self.storage._conn.execute("SELECT passed,detail_json FROM evaluations WHERE run_id=? AND hard_gate=1", (outcome.run_id,)).fetchall()
-                required_checks = {"frozen_plan", "policy_snapshot", "required_evidence", "scope_and_date", "report_contract", "report_markdown_contract"}
-                completed_checks = {json.loads(check["detail_json"])["evaluator"] for check in checks if check["passed"]}
-                if (outcome.status != RunStatus.SUCCEEDED or not outcome.official_output_allowed or
-                        request["mode"] != "official" or request["as_of_date"] != as_of_date or
-                        not required_checks <= completed_checks or any(not check["passed"] for check in checks)):
-                    raise ValueError("Official promotion denied")
-                if state.get("as_of_date") != as_of_date or state.get("run_id") != outcome.run_id:
-                    raise ValueError("Official state identity mismatch")
-                report = state.get("report", {})
-                if report.get("scope_key") != scope.key or report.get("run_id") != outcome.run_id:
-                    raise ValueError("Official state requires its own scoped report")
-                artifacts = self.storage._conn.execute("SELECT detail_json FROM artifacts WHERE run_id=?", (outcome.run_id,)).fetchall()
-                if not any(json.loads(item[0]) == report for item in artifacts):
-                    raise ValueError("Official report is not archived in this run")
-                markdown = state.get("report_markdown", {})
-                if (markdown.get("scope_key") != scope.key or markdown.get("run_id") != outcome.run_id or
-                        not any(json.loads(item[0]) == markdown for item in artifacts)):
-                    raise ValueError("Official Markdown report is not archived in this run")
-                workflow = state["workflow"]
-                route = self.storage._conn.execute("SELECT detail_json FROM run_steps WHERE run_id=? AND stage='route' ORDER BY id DESC LIMIT 1", (outcome.run_id,)).fetchone()
-                if route is None or json.loads(route[0]).get("workflow") != workflow:
-                    raise ValueError("Official workflow does not match the run route")
-                previous = self.storage._conn.execute("SELECT as_of_date FROM official_states WHERE scope_key=? AND workflow=?", (scope.key, workflow)).fetchone()
-                if previous and previous[0] > as_of_date:
-                    raise ValueError("Cannot replace a newer official state")
-                self.storage._conn.execute("INSERT INTO official_state_history VALUES (?,?,?,?,?)", (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
-                self.storage._conn.execute("INSERT INTO official_states VALUES (?,?,?,?,?) ON CONFLICT(scope_key,workflow) DO UPDATE SET run_id=excluded.run_id,as_of_date=excluded.as_of_date,state_json=excluded.state_json",
-                                            (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
-            self.storage._conn.execute("UPDATE runs SET status=?,finished_at=?,outcome_json=? WHERE run_id=?",
-                                        (outcome.status.value, now(), canonical(record), outcome.run_id))
-            self.storage._conn.execute("UPDATE model_calls SET status='interrupted',finished_at=? WHERE run_id=? AND finished_at IS NULL", (now(), outcome.run_id))
+        try:
+            with self.storage._lock, self.storage._conn:
+                row = self._authorized(outcome.run_id, scope, running=True)
+                if state is not None:
+                    request = json.loads(row["request_json"])
+                    checks = self.storage._conn.execute("SELECT passed,detail_json FROM evaluations WHERE run_id=? AND hard_gate=1", (outcome.run_id,)).fetchall()
+                    required_checks = {"frozen_plan", "policy_snapshot", "required_evidence", "scope_and_date", "report_contract", "report_markdown_contract"}
+                    completed_checks = {json.loads(check["detail_json"])["evaluator"] for check in checks if check["passed"]}
+                    if (outcome.status != RunStatus.SUCCEEDED or not outcome.official_output_allowed or
+                            request["mode"] != "official" or request["as_of_date"] != as_of_date or
+                            not required_checks <= completed_checks or any(not check["passed"] for check in checks)):
+                        raise ValueError("Official promotion denied")
+                    if state.get("as_of_date") != as_of_date or state.get("run_id") != outcome.run_id:
+                        raise ValueError("Official state identity mismatch")
+                    report = state.get("report", {})
+                    if report.get("scope_key") != scope.key or report.get("run_id") != outcome.run_id:
+                        raise ValueError("Official state requires its own scoped report")
+                    artifacts = self.storage._conn.execute("SELECT detail_json FROM artifacts WHERE run_id=?", (outcome.run_id,)).fetchall()
+                    if not any(json.loads(item[0]) == report for item in artifacts):
+                        raise ValueError("Official report is not archived in this run")
+                    markdown = state.get("report_markdown", {})
+                    if (markdown.get("scope_key") != scope.key or markdown.get("run_id") != outcome.run_id or
+                            not any(json.loads(item[0]) == markdown for item in artifacts)):
+                        raise ValueError("Official Markdown report is not archived in this run")
+                    html_report = state.get("report_html")
+                    if html_report is not None and ("report_html_contract" not in completed_checks or
+                            html_report.get("scope_key") != scope.key or html_report.get("run_id") != outcome.run_id or
+                            not any(json.loads(item[0]) == html_report for item in artifacts)):
+                        raise ValueError("Official HTML report is not evaluated and archived in this run")
+                    workflow = state["workflow"]
+                    route = self.storage._conn.execute("SELECT detail_json FROM run_steps WHERE run_id=? AND stage='route' ORDER BY id DESC LIMIT 1", (outcome.run_id,)).fetchone()
+                    if route is None or json.loads(route[0]).get("workflow") != workflow:
+                        raise ValueError("Official workflow does not match the run route")
+                    previous = self.storage._conn.execute("SELECT as_of_date FROM official_states WHERE scope_key=? AND workflow=?", (scope.key, workflow)).fetchone()
+                    if previous and previous[0] > as_of_date:
+                        raise ValueError("Cannot replace a newer official state")
+                    self.storage._conn.execute("INSERT INTO official_state_history VALUES (?,?,?,?,?)", (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
+                    self.storage._conn.execute("INSERT INTO official_states VALUES (?,?,?,?,?) ON CONFLICT(scope_key,workflow) DO UPDATE SET run_id=excluded.run_id,as_of_date=excluded.as_of_date,state_json=excluded.state_json",
+                                                (scope.key, workflow, outcome.run_id, as_of_date, canonical(redact(state))))
+                for detail in interrupted_actions:
+                    self.storage._conn.execute("INSERT INTO run_steps (run_id,stage,status,recorded_at,detail_json) VALUES (?,?,?,?,?)",
+                        (outcome.run_id, "react_action", "interrupted", now(), canonical(redact(detail))))
+                if terminal_boundary is not None:
+                    self.storage._conn.execute("INSERT INTO run_steps (run_id,stage,status,recorded_at,detail_json) VALUES (?,?,?,?,?)",
+                        (outcome.run_id, "react_phase", outcome.status.value, now(), canonical(redact(terminal_boundary))))
+                self.storage._conn.execute("UPDATE runs SET status=?,finished_at=?,outcome_json=? WHERE run_id=?",
+                                            (outcome.status.value, now(), canonical(record), outcome.run_id))
+                self.storage._conn.execute("UPDATE model_calls SET status='interrupted',finished_at=? WHERE run_id=? AND finished_at IS NULL", (now(), outcome.run_id))
+                if terminal_writer is not None:
+                    try:
+                        for detail in terminal_writer.prepare(self):
+                            self.storage._conn.execute("INSERT INTO artifacts (run_id,detail_json,recorded_at) VALUES (?,?,?)",
+                                (outcome.run_id,canonical(detail),now()))
+                    except BaseException:
+                        terminal_writer.rollback()
+                        raise
+        except BaseException:
+            if terminal_writer is not None:terminal_writer.rollback()
+            raise
 
     def read(self, run_id, scope):
         with self.storage._lock:

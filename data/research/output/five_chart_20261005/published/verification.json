@@ -1,0 +1,60 @@
+{
+  "latest_run_id": "cd82e2469f4a455d868e63c091afa8f6",
+  "prior_complete_run_id": "84255cbf65544c02a17bd74fd3f54d82",
+  "status": "five_charts_and_refresh_passed",
+  "source_count": 139,
+  "new_captures": 33,
+  "explicit_scoped_archive_reuse": 106,
+  "generated_at": "2026-10-05T14:23:11.643117+00:00",
+  "as_of_date": "2026-10-05",
+  "gaps": [],
+  "html_sha256": "30960ea182cb8b8dc5b9a8f88367705e158f24bfdfbdca7bed24969a5139962a",
+  "data_sha256": "83fd2a95e9f64e195498427ae88eb1a40e5e450853cbdc5db83af4495524cddc",
+  "second_run_update_verified": true,
+  "deepseek_actual_model_test": "passed_framework_and_bounded_five_chart_review",
+  "whole_goal_complete": true,
+  "offline_tests": "622 passed, 41 subtests passed",
+  "successful_model_calls": 4,
+  "framework_run_id": "84255cbf65544c02a17bd74fd3f54d82",
+  "bounded_chart_run_id": "cd82e2469f4a455d868e63c091afa8f6",
+  "native_harness_html_sha256": "248f5f2693c30bdf0e4ff6f2bbb8eafcf38443151c04e5be2273d49eafe622ab",
+  "delivery_composition": "native five-chart HTML plus escaped reviewed model interpretation",
+  "model_candidate_hash": "eead9c89117993c2a5d14633f94c2f3ed6f5b3444521809f554974d261c6ddde",
+  "ui_verification": {
+    "cards": [
+      {
+        "id": "cn_consumption",
+        "svg": 2
+      },
+      {
+        "id": "cn_ai",
+        "svg": 2
+      },
+      {
+        "id": "us_ai",
+        "svg": 2
+      },
+      {
+        "id": "banks_rates",
+        "svg": 1
+      },
+      {
+        "id": "us_real_inflation",
+        "svg": 3
+      },
+      {
+        "id": "model-review",
+        "svg": 0
+      }
+    ],
+    "paths": 28,
+    "polygons": 8,
+    "invalid": false,
+    "gaps": [],
+    "mobile": {
+      "width": 390,
+      "documentWidth": 390
+    },
+    "errors": []
+  }
+}

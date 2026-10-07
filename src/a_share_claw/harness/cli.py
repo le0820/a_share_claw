@@ -30,8 +30,25 @@ def add_harness_parser(sub):
     report = commands.add_parser("report", help="Read a verified scoped report by run_id")
     scope_options(report)
     report.add_argument("run_id")
-    report.add_argument("--format", choices=["markdown", "json"], default="markdown")
+    report.add_argument("--format", choices=["markdown", "html", "json"], default="markdown")
     report.add_argument("--date", help="Reject reports later than this cutoff")
+    view = commands.add_parser("view",help="Read automatic scoped terminal HTML, including gaps and failures")
+    scope_options(view)
+    view.add_argument("run_id")
+    view.add_argument("--date")
+    watch = commands.add_parser("watch-plan", help="Freeze four-index spec with reviewed exchange calendars; no acquisition")
+    scope_options(watch)
+    watch.add_argument("--date", required=True)
+    watch.add_argument("--window-start", required=True)
+    watch.add_argument("--window-end", required=True)
+    watch.add_argument("--cutoff", required=True)
+    for name in ("nyse", "nasdaq", "sse", "szse"):
+        watch.add_argument("--"+name+"-calendar", type=Path, required=True)
+    ui = commands.add_parser("ui", help="Export an authorized offline report and ReAct workbench")
+    scope_options(ui)
+    ui.add_argument("--run-id")
+    ui.add_argument("--date", help="Only include runs with an explicit date at or before cutoff")
+    ui.add_argument("--limit", type=int, default=20)
     for name in ("plan", "run", "replay", "state"):
         command = commands.add_parser(name)
         scope_options(command)
@@ -50,6 +67,7 @@ def add_harness_parser(sub):
                 command.add_argument("--model-executor",choices=["configured"],help="Propose and review a tool-free core framework")
                 command.add_argument("--planning-constraints",type=Path,help="Trusted immutable planner constraints")
             if name == "run":
+                command.add_argument("--five-chart-contract",type=Path,help="Scoped public source refresh; research only")
                 command.add_argument("packet_file", type=Path,nargs="?")
                 command.add_argument("--source-contract",type=Path,help="Explicit trusted-host plugin bindings; research mode only")
                 command.add_argument("--mode", choices=["replay", "research", "official"], default="replay")
@@ -80,10 +98,61 @@ def run_harness(args, config, storage):
         except (LookupError, ValueError):
             print(json.dumps({"ok": False, "error_code": "trace_not_found"}))
             return 2
+    if args.harness_command == "view":
+        from .terminal_view import read_terminal_html
+        try:
+            content,_=read_terminal_html(repo,scope,args.run_id,config.data_dir/"harness_runs",as_of_date=args.date)
+            print(content)
+            return 0
+        except LookupError:
+            print(json.dumps({"ok":False,"error_code":"terminal_view_not_found"}))
+            return 2
+        except (ValueError,OSError,KeyError,TypeError):
+            print(json.dumps({"ok":False,"error_code":"terminal_view_integrity_error"}))
+            return 2
+    if args.harness_command == "watch-plan":
+        from .market_watch import freeze_watch
+        from ..data_plugins.watch import watch_source_contract
+        from ..data_plugins.core import DataError
+        from .workbench import export_workbench
+        try:
+            host = freeze_watch(args.date,args.window_start,args.window_end,args.cutoff,
+                {"XNYS":args.nyse_calendar,"XNAS":args.nasdaq_calendar,"XSHG":args.sse_calendar,"XSHE":args.szse_calendar})
+            outcome = Harness(config.root_dir,storage,config.data_dir/"harness_runs",config.market_timezone).run(
+                RunRequest(scope,"Freeze S&P500/Nasdaq100/CSI300/ChiNext daily visualization",args.date,"plan","quant"),quant_spec=host["quant_spec"])
+            if outcome.status != RunStatus.SUCCEEDED:
+                print(outcome.output)
+                return 2
+            view = export_workbench(repo,scope,config.data_dir/"harness_runs",config.data_dir/"harness_views",run_id=outcome.run_id)
+            folder = Path(view["index"]).parent
+            (folder/"quant_spec.json").write_text(json.dumps(host["quant_spec"],ensure_ascii=False,indent=2),encoding="utf-8")
+            (folder/"source_contract.json").write_text(json.dumps(watch_source_contract(host["quant_spec"],args.date),ensure_ascii=False,indent=2),encoding="utf-8")
+            print(json.dumps({"ok":True,"run_id":outcome.run_id,"index":view["index"],
+                "quant_spec":str(folder/"quant_spec.json"),"source_contract":str(folder/"source_contract.json"),
+                "completion":"framework_only","action":"NO_ACTION"},ensure_ascii=False,indent=2))
+            return 0
+        except (ValueError,OSError,KeyError,TypeError,DataError):
+            print(json.dumps({"ok":False,"error_code":"invalid_watch_contract"}))
+            return 2
+    if args.harness_command == "ui":
+        from .workbench import export_workbench
+        try:
+            result = export_workbench(repo,scope,config.data_dir/"harness_runs",config.data_dir/"harness_views",
+                run_id=args.run_id,as_of_date=args.date,limit=args.limit)
+            print(json.dumps({"ok":True,**result},ensure_ascii=False,indent=2))
+            return 0
+        except LookupError:
+            print(json.dumps({"ok":False,"error_code":"view_not_found"}))
+            return 2
+        except (ValueError,OSError,KeyError,TypeError):
+            print(json.dumps({"ok":False,"error_code":"view_integrity_error"}))
+            return 2
     if args.harness_command == "report":
         try:
             delivery = read_report(repo, scope, args.run_id, config.data_dir / "harness_runs", as_of_date=args.date)
-            print(delivery["markdown"] if args.format == "markdown" else json.dumps({k:v for k,v in delivery.items() if k != "markdown"}, ensure_ascii=False, indent=2))
+            if args.format == "html" and delivery["html"] is None:
+                raise LookupError("Legacy report has no HTML artifact")
+            print(delivery[args.format] if args.format in {"markdown", "html"} else json.dumps({k:v for k,v in delivery.items() if k not in {"markdown", "html"}}, ensure_ascii=False, indent=2))
             return 0
         except LookupError:
             print(json.dumps({"ok":False,"error_code":"report_not_found"}))
@@ -130,8 +199,8 @@ def run_harness(args, config, storage):
                 raw = path.read_bytes()
                 if hashlib.sha256(raw).hexdigest() != detail["sha256"]:
                     raise ValueError("Artifact hash mismatch")
-                if path.suffix == ".md":
-                    continue  # the hash was checked; Markdown is not a FactPacket
+                if path.suffix in {".md", ".html"}:
+                    continue  # the hash was checked; rendered reports are not FactPackets
                 obj = json.loads(raw)
                 if "capability" in obj:
                     facts.append(obj)
@@ -149,6 +218,11 @@ def run_harness(args, config, storage):
         try:
             packet = json.loads(args.packet_file.read_text()) if args.harness_command == "run" and args.packet_file else None
             source_adapter=None
+            chart_adapter=None
+            if getattr(args,"five_chart_contract",None):
+                if args.mode!="research":raise ValueError("five_charts_research_only")
+                from ..data_plugins.five_chart_host import load_host_contract
+                chart_adapter=load_host_contract(args.five_chart_contract,scope_key=scope.key,as_of_date=args.date,archive_root=config.data_dir/"five_chart_sources")
             if getattr(args,"source_contract",None):
                 from ..data_plugins.adapter import PluginEvidenceAdapter
                 source_adapter=PluginEvidenceAdapter(config.data_dir/"source_runs",json.loads(args.source_contract.read_text()))
@@ -158,7 +232,7 @@ def run_harness(args, config, storage):
             outlook_spec = json.loads(args.outlook_spec.read_text()) if getattr(args, "outlook_spec", None) else None
             mixed_spec = json.loads(args.mixed_spec.read_text()) if getattr(args, "mixed_spec", None) else None
             request = RunRequest(scope, getattr(args, "question", None) or "Provider-independent " + args.workflow, args.date,
-                                 "plan" if args.harness_command == "plan" else args.mode, args.workflow, host="cli")
+                                 "plan" if args.harness_command == "plan" else args.mode, args.workflow, host="cli",**({"wall_clock_seconds":600,"max_tool_calls":200} if chart_adapter else {}))
         except (ValueError, OSError):
             print(json.dumps({"ok": False, "error_code": "invalid_request"}))
             return 2
@@ -185,6 +259,6 @@ def run_harness(args, config, storage):
             from ..sdk_research import SDKResearchAdapter
             adapter = SDKResearchAdapter(config)
         outcome = engine.run(request, packet, current_ai_pct=getattr(args, "current_ai_pct", 57.5),
-                             research_spec=research_spec, research_adapter=adapter, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec,evidence_adapter=source_adapter)
+                             research_spec=research_spec, research_adapter=adapter, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec,evidence_adapter=source_adapter,five_chart_adapter=chart_adapter)
     print(outcome.output)
     return 0 if outcome.status == RunStatus.SUCCEEDED else 2

@@ -24,7 +24,10 @@ class PluginEvidenceAdapter:
 
     def prepare(self,request):
         try:return self._prepare(request)
-        except (DataError,KeyError,TypeError,ValueError):raise ValueError("source_contract_mismatch") from None
+        except ValueError as exc:
+            if str(exc)=='rotation_source_binding_missing':raise
+            raise ValueError('source_contract_mismatch') from None
+        except (DataError,KeyError,TypeError):raise ValueError("source_contract_mismatch") from None
 
     def _prepare(self,request):
         e=request.json();plan=e["plan"];scope=Scope(**e["scope"]);needed=set(e["needed_capabilities"]);existing=e["existing_packet"]
@@ -32,8 +35,12 @@ class PluginEvidenceAdapter:
                 not needed<=set(plan["required_capabilities"])):raise ValueError("source_contract_mismatch")
         ticket={"schema_version":"evidence-batch-v1","core_run_id":e["core_run_id"],"plan_id":plan["plan_id"],"scope_key":scope.key,
             "as_of_date":plan["as_of_date"],"source_run_id":None,"requirements":[]}
+        if needed=={"fund_flow_snapshot"}:
+            from .flow_handoff import prepare_flow
+            return prepare_flow(self,request)
         if not needed:
             return EvidenceBatch(canonical(ticket),lambda _:None,lambda _:json.loads(canonical(existing)))
+        if 'industry_classification' in needed:raise ValueError('rotation_source_binding_missing')
         c=json.loads(self._configuration);source_plan=c["source_plan"]
         if not isinstance(source_plan,dict) or set(source_plan)!={"framework","requirements"}:raise ValueError("source_contract_mismatch")
         parsed=[Requirement.parse(r) for r in source_plan["requirements"]]

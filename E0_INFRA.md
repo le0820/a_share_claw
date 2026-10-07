@@ -256,3 +256,31 @@ NBS 八月国民经济页面与 PBC 八月金融统计页面均实际抓取成�
 收益/回撤用6月30日锚点与完整Q3日历，波动为日简单收益样本标准差×√252；不含汇率、股息、费用。美国同一8月历史表：7/8月PCE同比均3.4%、核心均3.0%，环比0.1→0.3%、核心0.1→0.2%；未混入年度更新前的7月发布。中国公布值比较和修订边界见案例原生事实表，不推算单月累计增速。
 
 条件基准仅假设8月中国生产与消费/投资分化、美国同比未出现已验证下降的结构在Q4后续数据中延续；市场方向保留未知。缺9月及以后宏观、利率、盈利、估值、资金流和指数行业权重，不补成因、概率、数字/零风险阈值或仓位。后续发布/行情改变假设时重评。原始在线归档在本机ignored data中，未作为GitHub CI夹具或上传远端；其他设备须重新执行来源验收，不能仅凭本文复制PIT认证。
+
+
+### 2026-10-02 完整宿主参数引用与普通聊天实际验收
+
+新增 host-parameters-ref-v1，仅完整受保护参数允许引用；核心核对 workflow、四字段 Scope 的 key、as_of_date 和 constraints_hash 后恢复原始参数，再沿用类型、未来日期、身份、单位及政策门禁。新增 resolve_host_parameters 的成对公开决策/行动边界。SDK 框架提案和独立框架评审只摘要 sessions 的数量、首末项和 hash，保留原始请求、完整归档与 candidate_hash；研究事实和角色包不压缩。缺失/部分约束、引用改动、额外键和跨 Scope/日期均不能推进来源调用。
+
+实际第一运行 b6706cdbc66c44d083849c8c81ed0001 在框架提案耗尽120秒预算，0source/1model，失败诊断保留。引用协议后的运行 b6281a182bfc4a3d8d9a646276236123 使用当时已授权 Tencent/hy3，两次真实模型调用和四次 easytdx 原生指数调用成功，通过普通 InvestmentAgent.run_result 的完整可信宿主链路交付四指数 Q3 JSON/Markdown/HTML，NO_ACTION、无正式状态。提案与评审可见输入分别由22258/44250字符降为6432/12329字符；这只记录本次传输大小，不能据此声称延迟因果或硬件性能。手工框架复核确认窗口、精确身份、中文图表、四指标、无代理和当前捕获非PIT边界。独立Decimal复算收益/回撤/252因子样本波动/相对沪深300百分点超额，以及完整声明日历逐行相等通过；32对行动、6对阶段和父子/阶段包含边界通过。浏览器确认工作台研究状态、来源/门禁/公开时间轴与四张行情SVG，无横向溢出，临时页和服务器已关闭。
+
+证据在 data/harness_acceptance/ordinary_chat_actual_20261002/，acceptance、independent-audit、trace.sqlite和原始 source_runs 保留在本机忽略目录，不提交原始会话。离线Python3.13全量586 passed / 41 subtests，引用/框架/普通chat/SDK针对性46 passed；未重跑3.11/3.12 CI。只证明限定四指数案例，不证明一般语义质量、历史PIT或所有工作流真实模型整合。
+
+用户随后要求改用 DeepSeek Flash：两个本地忽略.env已设 provider=deepseek/model=deepseek-flash/base_url=https://api.deepseek.com，凭据不入验收或Git。官方/models测试401，配置读取正常但鉴权/真实调用未验收；已请求确认官方或原腾讯网关，尚待回复。不能用上面的Tencent成功替代DeepSeek验收，不能静默恢复旧模型或向其他网关发送密钥。
+
+下一步保持完整goal：确认模型服务后做对应SDK协议兼容和真实模型验收；恢复申万官方可达性、复核SW2021一级31行业分类及生效/沪深范围，再取得精确日行情，独立周/月复算与真实HTML验收；沪深3条原生零值的最终收盘完整性仍未认证。北交所排除、周线主/月线辅、完整Issue #1边界不变。不得因这次实际聊天成功关闭整个goal。
+
+
+用户最新口径更正：周线为主、日线为辅，取代此前月线辅助描述。当前申万核心输出为daily_context，逐准入交易日收益/竞争排名/排名变化，首日用冻结锚点；HTML默认展示最后交易日，折叠完整日数值，周热力图仍为主。旧月度验收归档仅历史兼容，不代表当前策略；真实轮动仍须周/日数值与来源验收。
+
+
+## DeepSeek Chat Completions 离线协议兼容
+
+按官方create-chat-completion文档（https://api-docs.deepseek.com/api/create-chat-completion/），deepseek提供商发送response_format=json_object，不再发送该接口不支持的json_schema；model_adapter trace记录格式和完整schema hash。其他提供商保持原格式，结构/参数引用/事实引用/Scope/日期/独立评估/发布仍由核心拥有，JSON模式不提升证据权限。不改变思考模式、预算或将私有思维链送入工作台。README与.env.example同步DeepSeek配置示例，API key留空/占位，不提交真实密钥。
+
+实际SDK+MockTransport验证DeepSeek provider的8角色/评估调用、框架提案与独立审核引用协议，错误JSON/伪造引用/评审失败仍阻断，无工具、无来源调用。Python3.13全量603 passed /41 subtests；针对性22 passed。证据data/harness_acceptance/deepseek_protocol_20261002/acceptance.json及offline-junit.xml。仅离线协议验收，真实官方401仍待用户确认服务地址，未重新调用模型或向其他网关发送密钥。真实SW31及沪深最终收盘边界不变，整体goal仍未完成。
+
+
+### 2026-10-05 五图研究增量
+
+终态每次归档同Scope五图HTML/JSON，显式宿主在冻结后的取证阶段刷新既定原生来源，固定历史发布带原捕获时钟复用；当前行情/版本和最新目录刷新。指标/40-30-25-5权重在代码固定，缺项不重分配、无官方动作/状态提升。多源线程显式共同父span，防止并行取证互相成为父子。当前622项/41子测试及有限真实五图刷新通过，详见SHENWAN_DELIVERY_REVIEW.md；用户解除外发限制后，DeepSeek Flash SDK框架/审核和五图解读/独立审核四次成功调用通过；原收益锚点冲突及日期不匹配拒绝记录保留。五图和限定模型测试目标完成，原完整Issue #1、一般模型质量、PIT及正式连续业务边界不变。

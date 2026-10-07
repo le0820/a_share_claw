@@ -25,7 +25,9 @@ class RunControl:
 
 
 class RunSession:
-    def __init__(self, storage, request: RunRequest, control=None):
+    def __init__(self, storage, request: RunRequest, control=None, *, artifact_root=None):
+        self.artifact_root=artifact_root
+        self.chart_packet=None
         self.control = control or RunControl()
         self.repository = TraceRepository(storage)
         self.request = request
@@ -34,6 +36,13 @@ class RunSession:
         self.tool_count = 0
         self.failure = None
         self.closed = False
+        self.active_phase = None
+        self.phase_sequence = 0
+        self.phase_started = None
+        self.last_phase = None
+        self.phase_events = []
+        self.action_lock = RLock()
+        self.open_actions = {}
         self.step("request", {"host": request.host, "mode": request.mode, "as_of_date": request.as_of_date})
 
     @property
@@ -46,12 +55,59 @@ class RunSession:
             raise TimeoutError("budget_exceeded")
 
     def step(self, stage, detail, status="ok"):
-        return self.repository.step(self.run_id, self.request.scope, stage, detail, status)
+        result = self.repository.step(self.run_id, self.request.scope, stage, detail, status)
+        if self.active_phase is not None and stage != "react_phase":
+            self.phase_events.append({"stage": stage, "status": status, "detail_hash": digest(redact(detail))})
+        return result
+
+    def phase(self, name, decision_code, inputs=None):
+        """Code-owned ReAct boundaries; summaries and hashes, never private reasoning.
+
+        A phase ends before its successor starts. Failure/cancellation closes the
+        active phase at termination, so missing observations cannot look successful.
+        """
+        successors = {None: {"context"}, "context": {"planning"},
+                      "planning": {"evidence", "publish"}, "evidence": {"compute"},
+                      "compute": {"output"}, "output": {"publish"}, "publish": set()}
+        previous = self.active_phase or self.last_phase
+        if name not in successors[previous]:
+            raise ValueError("invalid_execution_transition")
+        self.end_phase("ok")
+        self.phase_sequence += 1
+        self.active_phase, self.phase_started = name, time.monotonic()
+        self.phase_events = []
+        self.step("react_phase", {"schema_version": "react-boundary-v1", "phase": name,
+                  "sequence": self.phase_sequence, "boundary": "start",
+                  "decision_code": decision_code, "input_hash": digest(inputs or {}),
+                  "reasoning_kind": "public_decision_summary"}, "running")
+
+    def end_phase(self, status, observation=None):
+        if self.active_phase is None:
+            return
+        self.step("react_phase", {"schema_version": "react-boundary-v1", "phase": self.active_phase,
+                  "sequence": self.phase_sequence, "boundary": "end",
+                  "duration_ms": round((time.monotonic()-self.phase_started)*1000, 3),
+                  "observation": observation or {}, "event_count": len(self.phase_events),
+                  "events_hash": digest(self.phase_events)}, status)
+        self.last_phase, self.active_phase = self.active_phase, None
+
+    def action(self, kind, operation, decision_code, inputs=None, *, parent_id=...):
+        from .observability import ActionSpan
+        return ActionSpan(self, kind, operation, decision_code, inputs or {},parent_id=parent_id)
 
     def evaluate(self, result):
-        self.repository.evaluate(self.run_id, self.request.scope, result)
+        with self.action("evaluation", result.evaluator, "apply_core_gate", {"evaluation_hash": digest(result.json())}) as span:
+            self.repository.evaluate(self.run_id, self.request.scope, result)
+            span.observe(status="ok" if result.passed else "rejected", passed=result.passed, hard_gate=result.hard_gate, error_code=result.code)
 
     async def tool(self, name, arguments, callback, allowed):
+        with self.action("role", name, "check_permission_and_execute_bounded_callback", arguments) as span:
+            result = await self._tool(name, arguments, callback, allowed)
+            span.observe(status="ok" if result["ok"] else "denied" if result["status"] == "denied" else "error",
+                         output_hash=digest(result), error_code=result["error_code"])
+            return result
+
+    async def _tool(self, name, arguments, callback, allowed):
         started = time.monotonic()
         permission = "allow"
         self.tool_count += 1
@@ -84,6 +140,13 @@ class RunSession:
         return envelope
 
     def source_tool(self,name,arguments,callback,payload):
+        with self.action("source", name, "fetch_only_frozen_requirement", arguments) as span:
+            result = self._source_tool(name,arguments,callback,payload)
+            span.observe(status="ok" if result["ok"] else "error", output_hash=digest(result),
+                         error_code=result["error_code"], fallback_status=result["fallback_status"], truncated=result["truncated"])
+            return result
+
+    def _source_tool(self,name,arguments,callback,payload):
         """Host-only source callback; trace hashes facts instead of copying native rows."""
         from .research import bounded_call
         self.checkpoint();self.tool_count+=1
@@ -106,9 +169,24 @@ class RunSession:
         with self.control.lock:
             if status == RunStatus.SUCCEEDED and self.failure is None:
                 self.checkpoint()
-            return self._finish(output, status, action=action, official=official, state=state)
+            try:
+                return self._finish(output, status, action=action, official=official, state=state)
+            except TerminalViewFailure as exc:
+                # Transaction rolled back: neither terminal success nor official state was committed.
+                import json
+                try:diagnostic=json.loads(output)
+                except (ValueError,TypeError):diagnostic={"run_id":self.run_id}
+                diagnostic.update(action="NO_ACTION",official_output_allowed=False,data=None,error_code="terminal_view_failure")
+                for key in ("report","report_markdown","report_html"):diagnostic.pop(key,None)
+                self.failure=FailureCategory.TOOL_RETURN_FAILURE
+                self.step("terminal_view_gate",{"passed":False,"exception_type":exc.failure_type},"error")
+                try:
+                    return self._finish(canonical(diagnostic),RunStatus.FAILED,action="NO_ACTION",official=False,state=None,minimal_view=True)
+                except TerminalViewFailure:
+                    diagnostic["terminal_html_unavailable"]=True
+                    return self._finish(canonical(diagnostic),RunStatus.FAILED,action="NO_ACTION",official=False,state=None,skip_view=True)
 
-    def _finish(self, output, status, *, action, official, state):
+    def _finish(self, output, status, *, action, official, state, minimal_view=False, skip_view=False):
         if self.closed:
             raise ValueError("Run already closed")
         if self.failure is not None:
@@ -118,6 +196,40 @@ class RunSession:
         self.step("final_output", {"output_hash": digest(output), "output_chars": len(output),
                                    "action": action, "official_output_allowed": official}, status.value)
         outcome = RunOutcome(self.run_id, status, output, action, official, self.failure or getattr(self, "attribution", None))
-        self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date)
+        terminal_boundary = None
+        if self.active_phase is not None:
+            terminal_boundary = {"schema_version": "react-boundary-v1", "phase": self.active_phase,
+                "sequence": self.phase_sequence, "boundary": "end",
+                "duration_ms": round((time.monotonic()-self.phase_started)*1000, 3),
+                "event_count": len(self.phase_events), "events_hash": digest(self.phase_events),
+                "observation": {"output_hash": digest(output), "action": action, "official_output_allowed": official}}
+        with self.action_lock:
+            interrupted = [span.end_detail("interrupted") for span in reversed(list(self.open_actions.values()))]
+            writer=None
+            if self.artifact_root is not None and not skip_view:
+                from .terminal_view import TerminalView
+                writer=TerminalView(self.artifact_root,self.request.scope,self.run_id,minimal=minimal_view,checkpoint=self.checkpoint if status==RunStatus.SUCCEEDED else None,chart_packet=self.chart_packet)
+            try:
+                self.repository.finish(outcome, self.request.scope, state, self.request.as_of_date,
+                    terminal_boundary=terminal_boundary, interrupted_actions=interrupted,terminal_writer=writer)
+            except (asyncio.CancelledError,TimeoutError):
+                raise
+            except Exception as exc:
+                # Promotion denials are still handled by the existing business gate.
+                if writer is not None and writer.created:
+                    writer.rollback()
+                if writer is not None and writer.attempted:
+                    raise TerminalViewFailure(type(exc).__name__) from exc
+                raise
+            for span in self.open_actions.values():
+                span.ended = True
+            self.open_actions.clear()
+            self.closed = True
+        if self.active_phase is not None:
+            self.last_phase, self.active_phase = self.active_phase, None
         self.closed = True
         return outcome
+
+
+class TerminalViewFailure(Exception):
+    def __init__(self,failure_type):self.failure_type=failure_type

@@ -1,0 +1,279 @@
+{
+  "_version": "aisdi-tool-v1",
+  "model_version": "user-spec-v1.0",
+  "declared_applicable_period": "2026Q4 onward",
+  "kind": "leading_indicator_research_framework",
+  "status": "planning_tool_only",
+  "spec_path": "src/compiled/aisdi/model_spec_v1.md",
+  "spec_sha256": "150417f45532e430bc1d01abdb459dd60a6fb687f33e7761c2df7a0a7637679f",
+  "cadence": {
+    "primary": "weekly_canonical",
+    "auxiliary": "daily_nowcast",
+    "structural": "quarterly"
+  },
+  "top_weights": {
+    "hardware": 0.6,
+    "model": 0.4
+  },
+  "sensitivity_weights": [
+    [
+      0.5,
+      0.5
+    ],
+    [
+      0.7,
+      0.3
+    ]
+  ],
+  "side_minimum_coverage": 0.6,
+  "groups": {
+    "hardware_demand": [
+      {
+        "pillar": "cloud",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "ai_cloud_revenue_usd",
+          "ai_rpo_usd",
+          "ai_capex_usd"
+        ]
+      },
+      {
+        "pillar": "training",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "training_compute_spend_usd",
+          "training_gpu_hours",
+          "training_cluster_utilization_pct"
+        ]
+      },
+      {
+        "pillar": "inference",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "inference_tokens",
+          "inference_api_calls",
+          "successful_agent_tasks"
+        ]
+      },
+      {
+        "pillar": "orders",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "gpu_orders_units",
+          "hbm_orders_bits",
+          "optical_800g_orders_units",
+          "optical_16t_orders_units"
+        ]
+      },
+      {
+        "pillar": "dc_demand",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "contracted_dc_mw",
+          "leased_dc_mw",
+          "reserved_power_mw"
+        ]
+      }
+    ],
+    "hardware_supply": [
+      {
+        "pillar": "gpu",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "powered_on_gpu_units",
+          "revenue_generating_gpu_units",
+          "gpu_equivalent_compute_capacity"
+        ]
+      },
+      {
+        "pillar": "dc",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "dc_energized_mw",
+          "dc_commissioned_mw",
+          "dc_revenue_generating_mw"
+        ]
+      },
+      {
+        "pillar": "memory",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "hbm_bit_shipments",
+          "hbm_qualified_capacity_bits"
+        ]
+      },
+      {
+        "pillar": "optical",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "optical_800g_shipments_units",
+          "optical_16t_shipments_units"
+        ]
+      },
+      {
+        "pillar": "power_cooling",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "grid_connected_mw",
+          "available_power_mw",
+          "ppa_operational_mw"
+        ]
+      }
+    ],
+    "model_demand": [
+      {
+        "pillar": "tokens",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "openrouter_tokens",
+          "api_tokens_total"
+        ]
+      },
+      {
+        "pillar": "token_revenue",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "token_revenue_proxy_usd"
+        ]
+      },
+      {
+        "pillar": "active_usage",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "consumer_wau",
+          "enterprise_wau",
+          "enterprise_ai_seats"
+        ]
+      },
+      {
+        "pillar": "tasks",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "agent_tasks",
+          "successful_tasks"
+        ]
+      },
+      {
+        "pillar": "revenue",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "model_arr_usd",
+          "model_api_revenue_usd",
+          "ai_cloud_revenue_usd"
+        ]
+      }
+    ],
+    "model_supply": [
+      {
+        "pillar": "quality",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "quality_adjusted_model_score"
+        ]
+      },
+      {
+        "pillar": "throughput",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "api_capacity_tps",
+          "effective_tokens_per_second"
+        ]
+      },
+      {
+        "pillar": "availability",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "api_uptime_pct",
+          "rate_limit_tokens_per_min",
+          "p95_latency_ms"
+        ]
+      },
+      {
+        "pillar": "accessible_supply",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "open_weight_frontier_model_count",
+          "api_available_regions"
+        ]
+      },
+      {
+        "pillar": "serving_efficiency",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "quality_adjusted_serving_cost",
+          "serving_cost_usd_per_m_tokens"
+        ]
+      }
+    ]
+  },
+  "metadata_required": [
+    "observation_date",
+    "publication_date",
+    "available_timestamp",
+    "entity",
+    "geography",
+    "layer",
+    "side",
+    "pillar",
+    "metric_name",
+    "value",
+    "unit",
+    "frequency",
+    "polarity",
+    "source_name",
+    "source_type",
+    "source_quality",
+    "is_estimate",
+    "is_planned",
+    "is_energized",
+    "is_commissioned",
+    "is_revenue_generating",
+    "training_inference_tag",
+    "restatement_flag",
+    "stale_days",
+    "confidence"
+  ],
+  "history_min_observations": 8,
+  "staleness_limit_days": {
+    "daily": 5,
+    "weekly": 21,
+    "monthly": 60,
+    "quarterly": 150
+  },
+  "unresolved_calibration": [
+    "Exact entity universe, metric selection and within-pillar/entity weights; candidates are not an admitted basket",
+    "Growth lag and rolling/expanding window per metric; inclusion of current observation and MAD-zero rule",
+    "Ratio level/change baseline and direction; comparable GPU generation and quality normalization",
+    "Freshness formula uses exp(-age/HalfLife): specify e-folding time or true half-life, values, and observation/publication age basis",
+    "Define effective weight coverage versus confidence-weighted denominator, component confidence and total aggregation",
+    "Double-count prevention across capex/orders/revenue and effective-supply overlap",
+    "Quadrant flat/uncertain cases and comparable growth aggregation; significant gap threshold",
+    "CFCE entity basket/currency/share-split normalization and zero/negative denominator; AICEI/PSVG/NSY/WACC missing full formula",
+    "Exact source bindings, historical availability/revisions and scope review",
+    "Leading performance is a hypothesis; one-quarter use does not validate 1/3/6-month forecasting"
+  ],
+  "hard_boundaries": [
+    "No planned capacity as effective supply",
+    "No asset price in core supply-demand index",
+    "No missing-as-zero or neutral score",
+    "No future availability or unlabelled revisions",
+    "No seasonal/quarterly linear interpolation to manufacture daily observations",
+    "Training and inference separate; safety/release delay alone is not falling compute",
+    "Token price decline alone is not demand decline",
+    "CFCE/AICEI/credit remain independent validation layers",
+    "No new source enabled by this tool",
+    "No trade action or official state promotion",
+    "No raw model release/count as deployable capacity",
+    "API token/latency measurements do not reveal provider-internal GPU/HBM utilization",
+    "Training and inference evidence must both be explicitly specified before formal scoring"
+  ],
+  "formula_reference": {
+    "component": "clip(50 + 0.5 * (DemandScore - SupplyScore), 0, 100)",
+    "total": "0.60 * HSDI + 0.40 * MSDI; no reweighting when a component is N/A",
+    "robust_z": "clip((x - median(history)) / (1.4826 * MAD(history)), -3, 3)",
+    "field_score": "clip(50 + 16.67 * z, 0, 100)",
+    "composite": "sum(w * c * score) / sum(w * c); denominator must be positive",
+    "confidence": "100 * sum(w * SourceQuality * Freshness * Valid) / sum(w)",
+    "breadth": "sum(w * I(growth > 0)) / sum(w); up >= 0.55, down <= 0.45; remaining regimes unresolved"
+  }
+}

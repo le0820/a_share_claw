@@ -13,6 +13,7 @@ def checked_outlook_spec(spec):
     if not isinstance(spec, dict) or set(spec) != {"quant_spec", "research_spec", "forecast_start", "forecast_end"}:
         raise ValueError("invalid_outlook_spec")
     quant = checked_quant_spec(spec["quant_spec"])
+    if quant["operation"]!="price_statistics" or quant.get('rotation'):raise ValueError("invalid_outlook_spec")
     research = checked_spec(spec["research_spec"], workflow="outlook")
     if not quant["window_end"] < validate_date(spec["forecast_start"]) <= validate_date(spec["forecast_end"]):
         raise ValueError("invalid_outlook_spec")

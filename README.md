@@ -9,9 +9,9 @@
 
 `宿主/模型适配 -> 投研路由与框架 -> 数据需求与缺口 -> 按需数据插件 -> 契约校验 -> 分析/风控/评估 -> 可审计产物`
 
-> **开发顺序**：E0 验收与未完成边界闭环 → 五个事实接口接入与来源验收 → 整合业务 case。当前 E0 最小清单已验收；五源所需能力的真实来源、冻结核心交接和完整 Q3 覆盖已验收；月度任务已加入 7/8 月历史事实对照，含历史输入的整合 Q4 条件展望已通过宿主复核定稿、核心计算与独立 SDK 审查，已随 [PR #2](https://github.com/le0820/a_share_claw/pull/2) 合并到 main（2026-10-01）。无人复核模型文案、历史缓存和自动月更仍未验收。当前状态和阶段退出条件以 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口) 为准。
+> **开发顺序**：E0 验收与未完成边界闭环 → 五个事实接口接入与来源验收 → 整合业务 case。当前 E0 最小清单已验收；五源所需能力的真实来源、冻结核心交接和完整 Q3 覆盖已验收；月度任务已加入 7/8 月历史事实对照，含历史输入的整合 Q4 条件展望已通过宿主复核定稿、核心计算与独立 SDK 审查，已随 [PR #2](https://github.com/le0820/a_share_claw/pull/2) 合并到 main（2026-10-01）。后续五图HTML、显式可信chat、SW31宿主报告及AISDI规格工具已进入 [PR #4](https://github.com/le0820/a_share_claw/pull/4)，已验收范围和开发中事项见下方待办表；截至2026-10-07尚未合并。一般无人复核模型质量、通用历史缓存和自动月更仍未验收。当前状态和阶段退出条件以 [E0_INFRA.md](E0_INFRA.md#当前验收结论与阶段入口) 为准。
 
-核心已有运行、冻结规划、确定性评分/风控、研究执行、统一报告和事务发布门禁。固定合成事实及有限真实模型检查只证明其验收范围；完整 Issue #1、一般语义质量、回测和连续正式日更仍未完成。插件只填充事实；默认五源为 NBS/PBC/easy-tdx/BEA/SEC；FRED 保留为显式可选，TickFlow 默认禁用。插件能力、真实接口边界及配置见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。
+核心已有运行、冻结规划、确定性评分/风控、研究执行、统一报告和事务发布门禁。固定合成事实及有限真实模型检查只证明其验收范围；完整 Issue #1、一般语义质量、回测和连续正式日更仍未完成。插件只填充事实；默认五源为 NBS/PBC/easy-tdx/BEA/SEC；FRED 保留为显式可选，TickFlow 默认禁用。插件能力、真实接口边界及配置见 [DATA_PLUGINS.md](DATA_PLUGINS.md)。用户于2026-10-02额外授权申万官方 `swresearch`，仅用于沪深申万一级轮动、显式启用；以周线为主、日线为辅。原生插件/冻结日行情交接与日线辅助表已实现；10月4日官方31行业历史已取得并交付宿主报告，但分类版本/生效/沪深范围及真实周主日辅核心准入仍未验收。官网连接失败属于此前记录，不能作为当前唯一阻碍。
 
 ## 顶层设计
 
@@ -25,7 +25,7 @@
 
 ## 当前框架与运行图
 
-以下三图描述已实现的核心与显式可信宿主路径。普通 chat 当前只交付规划和缺口；图中的取证流程须由宿主显式配置。角色是投研职责，不表示六个常驻自主 Agent。
+以下三图描述已实现的核心与显式可信宿主路径。默认普通 chat 交付规划和缺口；显式可信宿主配置可完成冻结来源取证与研究报告，已有四指数限定真实验收。角色是投研职责，不表示六个常驻自主 Agent。
 
 ### 1. 项目框架图
 
@@ -123,6 +123,10 @@ sequenceDiagram
 
 “分析”指可审计的结构化结论、假设、引用和评估，不表示保存模型内部思维链。插件的 `official_output_allowed=false` 限制插件自身发布；核心重新核验后，只有显式 official 模式可以获得正式发布权。当前来源自动获取仅用于受支持的 research 工作流，不直连正式日评分。
 
+## AI 领先供需工具
+
+新增 AISDI 规格/数据需求工具，周频主序列、日频辅助、季度结构复核。入口为 `python -m a_share_claw aisdi plan --date 2026-10-04 --cutoff 2026-10-04T23:59:59+08:00`；只输出框架、校准和证据缺口，尚不计算真实指数、不自动接入新来源。实现边界、来源评估和验收要求见 [AISDI.md](AISDI.md)。
+
 ## 当前边界
 
 ### 已有基础
@@ -147,9 +151,9 @@ sequenceDiagram
 | 阶段 | 状态 | 目标 | 完成定义 |
 | --- | --- | --- | --- |
 | 1. 宿主适配 | 本地 CLI/Telegram 基础已具备；通用适配未完成 | 所有入口提交统一请求，使用同一核心门禁 | 无 Telegram 配置也能运行；外部宿主与 CLI 对同一输入产生一致的契约检查和 trace；身份/权限显式映射 |
-| 2. 模型接入 | 独立 OpenAI 兼容端点基础已具备；宿主模型适配未完成 | 支持宿主提供模型或独立模型 URL 两种模式 | 核心不绑定模型 SDK；模型名、凭据引用、超时与预算明确；模型不可替代硬门禁 |
+| 2. 模型接入 | 独立端点与DeepSeek限定真实案例已验收；通用宿主模型适配未完成 | 支持宿主提供模型或独立模型 URL 两种模式 | 核心不绑定模型 SDK；模型名、凭据引用、超时与预算明确；模型不可替代硬门禁 |
 | 3. 投研执行平面 | **进行中** | 将策略、数据契约、研究路由和受约束工具闭环 | 宏观与产业研究均按日期、来源、fallback 输出；正式宏观日更恢复；AI P0/P1 只有在正式数据可用时写入状态 |
-| 4. 数据插件与证据工作台 | 五源接口与入口限制已实现；显式研究交接已验收；默认 chat 绑定与正式评分自动接入未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
+| 4. 数据插件与证据工作台 | 五源及显式可信chat限定交接已验收；五图来源刷新/同Scope披露复用已验收；默认chat授权与正式评分自动接入未完成 | 从投研模板推导缺口，按需接入可替换的数据能力 | 零插件可规划；仅加载必要插件；插件增删不改核心；结果有统一 envelope、来源/时点校验与回放快照 |
 | 5. 短期上下文管理 | 未完成 | 管理每个会话的上下文生命周期和 token 预算 | 有保留窗口、摘要/压缩、恢复策略、上下文预算和回归测试；不会因历史无限增长而失控 |
 | 6. 长期记忆与隔离 | 未完成 | 只在允许的主体边界内检索、写入和注入记忆 | 采用 `workspace + principal + session + agent_key` 核心作用域，入口映射原 platform/user/chat；隔离、保留/删除和注入均有端到端测试 |
 | 7. 任务与 Cron 调度 | 未完成 | 可靠地创建、执行、重试、观测和取消一次性/周期性投研任务 | 支持明确时区与 cron/固定周期语义，具备幂等、失败重试、并发/错过执行策略、状态查询与通知验收 |
@@ -205,22 +209,56 @@ data/
 tests/                      # 现有单元与路由回归测试
 ```
 
-`src/a_share_claw/` 是唯一运行实现；根目录 `a_share_claw/` 仅是兼容启动 shim。运行数据是审计证据，默认不作为代码提交物。
+`src/a_share_claw/` 是唯一运行实现；根目录 `a_share_claw/` 仅是兼容启动 shim。运行数据是审计证据，默认不作为代码提交物；例外仅为已定向公开的SW31三文件与五图六文件，原始响应、trace、凭据和私人状态仍不提交。
 
 以上是当前目录，不代表核心/宿主/数据插件已经物理拆分。目标模块划分和兼容迁移见 [HARNESS_DESIGN.md](HARNESS_DESIGN.md)。
+
+## 可观测执行与 HTML 报告（已验收范围待合并）
+
+核心运行增加 `react-boundary-v1` 阶段状态机：context → planning → evidence → compute → output → publish。代码约束合法后继，SQLite `run_steps` 保存成对开始/结束、公开决策码、输入/阶段事件哈希和时长；失败/取消结束当前阶段。规划模式从 planning 进入 publish。mixed 的子运行各自记录边界，父运行记录切片编排。公开摘要不是模型私有思维链。新增 `react-action-v1` 成对 span 覆盖来源、模型请求、角色及其校验、评价、证据准入、计算和归档；失败/取消原子闭合未结束 span，迟到回调不能续写终态。`harness ui` 展示公开决策码、输入哈希、观测与耗时。
+
+成功业务报告新增 `report.html`，与 JSON/Markdown 在同 run/Scope 归档、哈希读取、确定性重渲染验证；HTML 失败阻止本次交付和正式状态更新。CLI `harness report RUN_ID --format html` 仅返回授权且校验通过的 HTML。旧报告没有 HTML 时明确返回缺失，不静默生成或改写历史产物。纯规划/缺口运行可由 `harness ui` 导出独立 HTML 诊断页；核心和普通 chat 自动在终态事务中归档 `run.html` 与 `run_view.json`，含规划、缺口、失败和取消；`harness view RUN_ID --date DATE` 按 Scope/日期/哈希读取。渲染失败回滚正式状态，尽可能交付最小失败诊断；磁盘不可写则终态明确标记 HTML 不可用，禁止正式发布。
+
+页面采用本地 CSS/SVG，呈现完整报告表格、已准入收盘序列和月度公布率对照，包含数值表和来源边界。无远程资源或脚本；模型/来源文案按文字转义。`chart_series` 来自核心价格准入后的原始序列，与统计同一输入哈希。
+
+2026-10-02 当前捕获的真实四指数 Q3 取证、完整日历/锚点校验、收益/回撤独立复算、HTML 与工作台浏览已通过。验收位于 `data/harness_acceptance/market_visualization_20261002/acceptance.json`，保持 NO_ACTION，不证明历史 PIT 或第二行情商一致性。资金范围按用户最新指令仅沪深：flow-spec-v2 显式冻结 markets=[SH,SZ]，取数前排除北交所，实际5226只报价与SH/SZ/ALL正负金额图独立复算通过。3条原生零值未确认收盘更新，逐条披露且不进入评分；验收见 `data/harness_acceptance/fund_flow_shsz_20261002/acceptance.json`。最终收盘资金方向和真实申万一级轮动仍未完成；显式可信宿主的四指数真实模型普通 chat 整合已通过限定验收，见下段。
+
+显式普通聊天配置使用 `InvestmentAgent(..., trusted_chat=TrustedChatProfile.parse(document))` 或 `chat --host-contract HOST.json --date YYYY-MM-DD`。`trusted-chat-host-v1` 恰含 schema_version、四字段 scope、as_of_date、workflow、parameters、source_contract；parameters 使用完整 research_spec / quant_spec / outlook_spec，source_contract 使用既有宿主审核绑定。主体、会话、日期、workflow 和规格在模型/来源调用前校验。默认 chat 仍无绑定；配置不会从消息文字或模型输出生成，模型仍无工具。合成 SDK+四来源端到端、缺源、改规格与跨 Scope 拒绝已验收。2026-10-02 实际 Tencent/hy3 的框架提案、独立框架评审和 easytdx 四指数取证已完成同 run 报告交付（b6281a182bfc4a3d8d9a646276236123）：Decimal 四指标复算、完整声明日历、32 对行动/6 对阶段边界及 HTML 工作台检查通过。该证据只证明此固定案例，不能推广为一般模型质量或 DeepSeek 可用性。完整宿主参数可用 host-parameters-ref-v1 引用，核心精确校验 Scope/日期/hash 后恢复完整日历，模型只看规划元数据摘要；事实包不压缩。证据位于 data/harness_acceptance/ordinary_chat_actual_20261002/，默认 chat 仍不获得来源授权。
+
+申万轮动核心已实现：quant-spec-v2冻结SW2021一级31行业、分类证据和同一日历/锚点，核心算周收益、竞争排名与较前周变化；HTML含收益/排名热力图、全部原始周数值、展开式31行业收盘图。独立Decimal合成验收与错误/缺分类/缺行情/跨Scope/正式发布拒绝通过，示例在 `data/harness_acceptance/sw_rotation_synthetic_20261002/acceptance.json`，明确非真实申万数据。用户已于10月2日授权显式swresearch插件；10月4日取得的真实31行业历史用于宿主报告，尚未走完分类审核、完整日历及周/日轮动核心准入。插件边界见DATA_PLUGINS.md，不把合成图或宿主报告当真实核心轮动完成。
+
+`harness watch-plan --date DATE --window-start START --window-end END --cutoff TIMESTAMP --nyse-calendar FILE --nasdaq-calendar FILE --sse-calendar FILE --szse-calendar FILE` 只冻结四指数规格与来源合同，无网络取数。随后显式 `harness run quant --quant-spec FILE --source-contract FILE`；`harness ui --run-id RUN_ID --date DATE` 导出同 Scope 离线列表、诊断/时间轴和已校验报告链接。使用相同的 platform/user/chat/agent-key。HTML 快照没有运行/取数按钮或正式发布权限。
+
+## 本次研究交付
+
+[申万31行业与五源宏观金融/AI财务代理HTML](data/research/output/shenwan_20261004/published/report.html)（下载后离线打开）及[交接增量评估](SHENWAN_DELIVERY_REVIEW.md)。真实长历史图表已交付；核心周主日辅准入、完整AISDI及历史PIT仍未完成，详见评估。
+
+### 五图联动与四权重压力（2026-10-05）
+
+[本轮五图HTML](data/research/output/five_chart_20261005/published/report.html)及[增量验收](SHENWAN_DELIVERY_REVIEW.md#五图目标增量2026-10-05)。八个消费行业分别展示；通信/申万二级半导体及SOX/NDX分别叠加自建40/30/25/5压力；银行叠加中国减美国10年利差与10年TIPS；标普500与BEA原生核心PCE水平/TIPS保持单位。四权重来自用户参考图，公式为公开财务代理，不复刻中金原式，也不替代原60/40 AISDI或正式仓位规则。
+
+所有有产物根目录的核心终态均归档 `five_charts.html/json` 并在 `run.html` 中展示五图；未绑定来源、未定日期、失败/取消保留明确缺口。研究运行可显式传 `five_chart_adapter=FiveChartHost(...)`；CLI `harness run --mode research --five-chart-contract HOST.json` 或 `chat --host-contract CHAT.json --date YYYY-MM-DD --five-chart-contract HOST.json`。五图契约恰含 `schema_version=five-chart-host-v1`、本Scope key、当前日期和审核过的documents列表；SDK无工具，模型不能生成授权。限定官方目录可新增既定指标的发布，新增列表先冻结；行情/当前版本刷新，历史原生发布只复用本Scope已成功运行的哈希证据，保留原捕获时钟并标明复用。网络忽略代理，系统证书验证保留。来源失败/脚本挑战页保留缺口，不读旧行情替代。
+
+真实五图刷新和复算已通过；用户解除外发限制后，DeepSeek Flash实际SDK框架提案、独立审核及五图有界解读/独立审核共四次成功调用通过，详见公开包model_acceptance.json。最终HTML追加已审核解读；只证明本例，不代表一般模型质量、正式评分或原AISDI完成。
+
 
 ## 待办与下一会话入口
 
 开发基线为原 PR #2 分支 `docs/portable-harness-data-plugins`；`develop` 是同步镜像，不作为第二条独立开发线。开发、来源验收和业务 case 通过后，经 PR 合并到 `main`，再快进同步两个开发引用；不强推或直接在 main 开发。
 
+状态核对日期：2026-10-07。main=`27f2bac`；PR #4原验收提交=`a75b807`。完成范围、PR/文件清单和合并条件统一记录在 [DEVELOPMENT_LOG.md](DEVELOPMENT_LOG.md#当前待办与提交清单2026-10-07)；历史纪要不覆盖当前清单。
+
 | 顺序 | 待办 / 当前状态 | 依赖与最小验收 |
 | --- | --- | --- |
-| 已完成 | E0 最小五项 → 五源选定能力 → 含历史的 Q4 case | PR #2 已合并；Python 3.11/3.12 各 479 passed / 41 subtests；真实 case 经宿主复核，保持 NO_ACTION |
-| 下一步 | 普通 chat 的可信来源配置与自动取证闭环 | 复用现有显式宿主适配器；先冻结规格，后取缺口；真实请求报告与无凭据/缺数据的正确阻止均验收，不给模型开放工具 |
-| 随后 | E2：历史事实复用、月度更新与上下文生命周期 | 明确按 Scope/日期/版本重验和授权；跨运行/跨会话不能直接拼包；验收修订、缺月、跨主体、重复月更及恢复 |
-| 并行质量工作 | E1 旧 ToolRuntime/MCP 结果迁移；E3 固定评测与故障归因 | 按实际迁移/质量缺口收口；覆盖因果越界、编造阈值、单位与版本误读；独立模型审查通过不替代人工质量验收 |
-| 后续 | 五源补足日评分/AI 所需输入，恢复连续正式日更 | 当前来源仍不足以覆盖全部旧评分字段；缺必需数据不评分，L2 保持禁用；连续产物、状态事务和可审计回滚验收 |
-| 后续 | 可靠调度/崩溃恢复、更多宿主、回测、E4/E5 改进控制面 | 依赖上述边界闭环；逐项单独验收，不因 E0 最小完成关闭 Issue #1 |
+| 已合并 | E0最小五项、五源选定能力、含历史Q4 case及运行图/交接 | PR #2/#3；限定case与对应CI已验收，完整Issue #1保持open |
+| 已验收，待合并 | 可观测阶段/span/工作台、终态HTML、显式可信chat四指数；五图刷新、40/30/25/5压力代理、DeepSeek限定四次SDK调用 | PR #4；原提交a75b807的CI通过。本轮文档提交CI须单独通过；NO_ACTION，不提升正式状态或一般模型质量 |
+| 已交付，范围有限 | SW31宿主HTML、沪深资金快照、AISDI plan/spec与153字段来源目录 | 随PR #4交付；SW真实轮动核心、资金收盘完整性及AISDI计分未完成；来源目录不是已验收API |
+| 下一步，开发中 | SW2021一级31行业周主日辅真实核心闭环；沪深资金最终收盘覆盖 | 审核分类版本/生效/范围，冻结日历和锚点，真实handoff与独立周/日排名复算、归档重读；核实3条原生零值，不用快照冒称完整收盘 |
+| 规格已配置，计分待开发 | 完整60/40、20支柱AISDI | 先解决篮子/字段权重/公式/MAD/半衰期与coverage/confidence；逐字段来源准入、每侧60%覆盖、独立复算与样本外领先性验证；四权重压力代理不能替代 |
+| 部分实现，继续开发 | E2：通用历史复用、自动月更、ContextManifest与上下文生命周期 | 五图同Scope固定披露复用不等于通用缓存；修订/缺月/跨主体/重复执行/恢复，保留窗口、摘要/预算和长期记忆分别验收 |
+| 部分实现，继续开发 | E1旧ToolRuntime/MCP全面envelope迁移；E3固定评测与故障归因 | 不重新开放旧取数入口；至少30固定任务+20故障注入、归因准确率≥90%、硬门禁0逃逸及版本对比；一般模型质量仍待评测 |
+| 后续，未完成 | 五源补足日评分/AI输入、连续正式日更 | 缺必需数据不评分，L2保持禁用；连续产物、正式状态事务与可审计回滚独立验收 |
+| 后续，未完成 | 可靠调度/崩溃恢复、更多宿主、回测、E4/E5改进控制面 | 逐项验收；提案/隔离回放/人工晋级/版本回滚齐备，不因研究报告完成关闭Issue #1 |
 
 ### 本会话纪要（2026-09-30—2026-10-01）
 
@@ -243,14 +281,14 @@ python -m a_share_claw init-db
 ASCLAW_FAKE_AI=1 python -m a_share_claw chat "测试一下"
 ```
 
-独立模型模式配置 `.env`，本地 `chat` 不需要 Telegram token：
+独立模型模式配置 `.env`，本地 `chat` 不需要 Telegram token。DeepSeek Chat Completions 使用 `json_object`；结构/引用/日期/Scope和独立评审仍由核心校验，JSON格式成功不代表研究通过。2026-10-05已有DeepSeek Flash限定真实SDK验收；新环境仍须单独验证配置，不能继承本机验收：
 
 ```bash
-# 国内 OpenAI 兼容端点；不配置时才回落到教程占位模型。
-ASCLAW_MODEL_PROVIDER=tencent
-ASCLAW_MODEL_BASE_URL=https://tokenhub.tencentmaas.com/v1
-ASCLAW_MODEL_API_KEY=sk-...
-ASCLAW_MODEL_NAME=hy3
+# 显式模型配置；核心 SDK 不静默回落到其他端点。
+ASCLAW_MODEL_PROVIDER=deepseek
+ASCLAW_MODEL_BASE_URL=https://api.deepseek.com
+ASCLAW_MODEL_API_KEY=YOUR_API_KEY
+ASCLAW_MODEL_NAME=deepseek-flash
 ASCLAW_OPENAI_MODEL=gpt-5.5
 
 # 宿主展示/任务的用户时区，与 A 股市场日期边界分离。

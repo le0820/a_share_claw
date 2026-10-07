@@ -131,7 +131,8 @@ def test_complete_fact_packet_computes_without_network_and_traces_all_stages(env
     trace = TraceRepository(storage).read(outcome.run_id, scope)
     stages = {row["stage"] for row in trace["run_steps"]}
     assert stages >= {"request", "route", "context", "plan", "policy_snapshot", "evidence", "gap_report", "compute", "publish_gate", "final_output"}
-    assert len(trace["artifacts"]) == 7 and all(row["passed"] for row in trace["evaluations"])
+    assert {Path(row["detail"]["path"]).name for row in trace["artifacts"]} >= {"report.json", "report.md", "report.html", "computed_output.json"}
+    assert all(row["passed"] for row in trace["evaluations"])
     context = next(row["detail"] for row in trace["run_steps"] if row["stage"] == "context")
     assert context["kind"] == "policy_snapshot"
     assert set(context["loaded_files"]) == set(PolicyBundle(ROOT).hashes)
@@ -160,7 +161,7 @@ def test_missing_core_policy_preserves_route_and_context_without_publication(env
     assert context["missing_files"] == [missing_file]
     assert missing_file not in context["loaded_files"]
     assert context["state_scope"] == scope.key and context["state_injected"] is False
-    assert not trace["artifacts"] and repository.read_state(scope, "macro") is None
+    assert all(a["detail"]["mode"]=="diagnostic" for a in trace["artifacts"]) and repository.read_state(scope, "macro") is None
 
 
 @pytest.mark.parametrize("mutation,code", [
@@ -374,7 +375,7 @@ def test_frozen_plan_pins_identity_and_archives_before_evidence(environment):
     trace = TraceRepository(storage).read(outcome.run_id, scope)
     plan = json.loads(outcome.output)["plan"]
     assert plan["plan_id"] == frozen.plan_id
-    archived = [json.loads(Path(a["detail"]["path"]).read_text()) for a in trace["artifacts"]]
+    archived = [json.loads(Path(a["detail"]["path"]).read_text()) for a in trace["artifacts"] if Path(a["detail"]["path"]).name=="plan.json"]
     assert archived == [plan] and not trace["tool_calls"]
     assert "workflow_executed" in plan["completion_criteria"]
 

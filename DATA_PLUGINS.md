@@ -131,7 +131,7 @@ macro_metrics 独立归档保留公式、冻结输入契约、原始事实与依
 
 按用户最新 AGENTS.md，默认主源五项现在为 NBS/PBC/easytdx/FRED/SEC。TickFlow 保留在注册表中，只有显式 ASCLAW_DATA_PROVIDERS=tickflow 才加载，不能进入 primary price handoff；没有暗用六个源完成同一研究问题。Agent 仍无取数/安装/改配置工具。
 
-`easytdx` 1.0.0 只提供本次捕获的指数事实：market.index_catalog（空 params）用于国际指数原生目录，保持 unverified/discovery；market.index_daily_snapshot params 恰为 symbol/provider_code/start_date/end_date/count，count 1..600。as_of_date 必须为捕获当天中国日期，历史请求直接拒绝。固定语义身份为 399006.SZ / 创业板指、000688.SH / 科创50、COMP.NASDAQ / NASDAQ Composite；unit=index_points、adjustment=none，币种/市场时区明确。provider_code 必须显式指定，国际代码先查目录再形成需求；QQQ/NDX、含糊名称、其他指数和重复/非法 OHLC 不准入。
+`easytdx` 1.1.0 只提供本次捕获的指数事实：market.index_catalog（空 params）用于国际指数原生目录，保持 unverified/discovery；market.index_daily_snapshot params 恰为 symbol/provider_code/start_date/end_date/count，count 1..600。as_of_date 必须为捕获当天中国日期，历史请求直接拒绝。固定语义身份为 399006.SZ / 创业板指、000688.SH / 科创50、COMP.NASDAQ / NASDAQ Composite，以及 SPX.SP500 / S&P 500、NDX.NASDAQ / NASDAQ 100、000300.SH / 沪深300；unit=index_points、adjustment=none，币种/市场时区明确。provider_code 必须显式指定，国际代码先查目录再形成需求；QQQ 或以综合指数替代 NDX、含糊名称、未列身份及窗口内重复/非法 OHLC 不准入。SDK 返回的窗口外历史仅留原始归档，不准入、不参与统计。新增 SPX/NDX 精确绑定 market=12 与 A_SPX/A_NDX。
 
 独立接口验收已从当前原生目录发现 market=12、A_IXIC / 纳斯达克综合，另有 A_NDX / 纳斯达克100；不将后者当综合指数。原先短窗口身份/字段验收保留；后续 c1b4ab9 实现基线的独立实际验收已取得完整 Q3 与锚点，逐日匹配审核日历并准备核心价格交接，范围见 E0_INFRA.md；尚未执行整合季度展望。
 
@@ -243,3 +243,51 @@ uv run --locked python -m a_share_claw harness run --workflow outlook --date YYY
 basis 为 reported_yoy_rate、reported_mom_rate、stock_yoy_rate、cumulative_yoy_rate 或 level；清单不含值，历史事实仍须逐条来源绑定。全部原生月度需求都要被覆盖，并由 base_scenario/risk_monitoring 引用。核心归档并传入角色的 monthly_history 包含输入哈希、期间、公布值、百分点差和版本边界；不新增评分阈值、交易建议或发布权限。旧的无历史规格只是单期事实研究兼容入口。
 
 历史优先来自同版本官方发布；BEA 请求例为 macro.pce_history_snapshot + params {url: 官方发布中已核实的 XLSX URL, year: 2026, month: 8}，selector 的 year/month 则固定实际需要的当前/比较观测。缺少指定月时停止，不把 last-equal/larger/smaller 的稀疏日期补成连续月度历史。7/8 月 PCE 本机同版本验收见 monthly_history_sources_20261001_v2；中国两月为不同发布版本，只比较公布增速，不能认证修订一致趋势。两点不证明持续趋势，累计率不推单月，历史观测不等于历史可得版本。跨运行缓存/授权重准入留待后续，本次按明确官方历史链接重取，不拼接其他 Scope 的未授权包。
+
+## 2026-10-02 可视化与显式 chat 绑定增量
+
+当前捕获四指数 Q3 日线已通过宿主日历/锚点、核心价格准入及独立收益/最大回撤复算；原始归档、首次阻断及窗口外 OHLC 诊断均保留在 `data/harness_acceptance/market_visualization_20261002/`。不升级为历史 vintage 或正式评分。`data_plugins.watch.watch_source_contract` 只把核心冻结四指数规格映射到精确原生身份，核心规格不含 provider。
+
+`chat --host-contract` 显式读取 `trusted-chat-host-v1`，普通 run_result 仍不接受自由证据包或 official 权限。绑定校验早于模型/插件，随后复用现有 PluginEvidenceAdapter；默认无合同的 chat 仍只有规划/缺口。合成模型+四来源闭环与拒绝已通过；真实模型整合待验收。资金流向与申万一级轮动尚未具备生产能力；SDK 自带资金流计算/静默历史回退不能直接准入。
+
+## 原生市场发现（1.2.0，尚未成为资金/行业核心证据）
+
+### 用户已授权：仅申万轮动的官方原生来源（2026-10-02）
+
+已有核心接口：`quant-spec-v2` 保留全部price-statistics冻结字段，增加rotation（sw-rotation-v1）：SW2021/level1、market_scope=[SH,SZ]、精确31项industry_code/index_symbol/name、2..52个ISO周窗口、固定competition_12_decimal排名。额外必需capability=industry_classification，需industry-classification-v1（同一分类集合、版本、范围，生效/发布日、原始文件/哈希、publisher=申万宏源研究、host_reviewed），provenance.rotation_spec_hash绑定冻结规格，来源文件/发布日期须一致。日行情完整准入后才运行sw_level1_rotation ReAct计算span；少行业/少会话/混日历/错版本/未来生效/未复核/跨Scope均拒绝。混合、展望及正式评分尚不接此操作。缺分类绑定时返回rotation_source_binding_missing，取行情前就停止，不绕过现有五源规则。
+
+用户已明确批准新增申万官方，并确定周线为主、日线为辅的低频统计口径。easytdx已核查目录没有SW2021一级31指数。新增显式启用的 `swresearch`，仅访问申万官方发布/下载页面（www.swsresearch.com，及其官方研究文件域名wxweb.swsresearch.com）；不替换四观察指数或沪深资金来源，不改变核心评分、L2、风险门禁或正式发布。
+
+限定能力：`industry.sw2021_level1_metadata` 提供有出处的31行业代码/名称/指数身份/版本/生效日；`market.sw_index_daily_snapshot` 只接冻结的31指数、日期窗口和原生收盘。取数前冻结Scope+分类+日历/锚点+口径+周窗口+来源合同；原始响应与哈希留存，字段单位/身份/完整性逐项校验。当前捕获与原始发布日分开，历史PIT未知就明确标记；缺必需元数据、任一行业或任一会话就交付缺口页，禁止替代或补零。研究保持NO_ACTION。完成真实31行业独立周收益/并列排名/排名变化复算和HTML验收后才称真实轮动接通。
+
+新增 `industry.publisher_document`（swresearch 0.2.0）：宿主在来源计划中显式固定官方报告PDF URL和purpose（classification_standard/index_methodology/index_effective_notice）；仅允许wxweb.swsresearch.com/swsreport/YYYY_MM/数字.pdf，GET、无重定向、20MB限制。原始PDF字节及SHA256按同Scope归档；结果始终unverified/unreviewed，不解析行业、不推断发布或生效日期、不直接交给评分/轮动。人工复核必须分别核实分类推出日、报告发布日期、配套指数调整日、31行业代码映射及沪深范围；不能用搜索摘要或URL月份替代原文。实际官方328340.pdf当前返回403，仍缺原始文件，不宣称真实取证成功。
+
+状态：`swresearch` 已注册，须显式加入 `ASCLAW_DATA_PROVIDERS`，默认五源集合保持原有范围。原生HTTP插件和冻结price-core交接已实现；分类目录仅unverified，须先有独立宿主复核的分类文件才允许取31指数。原生日数据经price-series-v3保留HTTP身份/版本/原始哈希/当前捕获，不伪装为easytdx SDK。官网本轮连接超时，真实分类与31行情完整覆盖尚未验收。
+
+周热力图为主，日线辅助表使用同一已准入日行情计算逐交易日收益/竞争排名，不调用供应商周月汇总或增加交易动作。日收益以前一准入交易日收盘为锚点；首日使用冻结锚点，周末与休市不补价，缺会话仍拒绝。原生端点为 `/institute-sw/api/index_publish/current/` 与 `trend/`；仅核查原生字段与请求语义，不运行第三方SDK或TLS绕过。
+
+`market.board_catalog` 仅允许 classification=native_industry_level1，原生通达信板块不等于申万2021一级。`market.extended_index_catalog` 只允许 market=62/70；`market.instrument_identity` 只允许国内精确 market/code。上述均为 unverified/discovery，不能用原生目录标签发布核心价格或申万轮动。
+
+`market.a_share_quote_snapshot` 冻结 markets=[SH,SZ,BJ]、max_rows=10000，固定 MAC 主机。逐页保留原生总数并检查稳定，按代码排序，不排除 ST/科创/创业/北交所；唯一证券数量必须逐市匹配原生总数。返回原生嵌套 fields、交易日字段及主力净额，缺字段列为 missing_fields，禁止补0和 SDK 汇总/历史回退。整体仍 unverified，直到核心校验日期、完整冻结 universe、供应商主力口径与绑定；不代表投资者真实净现金流。
+
+1.3.0 增加 `market.a_share_flow_snapshot`，在上述范围外要求 observation_date；verified 只表示原生字段、日期及覆盖检查，不认证主力分类阈值。宿主先冻结 `flow-spec-v1`：operation=fund_flow_snapshot、逐只 market/code/name universe、observation_date、cutoff_timestamp、close_at、calendar_source、measurement_basis=provider_defined_main_order_net_estimate、unit=CNY、native_update_policy。`flow_source_contract()` 冻结来源合同，PluginEvidenceAdapter 将精确匹配结果交给核心 `fund_flow_snapshot`；普通 chat 仍要求完整可信宿主合同，模型不能改变规格。混合/展望暂不接受此操作，正式评分直接拒绝。
+
+1.4.0 / flow-spec-v2 显式增加 markets，按用户当前需求使用 [SH,SZ]；来源worker只请求这两市，核心集合、缺口、聚合、ALL、审计与HTML均按冻结范围计算，不能夹带BJ。v1仅兼容旧三市规格，不作为当前默认。真实5226只沪深报价已独立复算，见 `data/harness_acceptance/fund_flow_shsz_20261002/acceptance.json`。
+
+扩展目录不再将首600条当完整页：按SDK的market排序目录契约，用原生global count、二分边界探针和目标market连续全部页验证；留存每条native_offset、原始字节和重复身份，不跨market拉行情。最多global250000/目标10000/60秒/20MB；短页、错位、总数变化和边界异常拒绝。目录仍unverified，不能提升为指数身份或行业分类。实际market62区间80904..83223，共2320条、6个重复代码；没有申万2021一级31指数，仅名称包含申万的中证复合指数，不替代SW31。审计在 `data/harness_acceptance/market_sector_20261002/complete-catalog-acceptance.json`；全局排序本身未独立认证。
+
+核心仅聚合原生金额，缺字段不补0，负值不截断，ALL不重复计数。native_update_policy=all_rows_post_close 拒绝任何收盘前更新；显式 retain_unfinalized_native_zero 只保留同日原生成交额与主力净额均为0的记录，逐条披露并拒绝最终收盘完整性声明。市场净额全部为0且有成交额时，标记字段支持未认证并提示ALL同受限制。真实快照范围及独立Decimal复算保存在 `data/harness_acceptance/fund_flow_20261002/acceptance.json`；不作为北向、融资融券、全市场现金流或L2输入。
+
+2026-10-02 发现层实际取得 SH2320/SZ2906/BJ351，共5577只；原生 server_update_date 均20260930，amount/main_net_amount/date/time 未缺失。原始归档在 `data/harness_acceptance/market_sector_20261002/flow_discovery/`；未映射为评分或正式输入。通达信目录128项、扩展70目录374项均未确认申万一级；market62截断拒绝，精确801010身份调用失败，官方分类页连接失败。不能拿通达信目录冒充31申万行业。
+
+
+## AISDI 来源能力评估
+
+2026-10-04：用户要求将领先AI供需规格配置为tool并评估来源。已接入无来源调用的规格/日期化缺口工具；现有SEC标准全公司事实仅覆盖部分财务字段。新增官方IR/SEC原文、OpenRouter、Artificial Analysis、电力/产业数据为待评估绑定能力，尚未注册或启用，不修改默认五源和来源准入规则。完整字段缺口、平台样本/吞吐/有效供给限制及核对链接见 [AISDI.md](AISDI.md)。
+
+
+## 显式五图宿主适配器（研究图表）
+
+`FiveChartHost` 只接受同Scope、当前日期的冻结原生文档列表，默认五源不变。用户另选的申万、NVIDIA官方披露、美国财政部/XML与中国财政部国债曲线作为本轮图表来源；不成为L1/L2/L3/AISDI正式评分输入。easy-tdx另声明 HSTECH.HK=market27/HZ5017、SOX.PHLX=market12/A_SOX，均核对原生名称，国际worker按已声明market取日线。
+
+来源与指标解析在数据层，40/30/25/5权重、稳健标准化、缺项不重分配在核心。固定原生发布可复用本Scope成功运行的哈希证据；行情、SEC当前快照、BEA当前NIPA版本和收益率刷新，NBS/PBC/NVIDIA最新目录限定发现。每次输出保留原生期间、公布日、捕获/复用时钟及错误；HTTP200的JS挑战不准入。TLS采用显式系统truststore，不全局注入或关闭验证。五图HTML为研究诊断产物，不能从 `unverified/current vintage` 提升成正式动作。

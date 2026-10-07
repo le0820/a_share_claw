@@ -23,6 +23,15 @@ def freeze_price_bindings(plan,spec,bindings):
                 not isinstance(b["requirement_id"],str) or b["requirement_id"] not in requirements):
             raise DataError("invalid_request","Each frozen index binds exactly one explicit requirement")
         seen.add(b["symbol"]);req=requirements[b["requirement_id"]];asset=expected[b["symbol"]]
+        if spec['schema_version']=='quant-spec-v2':
+            from .swresearch import checked_params as checked_sw_params
+            if req.provider!='swresearch' or req.capability!='market.sw_index_daily_snapshot':
+                raise DataError('source_denied','SW31 rotation uses only explicitly enabled Shenwan daily snapshots')
+            checked_sw_params(req)
+            if (req.params['symbol']!=asset['symbol'] or req.params['start_date']!=asset['anchor']['trade_date'] or
+                    req.params['end_date']!=asset['sessions'][-1]['trade_date']):
+                raise DataError('insufficient_coverage','Freeze the exact Shenwan anchor and final declared session')
+            continue
         if req.provider!="easytdx" or req.capability!="market.index_daily_snapshot":
             raise DataError("source_denied","Primary index handoff requires authorized easy-tdx; TickFlow is auxiliary")
         checked_params(req);native=INDEXES.get(b["symbol"])
@@ -53,6 +62,9 @@ def price_evidence(run):
     if contract["source_run_id"]!=run.run_id or contract["scope_key"]!=run.core_scope_key:
         raise DataError("scope_mismatch","Price contract belongs to another run or scope")
     if "price_bindings" not in contract:raise DataError("plan_required","No price bindings were frozen for this source run")
+    if contract['specification']['quant_spec']['schema_version']=='quant-spec-v2':
+        from .sw_handoff import price_evidence as sw_price_evidence
+        return sw_price_evidence(run,contract)
     spec=contract["specification"]["quant_spec"];assets={a["symbol"]:a for a in spec["assets"]};series=[];sources=[]
     for b in contract["price_bindings"]:
         result=run._archived_result(b["requirement_id"]);data=checked_result(result,"easytdx","market.index_daily_snapshot")

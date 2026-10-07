@@ -17,6 +17,7 @@ from .framework import compile_framework
 from .research import execute_research
 from .mixed import workflow_parameters, mixed_plan, execute_mixed
 from .reports import build_report, validate_report
+from .html import render_html, validate_html
 from .markdown import render_markdown, validate_markdown
 from .quant import compute_quant, timestamp
 from .outlook import outlook_facts
@@ -56,14 +57,15 @@ class Harness:
         self.root, self.storage, self.artifact_root = root, storage, artifact_root
         self.market_timezone = market_timezone
 
-    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None, evidence_adapter=None):
-        session = RunSession(self.storage, request, control)
+    def run(self, request: RunRequest, packet: dict | None = None, *, current_ai_pct=57.5, clock=None, replay_of=None, research_spec=None, role_runner=None, semantic_reviewer=None, research_adapter=None, quant_spec=None, outlook_spec=None, mixed_spec=None, require_official_close=False, parent_run_id=None, slice_id=None, framework_proposer=None, framework_reviewer=None, framework_adapter=None, planning_constraints=None, control=None, evidence_adapter=None, five_chart_adapter=None):
+        session = RunSession(self.storage, request, control,artifact_root=self.artifact_root)
         if replay_of:
             session.step("replay_source", {"run_id": replay_of})
         output = {"run_id": session.run_id, "scope_key": request.scope.key, "as_of_date": request.as_of_date, "mode": request.mode,
                   "action": "NO_ACTION", "official_output_allowed": False, "gaps": [], "data": None}
         status, state = RunStatus.BLOCKED, None
         try:
+            session.phase("context", "validate_scope_route_and_policy", {"request_hash": digest(request.message)})
             session.checkpoint()
             if parent_run_id is not None:
                 parent = session.repository.read(parent_run_id, request.scope)
@@ -80,6 +82,7 @@ class Harness:
             session.step("context", {"kind": "policy_snapshot", "loaded_files": list(policy.hashes),
                                      "missing_files": [], "state_scope": request.scope.key,
                                      "state_injected": False})
+            session.phase("planning", "compile_and_freeze_requirements", {"workflow": workflow, "policy_version": policy.version})
             compiled = None
             if framework_adapter is not None or framework_proposer is not None:
                 if request.mode == "replay":
@@ -95,7 +98,7 @@ class Harness:
                     research_spec=research_spec, quant_spec=quant_spec, outlook_spec=outlook_spec, mixed_spec=mixed_spec)
             if require_official_close:
                 parameters["official_close_required"] = True
-            declared = mixed_plan(policy, parameters.get("mixed_spec")) if workflow == "mixed" else policy.plan(workflow)
+            declared = mixed_plan(policy, parameters.get("mixed_spec")) if workflow == "mixed" else policy.plan(workflow,parameters)
             if compiled is not None:
                 declared.update(framework=compiled["framework"],planning_gaps=compiled["planning_gaps"])
             frozen_plan = freeze_plan(request, declared, parameters)
@@ -109,6 +112,7 @@ class Harness:
                 output["completion"] = "framework_only"
                 status = RunStatus.SUCCEEDED
             else:
+                session.phase("evidence", "admit_existing_then_acquire_frozen_gaps", {"plan_id": plan["plan_id"]})
                 if compiled is not None and plan["unresolved_constraints"]:
                     output["gaps"] = plan["unresolved_constraints"]
                     raise ValueError("planning_constraints_required")
@@ -129,6 +133,13 @@ class Harness:
                 if workflow in {"macro", "ai"} and (request.mode == "official" or require_official_close) and cutoff == market_now.date().isoformat() and market_now.hour < 15:
                     raise ValueError("WAIT_FOR_CLOSE")
                 session.checkpoint()
+                if five_chart_adapter is not None and request.mode == "research":
+                    with session.action("source", "five_chart_refresh", "refresh_frozen_descriptive_dashboard", {"plan_id":plan["plan_id"]}) as span:
+                        from .five_charts import validate_packet
+                        session.chart_packet=validate_packet(five_chart_adapter.collect(session),request.scope.key,session.run_id,request.as_of_date)
+                        session.checkpoint()
+                        output["five_charts"]={"gap_count":len(session.chart_packet["gaps"]),"source_plan_hash":session.chart_packet.get("source_plan_hash"),"generated_at":session.chart_packet["generated_at"],"complete":not session.chart_packet["gaps"]}
+                        span.observe(status="ok",output_hash=digest(session.chart_packet),gap_count=len(session.chart_packet["gaps"]))
                 if evidence_adapter is not None:
                     from .acquisition import acquire
                     quant_cutoff=parameters.get("quant_spec",{}).get("cutoff_timestamp")
@@ -147,6 +158,7 @@ class Harness:
                         reference=session.evaluation_clock
                         session.step("post_acquisition_clock",{"evaluation_timestamp":reference.isoformat(),"frozen_cutoff_timestamp":quant_cutoff})
                 if workflow == "mixed":
+                    session.phase("compute", "orchestrate_scoped_slices_and_combined_review", {"plan_id": plan["plan_id"]})
                     data, provenance = execute_mixed(self, session, plan, packet, reference, output,
                                                     role_runner, semantic_reviewer, research_adapter)
                 else:
@@ -158,23 +170,45 @@ class Harness:
                         raise ValueError("missing_required_data")
                 output["data_audit"] = {"as_of_date": cutoff, "source_files": provenance,
                                         "fallback_status": "none", "policy_version": policy.version}
+                if workflow != "mixed":
+                    session.phase("compute", "execute_core_calculation_and_evaluated_roles", {"plan_id": plan["plan_id"], "evidence_hash": digest(provenance)})
                 if workflow == "mixed":
                     pass  # child evidence and combined review have passed; publisher below is shared
                 elif workflow == "macro":
-                    data = policy.score_macro(facts)
+                    with session.action("calculation", "macro_score", "apply_frozen_compiled_weights", {"facts_hash":digest(facts),"policy_version":policy.version}) as span:
+                        data = policy.score_macro(facts)
+                        span.observe(output_hash=digest(data))
                 elif workflow == "ai":
                     if not isinstance(current_ai_pct, (int, float)) or isinstance(current_ai_pct, bool) or not 0 <= current_ai_pct <= 100:
                         raise ValueError("invalid_current_position")
-                    data = policy.score_ai(facts, current_ai_pct)
+                    with session.action("calculation", "ai_overlay", "apply_frozen_overlay_and_risk_rules", {"facts_hash":digest(facts),"current_ai_pct":current_ai_pct}) as span:
+                        data = policy.score_ai(facts, current_ai_pct)
+                        span.observe(output_hash=digest(data))
                     if data["decision"]["action"] == "NO_ACTION":
                         raise ValueError("insufficient_coverage")
+                elif workflow == "quant" and parameters["quant_spec"]["operation"]=="fund_flow_snapshot":
+                    if request.mode=="official":raise ValueError("flow_official_not_supported")
+                    from .flows import compute_flows
+                    with session.action("calculation","fund_flow_snapshot","validate_complete_universe_and_sum_native_estimates",{"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["fund_flow_snapshot"])}) as span:
+                        data=compute_flows(parameters["quant_spec"],facts["fund_flow_snapshot"],reference,cutoff)
+                        span.observe(output_hash=digest(data))
                 elif workflow == "quant":
-                    data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                    if parameters['quant_spec'].get('rotation') and request.mode=='official':raise ValueError('rotation_official_not_supported')
+                    with session.action("calculation", "price_statistics", "validate_calendar_and_compute_local_price_metrics", {"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["price_history"])}) as span:
+                        data = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                        span.observe(output_hash=digest(data))
+                    if parameters['quant_spec'].get('rotation'):
+                        from .rotation import compute_rotation
+                        with session.action('calculation','sw_level1_rotation','validate_sw31_and_compute_weekly_ranks',{'spec_hash':digest(parameters['quant_spec']),'classification_hash':digest(facts['industry_classification']),'prices_hash':digest(facts['price_history'])}) as span:
+                            data['industry_rotation']=compute_rotation(parameters['quant_spec'],facts['price_history'],facts['industry_classification'],cutoff)
+                            span.observe(output_hash=digest(data['industry_rotation']))
                 elif workflow in {"company", "industry", "outlook"}:
                     if workflow == "outlook":
                         if not parameters:
                             raise ValueError("outlook_spec_required")
-                        quant = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                        with session.action("calculation", "outlook_price_statistics", "validate_calendar_and_compute_local_price_metrics", {"spec_hash":digest(parameters["quant_spec"]),"facts_hash":digest(facts["price_history"])}) as span:
+                            quant = compute_quant(parameters["quant_spec"], facts["price_history"], reference, cutoff, self.market_timezone)
+                            span.observe(output_hash=digest(quant))
                         quant_archive = self._archive(session, "quant_metrics", quant)
                         facts = outlook_facts(facts["macro_release_facts"], quant, quant_archive, cutoff, parameters["research_spec"],
                             macro_archive=lambda payload:self._archive(session,"macro_metrics",payload))
@@ -204,6 +238,7 @@ class Harness:
                 session.evaluate(EvalResult("required_evidence", True))
                 session.evaluate(EvalResult("scope_and_date", True))
                 prior = session.repository.read_state(request.scope, workflow, as_of_date=cutoff)
+                session.phase("output", "render_validate_and_archive_reports", {"computed_hash": computed_hash})
                 report_timestamp = now()
                 report = build_report(request, session.run_id, plan, data, output["data_audit"], prior, report_timestamp)
                 validate_report(report, request, session.run_id, plan, data, output["data_audit"], prior, report_timestamp)
@@ -211,8 +246,12 @@ class Harness:
                     raise ValueError("report_contract_failure")
                 rendered = render_markdown(report)
                 validate_markdown(rendered, report)
+                rendered_html = render_html(report)
+                validate_html(rendered_html, report)
                 output["report"] = self._archive(session, "report", report)
                 output["report_markdown"] = self._archive_content(session, "report.md", rendered.encode("utf-8"))
+                output["report_html"] = self._archive_content(session, "report.html", rendered_html.encode("utf-8"))
+                session.evaluate(EvalResult("report_html_contract", True))
                 session.evaluate(EvalResult("report_markdown_contract", True))
                 session.evaluate(EvalResult("report_contract", True))
                 session.step("report", {"sha256": output["report"]["sha256"], "status": "staged"})
@@ -221,7 +260,7 @@ class Harness:
                 output["action"] = (data["decision"]["action"] if workflow == "ai" else "POSITION_BAND" if workflow == "macro" else "NO_ACTION") if request.mode == "official" else "NO_ACTION"
                 status = RunStatus.SUCCEEDED
                 if request.mode == "official":
-                    state = {"run_id": session.run_id, "workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"], "report": output["report"], "report_markdown": output["report_markdown"]}
+                    state = {"run_id": session.run_id, "workflow": workflow, "as_of_date": cutoff, "generated_at": now(), "data": data, "data_audit": output["data_audit"], "report": output["report"], "report_markdown": output["report_markdown"], "report_html": output["report_html"]}
                 self._archive(session, "computed_output", {**output, "publication_status": "staged", "official_output_allowed": False, "action": "NO_ACTION"})
                 if session.remaining <= 0:
                     raise TimeoutError("budget_exceeded")
@@ -242,7 +281,7 @@ class Harness:
             known = {"source_acquisition_not_authorized","invalid_source_batch","source_contract_mismatch","WAIT_FOR_CUTOFF","future_data", "missing_required_data", "unverified_evidence", "scope_mismatch", "hash_mismatch",
                      "missing_provenance", "WAIT_FOR_CLOSE", "WAIT_FOR_TRADING_DAY", "explicit_date_required", "policy_changed", "plan_changed", "workflow_execution_pending",
                      "insufficient_coverage", "invalid_current_position", "invalid_evidence", "invalid_market_history",
-                     "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
+                     "invalid_rotation_spec", "rotation_identity_mismatch", "rotation_classification_mismatch", "non_comparable_calendar", "rotation_official_not_supported", "rotation_source_binding_missing", "invalid_flow_spec", "flow_contract_mismatch", "flow_official_not_supported", "invalid_framework_spec", "invalid_planning_constraints", "planning_constraint_changed", "planning_constraints_required", "framework_proposer_required", "conflicting_framework_specs",
                      "mixed_spec_required", "invalid_mixed_spec", "invalid_mixed_packet", "invalid_mixed_link", "mixed_incomplete",
                      "research_spec_required", "role_executor_required", "semantic_review_required", "semantic_review_failed",
                      "invalid_semantic_review", "invalid_research_spec", "model_configuration_required", "model_replay_not_supported", "invalid_model_output", "conflicting_model_adapters", "invalid_research_facts", "invalid_role_output",
@@ -282,7 +321,12 @@ class Harness:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None)
             output.pop("report", None)
             output.pop("report_markdown", None)
+            output.pop("report_html", None)
             state = None
+        if status != RunStatus.SUCCEEDED or session.failure is not None:
+            session.end_phase("cancelled" if status == RunStatus.CANCELLED else "error", {"error_code": output.get("error_code")})
+        if status == RunStatus.SUCCEEDED and session.failure is None:
+            session.phase("publish", "apply_terminal_publication_gate", {"official": output["official_output_allowed"]})
         session.step("publish_gate", {"allowed": output["official_output_allowed"], "action": output["action"]})
         try:
             return session.finish(canonical(output), status, action=output["action"], official=output["official_output_allowed"], state=state)
@@ -293,12 +337,14 @@ class Harness:
                           error_code="cancelled" if cancelled else "budget_exceeded")
             output.pop("report", None)
             output.pop("report_markdown", None)
+            output.pop("report_html", None)
             session.step("publish_gate", {"allowed": False, "action": "NO_ACTION"}, "cancelled" if cancelled else "error")
             return session.finish(canonical(output), RunStatus.CANCELLED if cancelled else RunStatus.FAILED)
         except ValueError:
             output.update(action="NO_ACTION", official_output_allowed=False, data=None, error_code="promotion_denied")
             output.pop("report", None)
             output.pop("report_markdown", None)
+            output.pop("report_html", None)
             session.evaluate(EvalResult("official_promotion", False, category=Failure.STATE_CONTAMINATION_FAILURE, code="promotion_denied"))
             return session.finish(canonical(output), RunStatus.BLOCKED)
 
@@ -327,6 +373,13 @@ class Harness:
             raise
 
     def _evidence(self, session, policy, plan, packet, cutoff, *, record=True):
+        with session.action("evidence", "admit_packet", "check_scope_cutoff_provenance_and_coverage",
+                            {"plan_id":plan["plan_id"],"packet_hash":digest(packet),"record":record}) as span:
+            facts, provenance = self._evidence_impl(session,policy,plan,packet,cutoff,record=record)
+            span.observe(admitted_capabilities=sorted(facts), provenance_hash=digest(provenance))
+            return facts, provenance
+
+    def _evidence_impl(self, session, policy, plan, packet, cutoff, *, record=True):
         if packet is None:
             return {}, []
         if not isinstance(packet, dict) or set(packet) != {"as_of_date", "facts"} or packet["as_of_date"] != cutoff or not isinstance(packet["facts"], list):
@@ -355,6 +408,12 @@ class Harness:
             if capability=="primary_documents" and item["data"].get("schema_version")=="research-facts-v2":
                 if p.get("research_spec_hash")!=digest(plan["parameters"].get("research_spec")):
                     raise ValueError("research_fact_contract_mismatch")
+            if capability=="fund_flow_snapshot" and p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
+                raise ValueError("flow_contract_mismatch")
+            if capability=='industry_classification' and p.get('rotation_spec_hash')!=digest(plan['parameters']['quant_spec'].get('rotation')):
+                raise ValueError('rotation_classification_mismatch')
+            if capability=='industry_classification' and any(p.get(k)!=item['data'].get(k) for k in ('source_file','publication_date')):
+                raise ValueError('rotation_classification_mismatch')
             if capability=="price_history" and item["data"].get("schema_version")=="price-series-v2":
                 if p.get("quant_spec_hash")!=digest(plan["parameters"].get("quant_spec")):
                     raise ValueError("price_contract_mismatch")
@@ -407,6 +466,13 @@ class Harness:
         return self._archive_content(session, name + ".json", canonical(obj).encode())
 
     def _archive_content(self, session, filename, raw):
+        with session.action("artifact", filename, "archive_scoped_immutable_output",
+                            {"bytes_sha256": hashlib.sha256(raw).hexdigest()}) as span:
+            result = self._archive_content_impl(session,filename,raw)
+            span.observe(artifact_hash=result["sha256"], filename=filename)
+            return result
+
+    def _archive_content_impl(self, session, filename, raw):
         directory = self.artifact_root / session.request.scope.key / session.run_id
         directory.mkdir(parents=True, exist_ok=True)
         path = directory / filename

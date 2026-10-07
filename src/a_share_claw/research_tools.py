@@ -24,6 +24,7 @@ RULE_FILES = {
     "sources": "data_source_map.json",
     "ai": "ai_strategy_rules.json",
     "ai_sources": "ai_data_source_map.json",
+    "aisdi": "aisdi_rules.json",
 }
 
 MARKET_OPEN = time(9, 30)
@@ -34,6 +35,11 @@ class ResearchRuntime:
     def __init__(self, config: AppConfig, context: ConversationContext):
         self.config = config
         self.context = context
+
+    async def get_aisdi_plan(self, as_of_date: str, cutoff_timestamp: str) -> str:
+        """Explicit host tool: requirements only, no acquisition/state/model access."""
+        from .aisdi import aisdi_plan
+        return json_dumps(aisdi_plan(self.config.root_dir, as_of_date, cutoff_timestamp))
 
     async def get_system_state(self) -> str:
         path, scope = resolve_system_state_path(self.config, self.context)

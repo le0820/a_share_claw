@@ -60,12 +60,25 @@ def require_host_constraints(workflow, arguments, constraints):
             raise ValueError("planning_constraint_changed")
 
 
-def checked_proposal(workflow, proposal, constraints, as_of_date):
-    if (not isinstance(proposal,dict) or set(proposal)!={"framework","parameters","unresolved_constraints"} or
+def host_parameters_ref(workflow, constraints, as_of_date, scope_key):
+    """References only complete host-owned parameters, never a partial proposal."""
+    if not as_of_date or not scope_key or not PARAMETER_KEYS[workflow] or set(constraints)!=PARAMETER_KEYS[workflow]:
+        raise ValueError('framework_reference_unavailable')
+    return {'schema_version':'host-parameters-ref-v1','workflow':workflow,'as_of_date':as_of_date,
+            'scope_key':scope_key,'constraints_hash':digest(constraints)}
+
+
+def checked_proposal(workflow, proposal, constraints, as_of_date, scope_key=None):
+    referenced=isinstance(proposal,dict) and set(proposal)=={'framework','parameters_ref','unresolved_constraints'}
+    if (not isinstance(proposal,dict) or not referenced and set(proposal)!={"framework","parameters","unresolved_constraints"} or
             not isinstance(proposal["framework"],str) or not proposal["framework"].strip() or len(proposal["framework"])>5000 or
-            not isinstance(proposal["parameters"],dict) or
+            not referenced and not isinstance(proposal["parameters"],dict) or
             not isinstance(proposal["unresolved_constraints"],list) or len(proposal["unresolved_constraints"])>30):
         raise ValueError("invalid_framework_spec")
+    if referenced:
+        expected_ref=host_parameters_ref(workflow,constraints,as_of_date,scope_key)
+        if not scope_key or proposal['parameters_ref']!=expected_ref:
+            raise ValueError('framework_reference_mismatch')
     gaps=[]
     for value in proposal["unresolved_constraints"]:
         if (not isinstance(value,dict) or set(value)!={"constraint","reason"} or
@@ -73,7 +86,7 @@ def checked_proposal(workflow, proposal, constraints, as_of_date):
                 not isinstance(value["reason"],str) or not value["reason"].strip() or len(value["reason"])>1000):
             raise ValueError("invalid_framework_spec")
         gaps.append(json.loads(canonical(value)))
-    arguments=json.loads(canonical(proposal["parameters"]))
+    arguments=json.loads(canonical(constraints if referenced else proposal["parameters"]))
     expected=PARAMETER_KEYS[workflow]
     if arguments and (set(arguments)!=expected or any(v is None for v in arguments.values())):
         raise ValueError("invalid_framework_spec")
@@ -97,6 +110,14 @@ def checked_proposal(workflow, proposal, constraints, as_of_date):
 
 
 def compile_framework(session, policy, workflow, constraints, proposer, reviewer, adapter, archive):
+    with session.action("planning", "framework_compile", "propose_validate_and_independently_review",
+                        {"workflow":workflow,"constraints_hash":digest(constraints or {})}) as span:
+        result = _compile_framework(session,policy,workflow,constraints,proposer,reviewer,adapter,archive)
+        span.observe(framework_hash=digest(result))
+        return result
+
+
+def _compile_framework(session, policy, workflow, constraints, proposer, reviewer, adapter, archive):
     constraints=checked_constraints(workflow,constraints or {})
     if adapter is not None:
         if proposer is not None or reviewer is not None:
@@ -113,11 +134,17 @@ def compile_framework(session, policy, workflow, constraints, proposer, reviewer
     session.step("framework_start",{"workflow":workflow,"constraints_hash":digest(constraints)})
     raw=bounded_call(proposer,payload,session.remaining,session.control)
     try:
-        checked=checked_proposal(workflow,raw,constraints,session.request.as_of_date)
+        if isinstance(raw,dict) and 'parameters_ref' in raw:
+            with session.action('planning','resolve_host_parameters','validate_scope_date_and_hash_then_materialize',
+                                {'reference_hash':digest(raw['parameters_ref']),'constraints_hash':digest(constraints)}) as span:
+                checked=checked_proposal(workflow,raw,constraints,session.request.as_of_date,session.request.scope.key)
+                span.observe(parameters_hash=digest(checked['arguments']))
+        else:
+            checked=checked_proposal(workflow,raw,constraints,session.request.as_of_date)
     except ValueError:
         archive(session,"rejected_framework",raw)
         raise
-    declared=mixed_plan(policy,checked["parameters"].get("mixed_spec")) if workflow=="mixed" else policy.plan(workflow)
+    declared=mixed_plan(policy,checked["parameters"].get("mixed_spec")) if workflow=="mixed" else policy.plan(workflow,checked["parameters"])
     candidate={"schema_version":"framework-proposal-v1","workflow":workflow,"as_of_date":session.request.as_of_date,
                "scope_key":session.request.scope.key,"framework":checked["framework"],"parameters":checked["arguments"],
                "unresolved_constraints":checked["planning_gaps"],"policy_version":policy.version,

@@ -22,6 +22,7 @@ dependencies = [
     { name = "openai-agents" },
     { name = "openpyxl" },
     { name = "pandas" },
+    { name = "truststore" },
 ]
 
 [package.optional-dependencies]
@@ -43,6 +44,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "requests", marker = "extra == 'dev'", specifier = ">=2.32" },
+    { name = "truststore", specifier = ">=0.10.4,<1" },
 ]
 provides-extras = ["market", "dev"]
 

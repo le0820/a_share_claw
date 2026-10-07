@@ -24,6 +24,16 @@ def timestamp(value):
 
 
 def checked_quant_spec(spec):
+    if isinstance(spec,dict) and spec.get('schema_version')=='quant-spec-v2':
+        base={k:v for k,v in spec.items() if k!='rotation'};base['schema_version']='quant-spec-v1'
+        checked=checked_quant_spec(base)
+        from .rotation import checked_rotation
+        rotation=checked_rotation(spec.get('rotation'),checked)
+        checked.update(schema_version='quant-spec-v2',rotation=rotation)
+        return checked
+    if isinstance(spec,dict) and spec.get("operation")=="fund_flow_snapshot":
+        from .flows import checked_flow_spec
+        return checked_flow_spec(spec)
     keys = {"schema_version", "operation", "frequency", "window_start", "window_end", "cutoff_timestamp", "assets", "benchmark", "metrics", "annualization_factor"}
     if not isinstance(spec, dict) or set(spec) != keys or spec["schema_version"] != "quant-spec-v1":
         raise ValueError("invalid_quant_spec")
@@ -33,7 +43,7 @@ def checked_quant_spec(spec):
     cutoff = timestamp(spec["cutoff_timestamp"])
     if start > end or type(spec["annualization_factor"]) is not int or not 1 <= spec["annualization_factor"] <= 366:
         raise ValueError("invalid_quant_spec")
-    if (not isinstance(spec["assets"], list) or not 1 <= len(spec["assets"]) <= 30 or
+    if (not isinstance(spec["assets"], list) or not 1 <= len(spec["assets"]) <= 31 or
             not isinstance(spec["metrics"], list) or not spec["metrics"] or
             any(not isinstance(v, str) for v in spec["metrics"])):
         raise ValueError("invalid_quant_spec")
@@ -78,10 +88,10 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
     cutoff = timestamp(spec["cutoff_timestamp"])
     if cutoff > reference or cutoff.astimezone(ZoneInfo(market_timezone)).date().isoformat() > as_of_date:
         raise ValueError("future_data")
-    if (not isinstance(data, dict) or set(data) != {"schema_version", "series"} or data["schema_version"] not in {"price-series-v1","price-series-v2"} or
+    if (not isinstance(data, dict) or set(data) != {"schema_version", "series"} or data["schema_version"] not in {"price-series-v1","price-series-v2","price-series-v3"} or
             not isinstance(data["series"], list)):
         raise ValueError("price_contract_mismatch")
-    current_snapshot=data["schema_version"]=="price-series-v2"
+    current_snapshot=data["schema_version"] in {"price-series-v2","price-series-v3"}
     expected = {a["symbol"]: a for a in spec["assets"]}
     received, prices, metadata = {}, {}, {}
     for series in data["series"]:
@@ -97,7 +107,7 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
                 series["publication_date"] > timestamp(series["source_timestamp"]).astimezone(ZoneInfo(series["market_timezone"])).date().isoformat() or
                 timestamp(series["source_timestamp"]) > cutoff):
             raise ValueError("price_contract_mismatch")
-        if current_snapshot:
+        if current_snapshot and data["schema_version"]=="price-series-v2":
             meta=series["current_snapshot"];captured=timestamp(series["source_timestamp"])
             if (not isinstance(meta,dict) or set(meta)!={"basis","snapshot_as_of_date","historical_vintage_certified","source_run_id","raw_sha256","sdk_version","native_identity","raw_format"} or
                     meta["basis"]!="observed_current_snapshot" or meta["historical_vintage_certified"] is not False or
@@ -110,6 +120,19 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
                     any(not isinstance(meta["native_identity"].get(k),str) or not meta["native_identity"][k].strip() for k in ("code","name")) or
                     series["publication_date"]!=captured.astimezone(ZoneInfo(series["market_timezone"])).date().isoformat()):
                 raise ValueError("price_contract_mismatch")
+        if data["schema_version"]=="price-series-v3":
+            meta=series["current_snapshot"];captured=timestamp(series["source_timestamp"])
+            required={"basis","snapshot_as_of_date","historical_vintage_certified","source_run_id","raw_sha256","provider","adapter_version","native_identity","raw_format"}
+            if (spec['schema_version']!='quant-spec-v2' or not isinstance(meta,dict) or set(meta)!=required or
+                    meta['basis']!='observed_current_snapshot' or meta['snapshot_as_of_date']!=as_of_date or
+                    meta['historical_vintage_certified'] is not False or meta['provider']!='swresearch' or
+                    meta['adapter_version'] not in {'0.1.0', '0.2.0'} or meta['raw_format']!='native_http_json' or
+                    meta['native_identity']!={'code':symbol[:-3],'name':asset['name'],'publisher':'申万宏源研究'} or
+                    captured.astimezone(ZoneInfo('Asia/Shanghai')).date().isoformat()!=as_of_date or
+                    not isinstance(meta['source_run_id'],str) or not re.fullmatch(r'[a-f0-9]{32}',meta['source_run_id']) or
+                    not isinstance(meta['raw_sha256'],str) or not re.fullmatch(r'[a-f0-9]{64}',meta['raw_sha256']) or
+                    series['publication_date']!=as_of_date):
+                raise ValueError('price_contract_mismatch')
         sessions = [asset["anchor"], *asset["sessions"]]
         if not isinstance(series["rows"], list) or len(series["rows"]) != len(sessions):
             raise ValueError("insufficient_coverage:price_sessions")
@@ -175,7 +198,9 @@ def compute_quant(spec, data, reference, as_of_date, market_timezone):
             selected[metric] = result
         metrics[symbol] = selected
     return {"schema_version": "quant-output-v1", "specification": spec, "metrics": metrics, "metric_units": METRIC_UNITS,
-            "series_audit": metadata, "unknowns": unknowns, "risk_decision": "NO_ACTION",
+            "series_audit": metadata, "chart_series": {symbol: {"name": metadata[symbol]["name"],
+                "unit": metadata[symbol]["unit"], "source_file": metadata[symbol]["source_file"],
+                "input_hash": metadata[symbol]["input_hash"], "rows": received[symbol]["rows"]} for symbol in prices}, "unknowns": unknowns, "risk_decision": "NO_ACTION",
             "limitations": ["Calendar and source identity require trusted host review; labels and hashes alone do not prove authenticity.",
                             "Price changes exclude dividends, fees and FX conversion; these are statistics, not a strategy backtest.",
                             "Volatility uses sample standard deviation of simple local-session returns and the declared annualization factor.",

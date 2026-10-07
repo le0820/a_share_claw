@@ -1,0 +1,106 @@
+{
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "as_of_date": "2026-10-05",
+  "status": "passed",
+  "framework_run_id": "84255cbf65544c02a17bd74fd3f54d82",
+  "chart_run_id": "cd82e2469f4a455d868e63c091afa8f6",
+  "successful_model_operations": [
+    "framework_proposal",
+    "framework_semantic_review",
+    "five_chart_interpretation",
+    "five_chart_independent_review"
+  ],
+  "successful_model_calls": 4,
+  "action": "NO_ACTION",
+  "official_output_allowed": false,
+  "bounded_model_quality_only": true,
+  "rejected_runs": [
+    {
+      "run_id": "cfa755e9362a4a799d61b54904a70e35",
+      "error_code": "semantic_review_failed",
+      "reason": "Model text excluded the required pre-window return anchor; independently rejected."
+    },
+    {
+      "run_id": "7cce6798cba64f08beaab57c0135961f",
+      "error_code": "chat_host_date_mismatch",
+      "actual_model_calls": 0,
+      "reason": "Message anchor date parsed as as_of_date; host corrected by passing frozen cutoff explicitly."
+    }
+  ],
+  "candidate": {
+    "action": "NO_ACTION",
+    "answers": [
+      {
+        "chart_id": "cn_consumption",
+        "fact_ids": [
+          "series_0",
+          "series_1",
+          "series_2",
+          "series_3",
+          "series_4",
+          "series_5",
+          "series_6",
+          "series_7",
+          "series_11",
+          "series_18",
+          "series_19",
+          "series_20",
+          "series_21",
+          "series_22"
+        ],
+        "interpretation": "截至2026-09-30，申万食品饮料自2025-01-02首观测100降至77.27，期间最低73.43、最高105.76（series_0）；家用电器98.98（series_1）；商贸零售76.93（series_2）；纺织服饰99.98（series_3）；轻工制造103.02（series_4）；社会服务90.80（series_5）；美容护理80.70（series_6）；汽车100.76（series_7）。恒生科技2026-10-05为96.01，最高153.36、最低95.42（series_11）。宏观来源国家统计局与人民银行：工业增加值同比5.9%→5.2%（series_18），社零4.0%→1.1%（series_19），固投累计4.1%→-7.2%（series_20），GDP当季同比5.4%→4.3%（series_21），M2同比7.0%→7.5%（series_22）。",
+        "limitations": "限制：行业为申万一级或二级价格指数，首观测=100，不作汇率或分红调整；恒生科技为easy-tdx同口径价格指数。宏观为原生同比或累计同比，1—2月合并；GDP为各季初步核算Table 1，不拼修订；M2首期为政府转载、原页404。不同日期与基年保持独立，不推断因果或收益预测，NO_ACTION，不输出数值风险阈值。"
+      },
+      {
+        "chart_id": "cn_ai",
+        "fact_ids": [
+          "series_8",
+          "series_9",
+          "series_23",
+          "pressure_components"
+        ],
+        "interpretation": "截至2026-09-30，申万通信自2025-01-02首观测100升至235.62，期间最高346.35、最低87.87（series_8）；申万二级半导体升至201.82，最高314.55、最低96.63（series_9）。AI压力代理series_23于2026-10-02为75.34，2025-01-02首值28.47，期间最高77.99、最低25.44；pressure_components固定权重为需求40%、现金流30%、外部融资25%、外部约束5%。最新分项得分：现金流85.99、需求55.89、外部约束100、外部融资88.74；贡献分别25.80、22.36、5.00、22.18。",
+        "limitations": "限制：指数为首观测=100且不作汇率或分红调整；AI压力是自建公开财务压力代理，不是物理供需或中金原式；现金Capex和债务并非AI专属；缺项不重新分配权重；按披露日阶梯更新。来源为申万、easy-tdx、NVIDIA、SEC与Treasury。不同日期与基年独立，不推断因果或收益预测，NO_ACTION，不输出数值风险阈值。"
+      },
+      {
+        "chart_id": "us_ai",
+        "fact_ids": [
+          "series_12",
+          "series_13",
+          "series_23",
+          "pressure_components"
+        ],
+        "interpretation": "截至2026-10-05，纳指费城半导体自2025-01-02首观测100升至260.76，期间最高291.44、最低70.95（series_12）；纳斯达克100为147.71，最高147.71、最低81.48（series_13）。AI压力代理series_23于2026-10-02为75.34，2025-01-02首值28.47，最高77.99、最低25.44；pressure_components权重需求40%、现金流30%、外部融资25%、外部约束5%。最新分项得分现金流85.99、需求55.89、外部约束100、外部融资88.74，贡献25.80、22.36、5.00、22.18。",
+        "limitations": "限制：两项指数为easy-tdx首观测=100，不作汇率或分红调整；AI压力为自建公开财务压力代理，非AI专属、非物理供需、非中金原式；Capex与债务不是AI专属；缺项不重分配权重。来源为easy-tdx、NVIDIA、SEC与Treasury。指数日期与压力日期不同，基年独立，不推断因果或收益预测，NO_ACTION，不输出数值风险阈值。"
+      },
+      {
+        "chart_id": "banks_rates",
+        "fact_ids": [
+          "series_10",
+          "series_15",
+          "series_16"
+        ],
+        "interpretation": "截至2026-09-30，申万银行自2025-01-02首观测100升至109.95，期间最高122.15、最低95.97（series_10）。美国财政部10年TIPS平价实际收益率2026-10-02为2.92%，2025-01-02为2.23%，期间最高2.93%、最低1.67%（series_15）。中美10年国债利差2026-09-30为-3.61个百分点，中国10年1.68%、美国10年5.29%；2025-01-02为-2.96，中国1.61%、美国4.57%；期间最高-2.14、最低-3.61（series_16）。",
+        "limitations": "限制：银行指数为价格指数，首观测=100，不作汇率或分红调整；TIPS为原生10年平价实际收益率，不是通胀预期或名义收益率；利差仅取两源同日期交集，不填补休市差异。来源为申万、中国债券信息网与美国财政部。不同日期、单位与基年独立，不推断因果或收益预测，NO_ACTION，不输出数值风险阈值。"
+      },
+      {
+        "chart_id": "us_real_inflation",
+        "fact_ids": [
+          "series_14",
+          "series_15",
+          "series_17"
+        ],
+        "interpretation": "截至2026-10-05，标普500自2025-01-02首观测100升至132.17，期间最高132.89、最低84.91（series_14）。10年TIPS平价实际收益率2026-10-02为2.92%，2025-01-02为2.23%，最高2.93%、最低1.67%（series_15）。核心PCE价格指数2026M08为130.455，2025M01为124.609，变化+5.846，期间最高130.455、最低124.609；BEA 2017=100，季调，剔除食品能源，当前完整修订版本公布于2026-09-30，不是历史首发值（series_17）。",
+        "limitations": "限制：标普500为easy-tdx首观测=100且不作汇率或分红调整；TIPS为实际收益率，非通胀预期或名义收益率；核心PCE为当前修订版本，指数水平不是单月同比，累计变化不等同单月同比，基年2017=100。来源为easy-tdx、美国财政部与BEA。不同日期与基年独立，不推断因果或收益预测，NO_ACTION，不输出数值风险阈值。"
+      }
+    ]
+  },
+  "independent_review": {
+    "candidate_hash": "eead9c89117993c2a5d14633f94c2f3ed6f5b3444521809f554974d261c6ddde",
+    "findings": [],
+    "passed": true,
+    "reviewer": "independent_sdk_review",
+    "version": "bounded-chart-review-v1"
+  }
+}
