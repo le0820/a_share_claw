@@ -1,0 +1,142 @@
+{
+  "ramp_tsm": {
+    "url": "https://ramp.com/data/ai-index",
+    "prefix": "ramp_index",
+    "validation_kind": "ramp_tsm",
+    "cadence": "daily-labelled rolling7d; weekly review",
+    "scope_limits": "tokens/cost enterprise sample; uncached input is not total input",
+    "baseline_payload_sha256": "ab4b9d4c6e92bd3c682e3cbd5301446f658fb97542fcf4a77d5fef8dc55e4387",
+    "baseline_captured_at": "2026-10-05T23:35:33.488745+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:47.958898+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "3efb63f561b2c308cfea937af773b789e74106aa67b1efb44e1aa0e0b825613d",
+      "latest_source_data_date": "2026-09-29",
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": true
+  },
+  "openrouter_models": {
+    "url": "https://openrouter.ai/api/v1/models",
+    "prefix": "openrouter_models",
+    "validation_kind": "catalog",
+    "cadence": "current catalog",
+    "scope_limits": "listed prices, not realized revenue",
+    "baseline_payload_sha256": "14e286dffc41d92b6324b38b467ed3ce71bca0993a847dcc8a9378dc77244566",
+    "baseline_captured_at": "2026-10-05T23:30:52.443810+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:49.097814+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "5209b9998f53b9bee03e812e1eaaeae8d97e0a589b6755b23da5e863a3144f58",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": true
+  },
+  "vast_h100_offers": {
+    "url": "https://cloud.vast.ai/api/v0/bundles/?q=%7B%22gpu_name%22%3A%7B%22eq%22%3A%22H100+SXM%22%7D%2C%22rentable%22%3A%7B%22eq%22%3Atrue%7D%2C%22rented%22%3A%7B%22eq%22%3Afalse%7D%2C%22verified%22%3A%7B%22eq%22%3Atrue%7D%2C%22type%22%3A%22ondemand%22%2C%22limit%22%3A20%7D",
+    "prefix": "vast_h100_public_probe",
+    "validation_kind": "offers",
+    "cadence": "current offers",
+    "scope_limits": "rentable listing, not installed/running GPU supply",
+    "baseline_payload_sha256": "b9c21a2dcb42909082e1a67a7e489ca3781ea95d8a30900adf2aab69c6ee4c18",
+    "baseline_captured_at": "2026-10-06T11:17:48.388592+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:49.897750+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "a9f57a33cd06903da88e7e95edae7a24c1f380d6f0856cf17a003fa705003d16",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": true
+  },
+  "vercel_text_shares": {
+    "url": "https://vercel.com/api/ai/leaderboard-export?dataset=models&modality=text",
+    "prefix": "vercel_models_text_export",
+    "validation_kind": "shares",
+    "cadence": "daily shares",
+    "scope_limits": "platform shares, not absolute industry use",
+    "baseline_payload_sha256": "bc5a01bea210071d4e6a1c0a390c0434c30c49145da50d8c0b55513549d030ca",
+    "baseline_captured_at": "2026-10-06T11:36:55.396743+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:51.014466+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "1a4e9a7c6764b743b85c3bfa6faedc0a432c733c1173f40eff3839cb844772e5",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": true
+  },
+  "inferencex_cost_registry": {
+    "url": "https://inferencex.semianalysis.com/api/v1/views/options",
+    "prefix": "inferencex_views_options_cost_review",
+    "validation_kind": "cost_registry",
+    "cadence": "event/model snapshot",
+    "scope_limits": "modeled TCO, not cloud rental prices",
+    "baseline_payload_sha256": "4962556a2987015f27c81868d10bf785812f8b724f780f17ed26160703e40e8f",
+    "baseline_captured_at": "2026-10-06T16:46:42.564329+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:51.838883+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "4962556a2987015f27c81868d10bf785812f8b724f780f17ed26160703e40e8f",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": false
+  },
+  "inferencex_r1_modeled_cost": {
+    "url": "https://inferencex.semianalysis.com/api/v1/views/calculator?model=DeepSeek-R1-0528&sequence=8k%2F1k&gpus=h200&precisions=fp8&target=35&mode=interactivity-to-throughput&percentile=p90&costProvider=costh&costType=total&tcoBasis=internal&date=2026-10-05&format=json",
+    "prefix": "inferencex_cost_review_r1_h200",
+    "validation_kind": "cost_calculator",
+    "cadence": "event/model snapshot",
+    "scope_limits": "fixed R1 workload; clamped results excluded",
+    "baseline_payload_sha256": "a710008b7682ef4011827fc93cb969831996bbc394ea62fd7fd1761d1b828faa",
+    "baseline_captured_at": "2026-10-06T16:49:33.902793+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:53.386986+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "a710008b7682ef4011827fc93cb969831996bbc394ea62fd7fd1761d1b828faa",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": false
+  },
+  "inferencex_v4_modeled_cost": {
+    "url": "https://inferencex.semianalysis.com/api/v1/views/calculator?model=DeepSeek-V4-Pro&sequence=8k%2F1k&gpus=b200&precisions=fp4&target=35&mode=interactivity-to-throughput&percentile=p90&costProvider=costh&costType=total&tcoBasis=internal&date=2026-10-05&format=json",
+    "prefix": "inferencex_cost_review_v4_b200",
+    "validation_kind": "cost_calculator",
+    "cadence": "event/model snapshot",
+    "scope_limits": "fixed V4 workload; clamped results excluded",
+    "baseline_payload_sha256": "c44cb0f68629419fcb2363924fdc4cb0ceb5f16575029e235e98cd3ee515d8bd",
+    "baseline_captured_at": "2026-10-06T16:49:33.377751+00:00",
+    "baseline_publication_date": null,
+    "numeric_update_observed": false,
+    "scheduler_installed": false,
+    "last_refresh_verification": {
+      "retrieved_at": "2026-10-09T02:49:54.528452+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "c44cb0f68629419fcb2363924fdc4cb0ceb5f16575029e235e98cd3ee515d8bd",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true
+    },
+    "snapshot_payload_changed_vs_baseline": false
+  }
+}

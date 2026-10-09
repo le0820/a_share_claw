@@ -1,0 +1,69 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "script": "data/harness_acceptance/aisdi_full_support_20261005/archive_public_snapshots.py",
+  "script_sha256": "aa76f58055f58696774cfb8a871ee2a0347b7e8e5c250c2584d24f5cb9bea6ef",
+  "verification_file": "data/harness_acceptance/aisdi_full_support_20261005/ramp_archiver_extension_verification.json",
+  "verification_sha256": "4aaa9dbe1d3716a8dfa298aa1888eecfcb9ef93bf81dbbaed9f47d7272de515b",
+  "accepted_capture_observations": 3,
+  "distinct_capture_times": 3,
+  "native_numeric_records_per_capture": 3822,
+  "unique_numeric_time_series_versions": 1,
+  "native_series_last_date": "2026-09-29",
+  "numeric_updates_observed": false,
+  "automatic_schedule_installed": false,
+  "manual_update_path_end_to_end_verified": true,
+  "historical_PIT_verified": false,
+  "fixed_customer_cohort_verified": false,
+  "post_cutoff_snapshots_merged_into_replay": false,
+  "official_input": false,
+  "scope": "Capture, semantic schema checks, content-addressed evidence, native date freshness and numeric revision comparison only; no scores or official state",
+  "capture_records": [
+    {
+      "time": "2026-10-05T23:35:33.488745+00:00",
+      "payload_sha256": "ab4b9d4c6e92bd3c682e3cbd5301446f658fb97542fcf4a77d5fef8dc55e4387",
+      "freshness": {
+        "age_days_at_capture_UTC": 6,
+        "native_daily5day_freshness": false,
+        "weekly21day_freshness": true
+      },
+      "comparison": null
+    },
+    {
+      "time": "2026-10-09T00:05:53.737548+00:00",
+      "payload_sha256": "83dbac4f5553729442f39d7c225427e52f7c810d108c2f13507aaed299df296e",
+      "freshness": {
+        "age_days_at_capture_UTC": 10,
+        "native_daily5day_freshness": false,
+        "weekly21day_freshness": true
+      },
+      "comparison": {
+        "previous_payload_sha256": "ab4b9d4c6e92bd3c682e3cbd5301446f658fb97542fcf4a77d5fef8dc55e4387",
+        "previous_capture_time": "2026-10-05T23:35:33.488745+00:00",
+        "common_keys": 3822,
+        "changed_common_keys": 0,
+        "added_keys": 0,
+        "dropped_keys": 0,
+        "post_cutoff_payloads_not_merged": true
+      }
+    },
+    {
+      "time": "2026-10-09T00:14:38.338051+00:00",
+      "payload_sha256": "faf1541166eaa236d8246f3d733f8396cbef1a0e3a03f1bd6b5252d88711a675",
+      "freshness": {
+        "age_days_at_capture_UTC": 10,
+        "native_daily5day_freshness": false,
+        "weekly21day_freshness": true
+      },
+      "comparison": {
+        "previous_payload_sha256": "83dbac4f5553729442f39d7c225427e52f7c810d108c2f13507aaed299df296e",
+        "previous_capture_time": "2026-10-09T00:05:53.737548+00:00",
+        "common_keys": 3822,
+        "changed_common_keys": 0,
+        "added_keys": 0,
+        "dropped_keys": 0,
+        "post_cutoff_payloads_not_merged": true
+      }
+    }
+  ]
+}

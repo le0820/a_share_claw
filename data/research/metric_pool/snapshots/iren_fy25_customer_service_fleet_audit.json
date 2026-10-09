@@ -1,0 +1,61 @@
+{
+  "as_of_date": "2026-10-05",
+  "records": [
+    {
+      "entity": "IREN",
+      "site": "Prince George",
+      "observation_date": "2025-06-30",
+      "publication_date_verified": null,
+      "gpu_count_reported": 1900,
+      "quantity_type": "publisher_approximation_1.9k",
+      "models": [
+        "NVIDIA H100",
+        "NVIDIA H200"
+      ],
+      "model_split": null,
+      "native_state": "deployed and being used to provide AI Cloud Services to third party customers",
+      "installed_stock_inferred_from_deployed_state": true,
+      "customer_service_fleet_supported": true,
+      "exact_powered_on_count_telemetry": null,
+      "exact_revenue_generating_GPU_count": null,
+      "GPU_processor_utilization_pct": null,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1878848/000187884825000063/iren-20250630.htm",
+      "reader_capture_file": "data/harness_acceptance/aisdi_full_support_20261005/iren_fy25_customer_fleet_reader_evidence.json",
+      "reader_capture_sha256": "a26ded153efd44fb6abb281c4c0f68367cac11e0f15e7fecc4029bc04fc49bbc",
+      "original_HTML_sha256": null,
+      "matched_native_text": "As of June 30, 2025, we had approximately 1.9k NVIDIA H100 and H200 GPUs, which are deployed at our Prince George data center and are being used to provide AI Cloud Services to third party customers.",
+      "historical_first_release_verified": false,
+      "official_history_eligible": false
+    }
+  ],
+  "scope": "One issuer/site/approximate stock, later than separately retained June2024 installed816 and Aug2024 service816; not current2026 inventory",
+  "future_counts_excluded": [
+    {
+      "GPU_family": "B200",
+      "count_approx": 5500
+    },
+    {
+      "GPU_family": "B300",
+      "count_approx": 2300
+    },
+    {
+      "GPU_family": "GB300",
+      "count_approx": 1200
+    },
+    {
+      "planned_total_fleet_approx": 10900
+    }
+  ],
+  "future_count_reason": "Subsequent procurement/leases for future end2025 installation; no confirmation of completed installation in this source",
+  "same_metric_continuous_time_series_verified": false,
+  "eight_comparable_changes_verified": false,
+  "full_support_verified": false,
+  "limits": [
+    "1900 is rounded approximate fleet, not exact individual installed/running/paid count.",
+    "H100/H200 split not stated; no capacity-equivalence sum or assumed split.",
+    "Deployment/customer-service statement is not individual commissioning, power telemetry or billed-GPU census.",
+    "No growth calculation versus816 across status/date/model changes, and no carry-forward into2026.",
+    "Reader hash authenticates local evidence capture only, not original HTML bytes.",
+    "Future procurement and deployment targets retained separately, never added to installed stock."
+  ]
+}

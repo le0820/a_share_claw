@@ -1,0 +1,479 @@
+{
+  "as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "input_sha256": "4076cf9766ca94237bba257635a04bcb8975a7e1a1ad56405830910fd934a9e9",
+  "missing_fields": 38,
+  "groups": [
+    {
+      "category": "训练运行遥测",
+      "count": 6,
+      "cause": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_required_evidence": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0"
+    },
+    {
+      "category": "GPU云运行遥测",
+      "count": 4,
+      "cause": "挂牌/客户分配/Token量无法识别实际等待、处理器利用率及GPU小时",
+      "next_required_evidence": "取同平台排队/用量公开原始指标；无型号、负载、时间及利用率时不逆算Token为GPU小时"
+    },
+    {
+      "category": "模型部署容量",
+      "count": 3,
+      "cause": "性能实验、端点目录和质量分数尚未连接为实际可部署供给",
+      "next_required_evidence": "冻结模型/端点/任务质量篮子，核实访问及容量与可靠性；单系统性能不能加总成API生产容量"
+    },
+    {
+      "category": "企业活动与收入拆分",
+      "count": 4,
+      "cause": "总收入/ARR/AWU不能识别企业WAU或验收成功任务；单列API收入已另核，完整史仍缺",
+      "next_required_evidence": "优先企业原始产品分部及业务成功定义；成功任务缺分母时不计算收入/成功任务"
+    },
+    {
+      "category": "订单与合同原量",
+      "count": 10,
+      "cause": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_required_evidence": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子"
+    },
+    {
+      "category": "合资格制造供给",
+      "count": 8,
+      "cause": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_required_evidence": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量"
+    },
+    {
+      "category": "电力交付与客户合同",
+      "count": 3,
+      "cause": "签约/排队/园区可用电力与AI实际交付或客户PFA不是同一状态",
+      "next_required_evidence": "核PPA投运、供电对象、预留权利及PFA原合同；区分发电侧/负荷侧，排除将签约容量作为运行供给"
+    }
+  ],
+  "records": [
+    {
+      "metric": "active_frontier_training_runs",
+      "gap_category": "训练运行遥测",
+      "current_evidence": "us_ir, epoch, meta_card",
+      "field_limits": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_evidence_required": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "cancelled_training_runs",
+      "gap_category": "训练运行遥测",
+      "current_evidence": "us_ir, epoch, meta_card",
+      "field_limits": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_evidence_required": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "delayed_training_runs",
+      "gap_category": "训练运行遥测",
+      "current_evidence": "us_ir, epoch, meta_card",
+      "field_limits": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_evidence_required": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "training_cluster_utilization_pct",
+      "gap_category": "训练运行遥测",
+      "current_evidence": "epoch_models_zip 仅支持模型事件 MFU",
+      "field_limits": "单次训练 MFU 不等于行业运行集群利用率；未取得连续真实遥测。",
+      "unresolved_dependency": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_evidence_required": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "training_gpu_power_on_units",
+      "gap_category": "训练运行遥测",
+      "current_evidence": "us_ir, epoch, meta_card",
+      "field_limits": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_evidence_required": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "training_run_delay_days",
+      "gap_category": "训练运行遥测",
+      "current_evidence": "us_ir, epoch, meta_card",
+      "field_limits": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_evidence_required": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "gpu_cloud_wait_time_days",
+      "gap_category": "GPU云运行遥测",
+      "current_evidence": "gpu_prices, dc_ir",
+      "field_limits": "Stock category/available instance configurations not actual GPU unit count, queue duration or utilization. No free consistent global history identified. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "挂牌/客户分配/Token量无法识别实际等待、处理器利用率及GPU小时",
+      "next_evidence_required": "取同平台排队/用量公开原始指标；无型号、负载、时间及利用率时不逆算Token为GPU小时",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "gpu_utilization_pct",
+      "gap_category": "GPU云运行遥测",
+      "current_evidence": "iren_monthly_GPU_state_timeline_audit；GPU平台遥测",
+      "field_limits": "IREN4月/5月月报有fleet near full利用状态，描述客户服务/分配，不给数值或SM利用率；不制造95%/100%，不据此推GPU小时。仍无连续同定义数值。",
+      "unresolved_dependency": "挂牌/客户分配/Token量无法识别实际等待、处理器利用率及GPU小时",
+      "next_evidence_required": "取同平台排队/用量公开原始指标；无型号、负载、时间及利用率时不逆算Token为GPU小时",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "inference_compute_hours",
+      "gap_category": "GPU云运行遥测",
+      "current_evidence": "public_usage, or_traffic",
+      "field_limits": "Traffic/tokens/users not successfully completed tasks or actual GPU hours. Requires provider/workspace telemetry and consistent task success definition. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "挂牌/客户分配/Token量无法识别实际等待、处理器利用率及GPU小时",
+      "next_evidence_required": "取同平台排队/用量公开原始指标；无型号、负载、时间及利用率时不逆算Token为GPU小时",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "inference_gpu_hours",
+      "gap_category": "GPU云运行遥测",
+      "current_evidence": "public_usage, or_traffic",
+      "field_limits": "Traffic/tokens/users not successfully completed tasks or actual GPU hours. Requires provider/workspace telemetry and consistent task success definition. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "挂牌/客户分配/Token量无法识别实际等待、处理器利用率及GPU小时",
+      "next_evidence_required": "取同平台排队/用量公开原始指标；无型号、负载、时间及利用率时不逆算Token为GPU小时",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "api_capacity_tps",
+      "gap_category": "模型部署容量",
+      "current_evidence": "mlperf_supply_evidence_audit；Google实际负载披露",
+      "field_limits": "新增MLPerf两版461条可购买/可租系统的合规延迟约束Tokens/s结果，6组硬件/模型/场景匹配但软件全部变更。可反映单系统能力，缺服务开放容量、部署台数和运行可用率；Google实际处理速率也不是最大容量。原生产API容量序列未补齐。",
+      "unresolved_dependency": "性能实验、端点目录和质量分数尚未连接为实际可部署供给",
+      "next_evidence_required": "冻结模型/端点/任务质量篮子，核实访问及容量与可靠性；单系统性能不能加总成API生产容量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "deployed_frontier_model_count",
+      "gap_category": "模型部署容量",
+      "current_evidence": "epoch_models_zip；openrouter_models",
+      "field_limits": "有模型发布及目录快照，但部署许可、可用端点及 frontier 定义未逐项审查，不能直接从发布数量推算。",
+      "unresolved_dependency": "性能实验、端点目录和质量分数尚未连接为实际可部署供给",
+      "next_evidence_required": "冻结模型/端点/任务质量篮子，核实访问及容量与可靠性；单系统性能不能加总成API生产容量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "effective_tokens_per_second",
+      "gap_category": "模型部署容量",
+      "current_evidence": "mlperf_deployable_system_performance_records；InferenceX",
+      "field_limits": "MLPerf同时保留质量合规、可获得分类、硬件数和Server/Interactive吞吐；实验系统质量门槛不等于原规格统一任务质量。需生产部署、容量数量、可用率与缓存/输入输出映射；461实验行不能相加为实际有效供给。",
+      "unresolved_dependency": "性能实验、端点目录和质量分数尚未连接为实际可部署供给",
+      "next_evidence_required": "冻结模型/端点/任务质量篮子，核实访问及容量与可靠性；单系统性能不能加总成API生产容量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "enterprise_wau",
+      "gap_category": "企业活动与收入拆分",
+      "current_evidence": "enterprise_activity_public_source_boundary_audit；微软/亚马逊公开企业披露",
+      "field_limits": "Bedrock2025Q4的100000+公司与2026Q2的hundreds of thousands customers均是客户组织，不是企业周活人数；不猜数、不替代企业WAU。微软付费席位也不等于活跃用户。原定义历史仍缺。",
+      "unresolved_dependency": "总收入/ARR/AWU不能识别企业WAU或验收成功任务；单列API收入已另核，完整史仍缺",
+      "next_evidence_required": "优先企业原始产品分部及业务成功定义；成功任务缺分母时不计算收入/成功任务",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "revenue_per_successful_task_usd",
+      "gap_category": "企业活动与收入拆分",
+      "current_evidence": "模型公司实收收入／业务验收任务",
+      "field_limits": "分母 successful tasks 未获取；不能用 AWU 或 token 数冒充成功任务。",
+      "unresolved_dependency": "总收入/ARR/AWU不能识别企业WAU或验收成功任务；单列API收入已另核，完整史仍缺",
+      "next_evidence_required": "优先企业原始产品分部及业务成功定义；成功任务缺分母时不计算收入/成功任务",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "successful_agent_tasks",
+      "gap_category": "企业活动与收入拆分",
+      "current_evidence": "salesforce_AWU_quarterly_extension_audit；enterprise_activity_public_source_boundary_audit",
+      "field_limits": "AWU是混合活动；ServiceNow官方公开文档有按天更新的执行Success与关闭任务字段，但数值在客户实例、需viewer/admin角色，本轮只取得定义。执行状态/关闭任务/AI推断满意度不自动等于业务验收成功；无公开同口径数值史。",
+      "unresolved_dependency": "总收入/ARR/AWU不能识别企业WAU或验收成功任务；单列API收入已另核，完整史仍缺",
+      "next_evidence_required": "优先企业原始产品分部及业务成功定义；成功任务缺分母时不计算收入/成功任务",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "successful_tasks",
+      "gap_category": "企业活动与收入拆分",
+      "current_evidence": "enterprise_activity_public_source_boundary_audit；ServiceNow公开分析文档",
+      "field_limits": "公开字段定义有执行成功状态和关闭业务任务计数，实例数据并未公开；HTTP200为JS应用壳，文档正文通过官方Reader核对，来源类型分开。业务验收成功映射仍待定义，未访问任何客户实例。",
+      "unresolved_dependency": "总收入/ARR/AWU不能识别企业WAU或验收成功任务；单列API收入已另核，完整史仍缺",
+      "next_evidence_required": "优先企业原始产品分部及业务成功定义；成功任务缺分母时不计算收入/成功任务",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "dram_orders_bits",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "gpu_ir, memory_ir, korea_ir",
+      "field_limits": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "gpu_allocation_units",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "gpu_ir, memory_ir, korea_ir",
+      "field_limits": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "gpu_backlog_usd",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "gpu_ir, memory_ir, korea_ir",
+      "field_limits": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "hbm_long_term_agreements_usd",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "gpu_ir, memory_ir, korea_ir",
+      "field_limits": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "hbm_orders_bits",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "存储厂商 IR",
+      "field_limits": "销售额和出货不是按 bit 计的订单，未取得连续数据。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "nand_orders_bits",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "gpu_ir, memory_ir, korea_ir",
+      "field_limits": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_16t_orders_units",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "lightcounting_2026q2",
+      "field_limits": "免费摘要未给同口径连续订单数量。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_800g_orders_units",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "lightcounting_2026q2",
+      "field_limits": "免费摘要未给同口径连续订单数量。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_backlog_usd",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "optical_ir, cninfo",
+      "field_limits": "No consistent unit/order/book-to-bill series for fixed 800G/1.6T basket; equipment/company aggregate backlog not equivalent. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_book_to_bill",
+      "gap_category": "订单与合同原量",
+      "current_evidence": "optical_ir, cninfo",
+      "field_limits": "No consistent unit/order/book-to-bill series for fixed 800G/1.6T basket; equipment/company aggregate backlog not equivalent. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_evidence_required": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "hbm_qualified_capacity_bits",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "hbm_free_institution_evidence_audit；存储厂商IR",
+      "field_limits": "晶圆月产能预测或投入份额不等于合资格bits；缺die面积、bits/die、良率、堆叠及客户认证。未用预测或未知分母填补实际供给。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "hbm_utilization_pct",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "memory_ir, korea_ir, trendforce_paid",
+      "field_limits": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "hbm_wafer_capacity",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "hbm_free_institution_evidence_audit：TrendForce免费原文",
+      "field_limits": "新增3篇机构原文/5条预测或估计：2024年底250K/m是当时预测，2025/26/27晶圆投入份额18/22/30%分母为三大厂DRAM投入，不是实际绝对产能。35%先进制程份额与14%全DRAM份额不同，不拼接；同口径实际连续产能仍缺。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "memory_yield_pct",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "hbm_free_institution_evidence_audit；厂商IR",
+      "field_limits": "免费原文只有HBM相对DDR5良率较低的区间描述，缺DDR5绝对基准及制程/TSV阶段定义，不能转成HBM绝对yield%。实际稳定数值序列仍未取得。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_16t_capacity_units",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "optical_ir, cninfo, trendforce_paid",
+      "field_limits": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_16t_shipments_units",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "lightcounting_2026q2；厂商 IR",
+      "field_limits": "量产叙述不能变成实际出货数量。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_lead_time_weeks",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "optical_ir, cninfo, trendforce_paid",
+      "field_limits": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "optical_yield_pct",
+      "gap_category": "合资格制造供给",
+      "current_evidence": "optical_ir, cninfo, trendforce_paid",
+      "field_limits": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review. 本轮尚无同定义连续数值验收。",
+      "unresolved_dependency": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_evidence_required": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "ppa_operational_mw",
+      "gap_category": "电力交付与客户合同",
+      "current_evidence": "企业 PPA／发电项目披露",
+      "field_limits": "PPA 签约量不等于已投运并供给 AI 的 MW。",
+      "unresolved_dependency": "签约/排队/园区可用电力与AI实际交付或客户PFA不是同一状态",
+      "next_evidence_required": "核PPA投运、供电对象、预留权利及PFA原合同；区分发电侧/负荷侧，排除将签约容量作为运行供给",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "reserved_power_mw",
+      "gap_category": "电力交付与客户合同",
+      "current_evidence": "企业／电网合同披露",
+      "field_limits": "预订和接入排队口径不同，未取得连续原指标。",
+      "unresolved_dependency": "签约/排队/园区可用电力与AI实际交付或客户PFA不是同一状态",
+      "next_evidence_required": "核PPA投运、供电对象、预留权利及PFA原合同；区分发电侧/负荷侧，排除将签约容量作为运行供给",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    },
+    {
+      "metric": "signed_pfa_mw",
+      "gap_category": "电力交付与客户合同",
+      "current_evidence": "nebius_power_stage_review；原始客户合同",
+      "field_limits": "公司土地/电力commitments披露不等于客户签署PFA。已保存合同容量下限，但未确认该原始字段对应合同及连续MW。",
+      "unresolved_dependency": "签约/排队/园区可用电力与AI实际交付或客户PFA不是同一状态",
+      "next_evidence_required": "核PPA投运、供电对象、预留权利及PFA原合同；区分发电侧/负荷侧，排除将签约容量作为运行供给",
+      "free_data_nonexistence_proven": false,
+      "mandatory_individually": false,
+      "original_metric_resolved": false
+    }
+  ],
+  "scope": "Remaining38 of111 candidate fields; original20-pillar structure and60% side gates remain authoritative",
+  "not_claimed": [
+    "No claim every missing candidate mandatory",
+    "No claim public data can never be disclosed",
+    "No claim a paid source automatically resolves missing production telemetry",
+    "No requirement of universal industrycensus for samples",
+    "No requirement of private invoices when explicit costestimates meet original definitions"
+  ],
+  "full_support_verified": false
+}

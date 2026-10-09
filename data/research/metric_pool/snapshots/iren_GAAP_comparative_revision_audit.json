@@ -1,0 +1,47 @@
+{
+  "as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "metric": "ai_cloud_revenue_usd",
+  "entity": "IREN",
+  "period_end": "2024-12-31",
+  "unit": "USD",
+  "source_kind": "Primary SEC public Reader excerpt; native HTML not captured",
+  "evidence_file": "data/harness_acceptance/aisdi_full_support_20261005/iren_GAAP_comparative_revision_reader_evidence.json",
+  "evidence_sha256": "a0cb6485f9aab711bd23e2f857d13008326b100cda4c1804b50d215af9c229b3",
+  "baseline_source_url": "https://www.sec.gov/Archives/edgar/data/1878848/000187884825000063/iren-20250630.htm",
+  "baseline_reported_usd": 2660000,
+  "later_comparative_source_url": "https://www.sec.gov/Archives/edgar/data/1878848/000187884826000015/iren-20251231.htm",
+  "later_reported_usd": 2661000,
+  "difference_usd": 1000,
+  "reported_resolution_usd": 1000,
+  "combined_half_unit_rounding_tolerance_usd": 1000,
+  "rounding_intervals_touch": true,
+  "cause_verified": false,
+  "revision_or_rounding_cause_not_inferred": true,
+  "later_six_months_reported_usd": 5850000,
+  "baseline_two_quarters_sum_usd": 5849000,
+  "alternative_two_quarters_sum_usd": 5850000,
+  "arithmetic_reconciliation_not_semantic_certification": true,
+  "affected_growth_candidates": [
+    {
+      "period_end": "2024-12-31",
+      "baseline_annualized_log_growth": -0.7255250609372514,
+      "alternative_comparative_annualized_log_growth": -0.7240215841294738,
+      "difference": 0.0015034768077776262,
+      "formal_score": null
+    },
+    {
+      "period_end": "2025-03-31",
+      "baseline_annualized_log_growth": 1.1892638728907516,
+      "alternative_comparative_annualized_log_growth": 1.1877603960829743,
+      "difference": -0.001503476807777293,
+      "formal_score": null
+    }
+  ],
+  "unique_quarter_levels_added": 0,
+  "minimum8_growth_met": false,
+  "baseline_values_overwritten": false,
+  "strict_PIT_verified": false,
+  "formal_score": null,
+  "full_support": false
+}

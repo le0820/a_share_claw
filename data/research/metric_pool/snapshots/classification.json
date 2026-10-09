@@ -1,0 +1,1399 @@
+{
+  "review_updated_date": "2026-10-08",
+  "as_of_date": "2026-10-05",
+  "spec_sha256": "150417f45532e430bc1d01abdb459dd60a6fb687f33e7761c2df7a0a7637679f",
+  "purpose": "Original spec sections 15-18: all 111 core and supporting candidate fields",
+  "review_scope": "49 engineering candidates plus 62 additional original-spec fields; validation sections 19-21 excluded",
+  "exclusions": [
+    "PSVG",
+    "NSY",
+    "CICC four-category mapping",
+    "CFCE/AICEI/credit validation outputs"
+  ],
+  "exclusion_reason": "These are not inputs to the core AISDI formula; no user provenance established for PSVG/NSY.",
+  "definition_of_acquired": "Captured actual records for a disclosed sample, potentially sparse; not full global coverage or production readiness.",
+  "definition_of_estimated": "A specific transformation from acquired inputs is identifiable; unverified assumptions remain explicit and cannot be promoted silently.",
+  "definition_of_missing": "No captured same-definition numeric series; a website, forecast, snapshot or unrelated proxy does not count.",
+  "candidate_selection_warning": "The spec lists candidate metrics, not an instruction to require every candidate; the final basket and within-pillar weights are not frozen.",
+  "counts": {
+    "已获取": 40,
+    "可间接估计": 33,
+    "未获取": 38
+  },
+  "estimate_strength_counts": {
+    "经济概念或场景代理，不能推出原量": 13,
+    "需冻结定义与历史版本": 3,
+    "条件估计或区间，关键参数未验收": 11,
+    "限定范围内可复算转换": 6
+  },
+  "estimate_strength": [
+    {
+      "metric": "ai_capex_usd",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "取得连续6季公司Capex，Q2_2025以后明确主要用于GPU/相关硬件/DC；可作为单独命名的投资趋势代理，不能估出AI专属美元。ai_only_amount与AI份额保持空，现金/资本化/租赁口径未核对；不按100%AI映射或混同巨头现金Capex，正式原字段未补齐。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "ai_capex_yoy",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "上述公司代理有2026Q1/Q2对2025同季的同比参考约359.6%/1016.3%，保留约数、业务范围与重报未验收标志；不是AI专属同比，样本/6季历史及与原指标等价性仍未通过。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "benchmark_composite_score",
+      "estimate_type": "需冻结定义与历史版本",
+      "scope_warning": "有输入数据，但指标篮子、质量权重、许可、可部署条件与结果可知日期未冻结",
+      "metric_specific_limits": "已有多测试历史结果；新增SWE-bench官方4个固定SHA榜单版本，533行/180提交。80份500题逐题复算中73一致、7冲突隔离；1项同提交分数修订保留。固定测试篮子、版本、系统配置与权重后可构造；模型/提交日期非首次公开日。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "compute_commitments_usd",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "连续 seller revenue backlog 25.9／30.1／55.6／66.8／99.4／104.0 十亿美元可作为客户承诺金额代理；包含交付条件，非全部无条件买方采购义务。须明确买卖双方，避免重复计数。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "dc_commissioned_mw",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "既有commissioning代理保留。CoreWeave active power 9日期含年度缺口，只有7连续季点/6季转换；大约/超过保留，不将两个下界比作增长下界。SEC年报未核IT或设施定义，不能借Nebius定义，也不能直接当commissioned、实际利用率或已收入MW。须另核调试交付与同口径历史，未补缺季度或升正式供给。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "dc_lease_commitments_usd",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "2024Q2至2026Q2九连续季公司未开始租赁管线（primarily datacenters），8原始HTML/1SEC原文索引摘录，8诊断季变换，原始HTML单独只有7。早期operating+finance分项加总，后期合计只计一次；SEC双轴重复155.1B不相加。最新329.1B有部分合同条件。未提供DC/AI份额或完整不可取消条款，存量变化非新签订单，不推运行MW或当期Capex；原指标纯量与正式历史未准入。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "dc_utilization_pct",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "1−空置率可表示可租容量占用率代理；不等于设备运行利用率，必须另命名并保留区域和容量定义。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "dram_bit_shipments",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "保留九个月收入/ASP比值的相对bits估计。新增4份原生季度PDF：FY24Q2/Q4、FY25Q1、FY26Q4，直接披露公司DRAM QoQ bit增速但均为low/mid/flattish等原文，未取未定义范围中点或把flattish设0。无绝对bits/HBM拆分，非连续精确数值历史。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "gas_power_output_mw",
+      "estimate_type": "限定范围内可复算转换",
+      "scope_warning": "可复算已取得样本的单位/数量/日期筛选；总体范围、真实运行时间或容量定义仍不等价",
+      "metric_specific_limits": "已取得2025-01至2026-07共19个月美国燃气发电MWh，可除以当月24×日数得到平均输出MW；仅区域电力供给代理，非AI专属、瞬时或数据中心可用容量。原始版本含2025终值/2026初值，历史首次发布时点未验收。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "gpu_equivalent_compute_capacity",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "可用 H100e 估计硬件规模；需先筛实际日期和运行状态，缺收入条件，因此只能列供给容量代理，不能正式认定有效供给。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "grid_connection_delay_months",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "取得2005-2025共21年完成项目IR到COD月数；2025年294项目中位约60.82个月。仅发电侧成功完成队列的耗时代理，不是全部在途项目等待、相对计划延误或数据中心负荷接入耗时；年度更新及历史首次发布时点仍需验收。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "hbm_bit_shipments",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "保留已有H100/H200出货估计×配置内存bytes×8的条件范围，15个完整期间；只是随Hopper出货的HBM容量代理，型号配比、物理/可用内存及首发版本待审。补查的2025/26/27供给份额8/9/13%为机构估计／预测，缺绝对DRAM bits分母，不能另推实际已出货bits或升级正式输入。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "inference_api_calls",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "可用公开应用模型请求数作为推理工作负载样本；需固定模态、应用篮子和窗口，不能把API目录访问或其他管理请求混入。它与api_calls共享原始证据，不独立重复计权。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "input_tokens",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "直接取得uncached_input，不是完整输入。1274个提供商×日期可复算all_tokens−output作为完整输入条件候选，须核all/output穷尽分拆、reasoning/缓存/计费窗口/tokenizer。差额不直接叫cached input，actual_total_input保持空值；91周未缓存输入增长不提升为完整输入原量。客户样本、首次版本与稳定新增仍未验。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "interconnection_queue_mw",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "已取得2025年末项目级排队状态与MW，可统计发电侧排队容量代理；不含负荷接入、配网或表后项目，也不证明AI需求。报告储能总量含混合项目缺失容量估计，原表不含该估计；项目行数与headline口径尚需对账。年度初值不可回填月度，pipeline不计当前供给。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "model_api_revenue_usd",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "原稿取得Open Platform/API或云端部署商业收入代理：2022/23/24/25年度2.594M/11.924M/48.484M/190.379M RMB，2024/25/26H1 18.103M/29.100M/825.176M RMB；2026H1发布者近似123M USD。招股书明确旧云端类别含网页/移动应用高级功能订阅，2025新产品类别与旧云端数值相同，但未证明已剔除这些收入。纯API份额未披露，不能以类别名称还原纯API收入点值；上一轮已获取分类过宽，现改为非等价经济代理。年/H1分开，旧期USD为空，不算独立7期序列，完整同定义史和原量未取得。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "nand_bit_shipments",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "保留九个月收入/ASP比值相对bits估计。新增同4季度NAND原生披露，多为文字范围；FY26Q4约10%保留approximately。4个不连续季度不足8变换，缺绝对bits，不以文字中点或收入直接作实物供给。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "new_power_capacity_mw",
+      "estimate_type": "限定范围内可复算转换",
+      "scope_warning": "可复算已取得样本的单位/数量/日期筛选；总体范围、真实运行时间或容量定义仍不等价",
+      "metric_specific_limits": "同20月按Operating Year/Month统计快照中仍运行的当月投运铭牌MW，排除MWH电池。8缺MW行均不在相应当月投运组，不插值/填零；这不是净新增或AI交付，月内投运后退出者及修订仍需单位级比对。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "nuclear_output_mw",
+      "estimate_type": "限定范围内可复算转换",
+      "scope_warning": "可复算已取得样本的单位/数量/日期筛选；总体范围、真实运行时间或容量定义仍不等价",
+      "metric_specific_limits": "同一官方免费月度工作簿取得19个月美国核电发电MWh，明确换算月平均MW；缺AI归属和电网交付约束，不把全国输出直接计为AI有效供给。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "open_weight_frontier_model_count",
+      "estimate_type": "需冻结定义与历史版本",
+      "scope_warning": "有输入数据，但指标篮子、质量权重、许可、可部署条件与结果可知日期未冻结",
+      "metric_specific_limits": "可按开源权重及冻结的 frontier 定义统计事件；需审核许可、可下载时点和部署条件，不把数量当容量。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "p50_latency_ms",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "官方免费实验记录922条有中位TTFT/E2E，秒已转换为毫秒；可构建冻结模型、配置、序列和并发的实验延迟代理。不是生产API整体延迟，TTFT和E2E须分开；当前每完整配置仅1测量日，历史未验收。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "p95_latency_ms",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "156条agentic replay记录提供p95 TTFT/E2E；只能作为同条件实验尾延迟代理，不能与单轮测试拼接。生产服务p95与可比较历史仍未取得。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "powered_on_gpu_units",
+      "estimate_type": "限定范围内可复算转换",
+      "scope_warning": "可复算已取得样本的单位/数量/日期筛选；总体范围、真实运行时间或容量定义仍不等价",
+      "metric_specific_limits": "CoreWeave原始S-1/A在2025-03-11回溯2022/23/24年末running GPU分别>17000/>53000/>250000；同运营商running蕴含powered-on，可作严格下界映射。点值、AI份额/型号、逐台commissioning/收入与持续更新未验，不用下界之比算真实增速。IREN816 H100运营状态样本另列，不跨主体拼接。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "quality_adjusted_model_score",
+      "estimate_type": "需冻结定义与历史版本",
+      "scope_warning": "有输入数据，但指标篮子、质量权重、许可、可部署条件与结果可知日期未冻结",
+      "metric_specific_limits": "免费能力证据已有历史版本与逐题对账；SWE-bench是模型＋Agent系统分数，不能直接作纯模型质量。原始Agent版本/推理配置保留，冲突记录隔离；任务篮子、可比预算和实际可部署身份尚未冻结。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "quality_adjusted_serving_cost",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "成本可使用明确假设的公开TCO估计，并非必须取得私人账单。已取得限定配置数值；仍需固定质量任务篮子、精度/MTP质量影响、吞吐分母与历史成本版本，不能将质量调整API标价直接改名为服务成本。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "renewable_operational_mw",
+      "estimate_type": "限定范围内可复算转换",
+      "scope_warning": "可复算已取得样本的单位/数量/日期筛选；总体范围、真实运行时间或容量定义仍不等价",
+      "metric_specific_limits": "2025-01至2026-08连续20个月已下载并核验标题/哈希/机组ID，筛(OP) Operating再汇总SUN/WND/GEO铭牌MW。8条其他燃料缺MW逐项隔离，不影响该子集。仅太阳能/风电/地热的美国区域代理，非全部可再生或AI保障供给；历史发布/修订与AI归属仍缺。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "revenue_generating_gpu_units",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "2024-08-06的816H100客户服务/收入证据另存；新增2025-06-30约1900 H100/H200已部署并用于第三方AI云服务。仅近似客户服务机群条件证据，逐台计费/调试/实时通电未披露，原始精确收入GPU点值为空；不算增速、不当2026机群或处理器利用率。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "serving_cost_usd_per_m_tokens",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "原规格允许公开TCO估计。R1/H200与V4/B20017配置成本已重复取数，13非clamped，GPU小时成本/吞吐公式全部复算。更新器按哈希归档并可指定性能日期；成本仍是抓取时注册假设。单日重复不证明长期稳定；质量/生产适用、历史成本版本与正式历史待验。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "take_or_pay_commitments_usd",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "美光2026-05-28明确take-or-pay条款，最低量×最低价RPO约5BUSD可作已定价子集承诺代理；不含无固定价/价带及<=1年合同，不能推全合同金额或AI/HBM金额。422M合同负债为存量分量，不与RPO相加。Sandisk41.6B RPO仅证长期协议，所核条款未证take-or-pay，不混入。仅一个同口径日期；原指标完整量和8增长历史仍缺。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "token_revenue_proxy_usd",
+      "estimate_type": "经济概念或场景代理，不能推出原量",
+      "scope_warning": "单公司/区域/实验/合同侧或标价代理；不能当AI专属总量、生产指标、成功任务或内部实付成本",
+      "metric_specific_limits": "同日期all_tokens的上游账单成本可作样本收入经济代理，91周/78及39增长。供应商实收、毛/净及确认准则未验，不是模型API净收入；不以今日标价回填。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "training_compute_spend_usd",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "DeepSeek-V3原表按2美元/H800 GPU小时估算557.6万美元，三阶段逐项复算一致；仅官方训练，排除前期研发/消融。明确租价假设的情景成本，不是实付、完整公司训练支出或当前价。Epoch10条2023不变美元记录另列，不混币值/范围/时间。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "training_gpu_equivalent_units",
+      "estimate_type": "条件估计或区间，关键参数未验收",
+      "scope_warning": "需要型号/物理内存、绝对基准、运行状态、换算系数或币值/成本假设/质量确认；没有默认中点或填缺参数",
+      "metric_specific_limits": "训练硬件数量×冻结的跨代算力换算；模型事件估计，不能当活跃全集。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    },
+    {
+      "metric": "training_power_mw",
+      "estimate_type": "限定范围内可复算转换",
+      "scope_warning": "可复算已取得样本的单位/数量/日期筛选；总体范围、真实运行时间或容量定义仍不等价",
+      "metric_specific_limits": "105条模型事件有Training power draw，W÷1e6转MW；原字段依据TDP/PUE/服务器开销估算峰值，不是电表读数或训练集群实际利用率。训练发生区间未取得。",
+      "original_value_identified_now": false,
+      "original_aisdi_equivalence_verified": false,
+      "formal_history_admitted": false
+    }
+  ],
+  "metrics": [
+    {
+      "metric": "active_frontier_training_runs",
+      "classification": "未获取",
+      "evidence": "us_ir, epoch, meta_card",
+      "review": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "agent_tasks",
+      "classification": "已获取",
+      "evidence": "salesforce_AWU_quarterly_extension_audit；三期官方季度公告",
+      "review": "FY26Q4/FY27Q1/Q2三期累计AWU24亿/38亿/70亿，最近原稿另明确本季32亿AWU及97%Q/Q；累计库存与季度流量分开，不由累计差分或舍入增速回推季量。跨Agentforce/Slack厂商活动，不代表成功任务或行业总量；只有两次累计变化/一期直接季流量，不足8有效变换。同季度Agentforce ARR扩大纳入AI offerings/Slackbot/Headless360，不算跨期同口径增长或每任务收入。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "ai_capex_usd",
+      "classification": "可间接估计",
+      "evidence": "nebius_reported_capex_proxy：公司GPU/DC导向投资代理",
+      "review": "取得连续6季公司Capex，Q2_2025以后明确主要用于GPU/相关硬件/DC；可作为单独命名的投资趋势代理，不能估出AI专属美元。ai_only_amount与AI份额保持空，现金/资本化/租赁口径未核对；不按100%AI映射或混同巨头现金Capex，正式原字段未补齐。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "ai_capex_yoy",
+      "classification": "可间接估计",
+      "evidence": "nebius_reported_capex_proxy：同季度公司投资同比代理",
+      "review": "上述公司代理有2026Q1/Q2对2025同季的同比参考约359.6%/1016.3%，保留约数、业务范围与重报未验收标志；不是AI专属同比，样本/6季历史及与原指标等价性仍未通过。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "ai_cloud_revenue_usd",
+      "classification": "已获取",
+      "evidence": "IREN当前GAAP审计；nebius_early_AI_revenue_quarter_bridge_admission_audit",
+      "review": "IREN单一GAAP8季仅7增长，混合IFRS/GAAP另存；Nebius当前版本8季候选：7直接分部/1年度减9月桥接，7邻季候选、仅5直接到直接。新2024Q3 27.1M直接，Q4 68.3M全年−44.5M前9月=23.8M条件桥接，跨报告口径待核；2024H1 17.4M不拆成未知Q1/Q2。2025四季和480.4M对年度480.3M差0.1M，在舍入容限内而非精确相等。含内部交易，不把全部抵销强减AI分部；不同实体/频率不凑8变换，原完整资格仍未验。 IREN历史版本复核：FY25年度补充表2024Q4为2.660M，FY26Q2比较表为2.661M美元；差1000美元，原因未验，保留两版并计算相邻两期增长敏感度，不静默覆盖或新增季度。详见iren_GAAP_comparative_revision_audit.json。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "ai_mau",
+      "classification": "已获取",
+      "evidence": "company_activity_field_time_axis_audit；Epoch51行用户表",
+      "review": "原包14条Monthly数值，AI Overviews publisher排除标志保留为上下文，13条候选分Meta6/Gemini4/OpenAI2/Grok1；数据包字段/日期已核，上游原文未全验。跨产品用户不相加，MAU不由WAU外推，同字段连续月更新未证明。补Google三原稿：2026-02超过750M、07月950M、08月超过1B；两下界保留，now不伪造季度末观测日。Q1原发言仅企业付费MAU百分比，不填消费者人数。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "ai_rpo_usd",
+      "classification": "已获取",
+      "evidence": "nebius_explicit_AI_RPO_and_segment_history_audit；Nebius原生SEC2026Q2财务附注；IREN条件样本另列",
+      "review": "Nebius2026-06-30 RPO37490.6M USD明确全部归AI cloud；含可变对价估计，<=1年义务排除，实际收入/ARR分开。只1期明确AI归属；2026Q1集团RPO33585.3M未核同样归属，不回套最新声明作AI增长。IREN旧AI归属推断条件保持，不因此变直接。完整历史/8变换/PIT未准入。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "ai_wau",
+      "classification": "已获取",
+      "evidence": "company_activity_field_time_axis_audit；Epoch51行用户表",
+      "review": "原包15条Weekly，40M付费用户子集保留上下文后14候选；消费者论文6图形数字化点与全产品公告分别列系列，来源/观测日/报告日/置信度保留，不拼成统一WAU或完整周度面板。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "api_available_regions",
+      "classification": "已获取",
+      "evidence": "bedrock_model_region_snapshot：AWS官方矩阵",
+      "review": "2026-10-06当前文档提取140模型名称/35区域/1583去重模型区域行，分别保留In-Region、Geo入口、Global入口、Legacy/EOL。这里只是AWS文档支持快照，未登录验证账号或实际配额，跨区入口非部署区域；不回填2026-10-05或2025历史。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "api_calls",
+      "classification": "已获取",
+      "evidence": "openrouter_app_request_sample；hf_app_archive_oct1_csv",
+      "review": "60条官方当前 day/week/month 请求快照；新增第三方固定版本1181条周窗口记录、59个采集日，2026-08-01至10-01，缺3日。不是每日请求流，也不是全平台历史；第三方方法页面503，待独立复核。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "api_capacity_tps",
+      "classification": "未获取",
+      "evidence": "mlperf_supply_evidence_audit；Google实际负载披露",
+      "review": "新增MLPerf两版461条可购买/可租系统的合规延迟约束Tokens/s结果，6组硬件/模型/场景匹配但软件全部变更。可反映单系统能力，缺服务开放容量、部署台数和运行可用率；Google实际处理速率也不是最大容量。原生产API容量序列未补齐。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "api_tokens_total",
+      "classification": "已获取",
+      "evidence": "Ramp TSM；ramp_weekly_token_history_replay_audit",
+      "review": "all_tokens只计一次，91周样本水平；13/52周78/39变换。数量来自Anthropic/OpenAI连接账单样本，非全行业API总量。周频当前日期年龄6天在21天内，原生日频5天门槛仍失败；周化不修复日频nowcast。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "api_uptime_pct",
+      "classification": "已获取",
+      "evidence": "current_uptime_factor_validation；or_uptime_endpoint_history_audit；Claude组件月度另列",
+      "review": "93水平/91相邻日变化均超8且MAD非零，Oct6当前版本数值验证通过；免费重复采集历史支持研究前瞻取数。只验证Sonnet4+amazon-bedrock滚动1d末采样；7月16缺留空。首发PIT、未来持续保证、2-3年推荐窗及最终质量篮子/置信权重未证明；不回填历史正式分数。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "available_power_mw",
+      "classification": "已获取",
+      "evidence": "terawulf_capacity_history_records；terawulf_capacity_history_audit",
+      "review": "同一Hawesville园区约480MW即时并网电力可用量。与grid_connected_mw是同一事实，不相加；开发状态未证明AI设备已调试/运行或收入。单点/容量权利及保障性待验。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "benchmark_composite_score",
+      "classification": "可间接估计",
+      "evidence": "epoch_benchmarks；swebench_vintage_source_audit",
+      "review": "已有多测试历史结果；新增SWE-bench官方4个固定SHA榜单版本，533行/180提交。80份500题逐题复算中73一致、7冲突隔离；1项同提交分数修订保留。固定测试篮子、版本、系统配置与权重后可构造；模型/提交日期非首次公开日。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "cancelled_training_runs",
+      "classification": "未获取",
+      "evidence": "us_ir, epoch, meta_card",
+      "review": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "cloud_revenue_usd",
+      "classification": "已获取",
+      "evidence": "nebius_ai_cloud_records；CoreWeave 另列公司收入代理",
+      "review": "Nebius AI 云分部收入可作明确云样本；CoreWeave 公司总收入仍是另列代理。不得把不同范围样本直接相加为全球云收入。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "cloud_revenue_yoy",
+      "classification": "已获取",
+      "evidence": "Nebius 官方股东信 2026Q1／Q2",
+      "review": "公司直接披露 AI 云同比 841%／514%；仅实体两期同比，需补基期原值并固定修订版本，不外推全行业。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "compute_commitments_usd",
+      "classification": "可间接估计",
+      "evidence": "coreweave_contract_records：6 期卖方合同记录",
+      "review": "连续 seller revenue backlog 25.9／30.1／55.6／66.8／99.4／104.0 十亿美元可作为客户承诺金额代理；包含交付条件，非全部无条件买方采购义务。须明确买卖双方，避免重复计数。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "consumer_wau",
+      "classification": "已获取",
+      "evidence": "company_activity_field_time_axis_audit；Epoch消费者子集",
+      "review": "只有6条明确ChatGPT Free/Plus/Pro消费者周活，取自同一论文图形并按5M舍入；2023-03至2025-07观测于2025-09统一公开，最长报告滞后904天。其他全产品/未知范围周活不混入；6点不足8个可比变化，首发/上游原图待验。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "context_window_tokens",
+      "classification": "已获取",
+      "evidence": "openrouter_model_snapshot",
+      "review": "464 个模型当前公开上下文上限；不代表全部模型在全部区域有可用容量。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "contracted_dc_mw",
+      "classification": "已获取",
+      "evidence": "terawulf_capacity_review：Anthropic 签约租赁",
+      "review": "约401MW critical IT 的 20 年客户合同，签约在季度末之后，8 月 5 日披露；是已签需求，2027 年以后交付部分不能当现供给。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_announced_mw",
+      "classification": "已获取",
+      "evidence": "announced_dc_capacity_scope_correction；terawulf_capacity_review",
+      "review": "原字段是已公告容量而非当前有效供给。2026-08-05TeraWulf原稿明确Anthropic未来401MW critical IT租赁容量，预计2027下半年首交付；可作单项目已公告样本，与contracted_dc_mw同一事实，不叠加。旧分类把供给禁入误当数据未获取，现修正；不证明全行业/连续史，不纳入当前有效供给。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_commissioned_mw",
+      "classification": "可间接估计",
+      "evidence": "TeraWulf分阶段披露；coreweave_active_power_time_axis_admission_audit；Nebius口径分开",
+      "review": "既有commissioning代理保留。CoreWeave active power 9日期含年度缺口，只有7连续季点/6季转换；大约/超过保留，不将两个下界比作增长下界。SEC年报未核IT或设施定义，不能借Nebius定义，也不能直接当commissioned、实际利用率或已收入MW。须另核调试交付与同口径历史，未补缺季度或升正式供给。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_energized_mw",
+      "classification": "已获取",
+      "evidence": "terawulf_capacity_history_records；terawulf_capacity_review",
+      "review": "新增Lake Mariner截至2026-03-31 60MW原始通电且收入运行披露，2026-05-08发布；既有7月102MW通电值保留，不改为6月末。HPC critical IT与挖矿/site power分开，同容量不重复。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_lease_commitments_usd",
+      "classification": "可间接估计",
+      "evidence": "msft_uncommenced_DC_lease_proxy_history_audit；微软原始财务附注与SEC交叉核对",
+      "review": "2024Q2至2026Q2九连续季公司未开始租赁管线（primarily datacenters），8原始HTML/1SEC原文索引摘录，8诊断季变换，原始HTML单独只有7。早期operating+finance分项加总，后期合计只计一次；SEC双轴重复155.1B不相加。最新329.1B有部分合同条件。未提供DC/AI份额或完整不可取消条款，存量变化非新签订单，不推运行MW或当期Capex；原指标纯量与正式历史未准入。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_prelease_pct",
+      "classification": "已获取",
+      "evidence": "cbre_semiannual_history_records；cbre_semiannual_history_audit",
+      "review": "八份报告中五期正文预租率73.1/83/近80/74.3/80.4%已取得，另外三期缺失不插值。2024H1近80保留近似。原文限定primary或all under-construction，仍需逐期固定分母；预租为未来需求，不是运行供给。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_revenue_generating_mw",
+      "classification": "已获取",
+      "evidence": "terawulf_capacity_history_records；terawulf_capacity_review",
+      "review": "Lake Mariner HPC：2026-03-31 60MW、06-30 81MW、7月CB3后102MW。3月60MW同时明确energized and generating revenue；6月81MW单独通电证明仍待查。2026-02-26报告39MW online仅辅助，不指定2025年末。短历史，不是全行业。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_under_construction_mw",
+      "classification": "已获取",
+      "evidence": "cbre_semiannual_history_records；cbre_semiannual_history_audit",
+      "review": "八期本报告当期在建MW已取得；2023H2原报告3077.8与2025H1回溯3245.2不同，保留两版本边界不覆盖。2024H2正文6350为较低精度值，不以后来6350.1回填。区域在建不计有效供给。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_utilization_pct",
+      "classification": "可间接估计",
+      "evidence": "cbre_2025h2；cbre_2026h1",
+      "review": "1−空置率可表示可租容量占用率代理；不等于设备运行利用率，必须另命名并保留区域和容量定义。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "dc_vacancy_pct",
+      "classification": "已获取",
+      "evidence": "cbre_semiannual_history_records；cbre_semiannual_history_audit",
+      "review": "已逐期抓取2022H2至2026H1八份官方免费半年报告，空置率3.2/3.3/3.7/2.8/1.9/1.6/1.4/1.4%。原期发布日与原文哈希保留。primary市场包含范围跨期变化，当前页历史修订未认证；不能直接当固定篮子连续PIT或设备利用率。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "delayed_training_runs",
+      "classification": "未获取",
+      "evidence": "us_ir, epoch, meta_card",
+      "review": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "deployed_frontier_model_count",
+      "classification": "未获取",
+      "evidence": "epoch_models_zip；openrouter_models",
+      "review": "有模型发布及目录快照，但部署许可、可用端点及 frontier 定义未逐项审查，不能直接从发布数量推算。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "dram_bit_shipments",
+      "classification": "可间接估计",
+      "evidence": "Micron SEC相对量估计；micron_quarterly_bit_growth_archive_audit",
+      "review": "保留九个月收入/ASP比值的相对bits估计。新增4份原生季度PDF：FY24Q2/Q4、FY25Q1、FY26Q4，直接披露公司DRAM QoQ bit增速但均为low/mid/flattish等原文，未取未定义范围中点或把flattish设0。无绝对bits/HBM拆分，非连续精确数值历史。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "dram_orders_bits",
+      "classification": "未获取",
+      "evidence": "gpu_ir, memory_ir, korea_ir",
+      "review": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "effective_tokens_per_second",
+      "classification": "未获取",
+      "evidence": "mlperf_deployable_system_performance_records；InferenceX",
+      "review": "MLPerf同时保留质量合规、可获得分类、硬件数和Server/Interactive吞吐；实验系统质量门槛不等于原规格统一任务质量。需生产部署、容量数量、可用率与缓存/输入输出映射；461实验行不能相加为实际有效供给。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "enterprise_ai_seats",
+      "classification": "已获取",
+      "evidence": "msft_enterprise_paid_seats_records：微软官方季度电话会",
+      "review": "2026-01-28报告1500万、04-29超过2000万、07-29超过3000万Microsoft365 Copilot付费席位，保留下限与电话会披露日。单厂商商业产品样本，不是企业WAU或全行业席位；不推算收入。仅3点，精确测量日及至少8期历史未验收。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "enterprise_wau",
+      "classification": "未获取",
+      "evidence": "enterprise_activity_public_source_boundary_audit；微软/亚马逊公开企业披露",
+      "review": "Bedrock2025Q4的100000+公司与2026Q2的hundreds of thousands customers均是客户组织，不是企业周活人数；不猜数、不替代企业WAU。微软付费席位也不等于活跃用户。原定义历史仍缺。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "finance_lease_additions_usd",
+      "classification": "已获取",
+      "evidence": "sec_extended_financial_quarters；sec_extended_financial_history_audit",
+      "review": "同一期间MSFT/AMZN各14期，GOOG9期，融资租赁新增合计37条。GOOG2023四季及2024Q4缺口未补值；精确标签非租赁付款或全部Capex。原生/差分、申报日期及重报约束保留。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "gas_power_output_mw",
+      "classification": "可间接估计",
+      "evidence": "eia_power_monthly_proxy_records；eia_power_monthly_audit",
+      "review": "已取得2025-01至2026-07共19个月美国燃气发电MWh，可除以当月24×日数得到平均输出MW；仅区域电力供给代理，非AI专属、瞬时或数据中心可用容量。原始版本含2025终值/2026初值，历史首次发布时点未验收。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_allocation_units",
+      "classification": "未获取",
+      "evidence": "gpu_ir, memory_ir, korea_ir",
+      "review": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_backlog_usd",
+      "classification": "未获取",
+      "evidence": "gpu_ir, memory_ir, korea_ir",
+      "review": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_cloud_available_units",
+      "classification": "已获取",
+      "evidence": "gpu_market_offer_snapshot_audit：Vast官方只读挂牌接口",
+      "review": "2026-10-06当前H100SXM样本7方案/5主机，按(machine_id,gpu_ids)去重10平台GPU标识；逐行总和12因重叠拒用。单市场挂牌非实物审计/保证可租，未回填2026-10-05截面或2025历史；可前瞻归档，更新程序尚未部署。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_cloud_wait_time_days",
+      "classification": "未获取",
+      "evidence": "gpu_prices, dc_ir",
+      "review": "Stock category/available instance configurations not actual GPU unit count, queue duration or utilization. No free consistent global history identified. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_equivalent_compute_capacity",
+      "classification": "可间接估计",
+      "evidence": "epoch_dc；epoch_chips",
+      "review": "可用 H100e 估计硬件规模；需先筛实际日期和运行状态，缺收入条件，因此只能列供给容量代理，不能正式认定有效供给。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_orders_units",
+      "classification": "已获取",
+      "evidence": "iren_gpu_procurement_event_records；iren_gpu_procurement_event_audit；KGI单位补查另存",
+      "review": "IREN五次明确采购/订单样本：2025-07-03 2.4k、08-25 4.2k、08-28 2.4k、09-22 12.4k；2026-03-04购买协议>50k。九条型号分量仍是五个事件。保留约数/下界，融资重组不重复计；150k是未来总机群，不计订单增量或运营供给。未证明完整净订单、连续月季流量和稳定自动采集。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "gpu_utilization_pct",
+      "classification": "未获取",
+      "evidence": "iren_monthly_GPU_state_timeline_audit；GPU平台遥测",
+      "review": "IREN4月/5月月报有fleet near full利用状态，描述客户服务/分配，不给数值或SM利用率；不制造95%/100%，不据此推GPU小时。仍无连续同定义数值。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "grid_connected_mw",
+      "classification": "已获取",
+      "evidence": "terawulf_capacity_history_records；terawulf_capacity_history_audit",
+      "review": "2026-05-08官方Q1公告披露Justified Data/Hawesville约480MW即时并网电力可用量，精确测量日未知。是开发园区site power MW，非critical IT MW或已运行AI交付容量；单点不证明稳定同口径历史，不计当前有效AI供给。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "grid_connection_delay_months",
+      "classification": "可间接估计",
+      "evidence": "lbnl_queue_source_audit：IR-to-COD年度完成项目统计",
+      "review": "取得2005-2025共21年完成项目IR到COD月数；2025年294项目中位约60.82个月。仅发电侧成功完成队列的耗时代理，不是全部在途项目等待、相对计划延误或数据中心负荷接入耗时；年度更新及历史首次发布时点仍需验收。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "hbm_bit_shipments",
+      "classification": "可间接估计",
+      "evidence": "hopper_hbm_conditional_estimates；TrendForce免费原文",
+      "review": "保留已有H100/H200出货估计×配置内存bytes×8的条件范围，15个完整期间；只是随Hopper出货的HBM容量代理，型号配比、物理/可用内存及首发版本待审。补查的2025/26/27供给份额8/9/13%为机构估计／预测，缺绝对DRAM bits分母，不能另推实际已出货bits或升级正式输入。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "hbm_long_term_agreements_usd",
+      "classification": "未获取",
+      "evidence": "gpu_ir, memory_ir, korea_ir",
+      "review": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "hbm_orders_bits",
+      "classification": "未获取",
+      "evidence": "存储厂商 IR",
+      "review": "销售额和出货不是按 bit 计的订单，未取得连续数据。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "hbm_qualified_capacity_bits",
+      "classification": "未获取",
+      "evidence": "hbm_free_institution_evidence_audit；存储厂商IR",
+      "review": "晶圆月产能预测或投入份额不等于合资格bits；缺die面积、bits/die、良率、堆叠及客户认证。未用预测或未知分母填补实际供给。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "hbm_utilization_pct",
+      "classification": "未获取",
+      "evidence": "memory_ir, korea_ir, trendforce_paid",
+      "review": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "hbm_wafer_capacity",
+      "classification": "未获取",
+      "evidence": "hbm_free_institution_evidence_audit：TrendForce免费原文",
+      "review": "新增3篇机构原文/5条预测或估计：2024年底250K/m是当时预测，2025/26/27晶圆投入份额18/22/30%分母为三大厂DRAM投入，不是实际绝对产能。35%先进制程份额与14%全DRAM份额不同，不拼接；同口径实际连续产能仍缺。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "inference_api_calls",
+      "classification": "可间接估计",
+      "evidence": "openrouter_app_request_sample：同源 API 请求代理",
+      "review": "可用公开应用模型请求数作为推理工作负载样本；需固定模态、应用篮子和窗口，不能把API目录访问或其他管理请求混入。它与api_calls共享原始证据，不独立重复计权。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "inference_compute_hours",
+      "classification": "未获取",
+      "evidence": "public_usage, or_traffic",
+      "review": "Traffic/tokens/users not successfully completed tasks or actual GPU hours. Requires provider/workspace telemetry and consistent task success definition. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "inference_gpu_hours",
+      "classification": "未获取",
+      "evidence": "public_usage, or_traffic",
+      "review": "Traffic/tokens/users not successfully completed tasks or actual GPU hours. Requires provider/workspace telemetry and consistent task success definition. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "inference_tokens",
+      "classification": "已获取",
+      "evidence": "ramp_weekly_token_history_replay_audit；Ramp TSM原生SSR",
+      "review": "637日标签/3822行固定两maker×三类型，固定星期二抽91周，13/52周log增长分别78/39值，扩展median/MAD已复算。只是TSM企业样本，客户数与固定cohort未披露；tokenizer/模型/缓存配比可变，不是全行业量。二次免费取数数值完全相同，尚未观察新增日期。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "input_tokens",
+      "classification": "可间接估计",
+      "evidence": "ramp_original_input_token_mapping_audit；Ramp TSM原生分量",
+      "review": "直接取得uncached_input，不是完整输入。1274个提供商×日期可复算all_tokens−output作为完整输入条件候选，须核all/output穷尽分拆、reasoning/缓存/计费窗口/tokenizer。差额不直接叫cached input，actual_total_input保持空值；91周未缓存输入增长不提升为完整输入原量。客户样本、首次版本与稳定新增仍未验。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "installed_gpu_units",
+      "classification": "已获取",
+      "evidence": "iren_operating_fleet_records；iren_monthly_GPU_state_timeline_audit；iren_fy25_customer_service_fleet_audit",
+      "review": "既有2024-06-30安装816和2025-06-30约1.9k部署/服务样本保留。新增2025-01-07月报原表：1896H100/H200已安装，但H200签约仍进行；发布者当前状态不自动定为12月31日。2024-11-06原稿另明确816H100已安装并运行、1080H200正在commissioning；不得把合计1896作全机群商业运行量。7状态行来自5出版容器，不是7期独立供给观测。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "interconnection_queue_mw",
+      "classification": "可间接估计",
+      "evidence": "lbnl_queue_source_audit：LBNL/GridTracker免费年度表",
+      "review": "已取得2025年末项目级排队状态与MW，可统计发电侧排队容量代理；不含负荷接入、配网或表后项目，也不证明AI需求。报告储能总量含混合项目缺失容量估计，原表不含该估计；项目行数与headline口径尚需对账。年度初值不可回填月度，pipeline不计当前供给。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "leased_dc_mw",
+      "classification": "已获取",
+      "evidence": "dc_leasing_records：Equinix 官方披露",
+      "review": "两次公开披露 xScale 累计已租赁容量 385MW、>400MW。包含在建容量，适用于需求；不是有效供给，也非 AI 专属。采用公告日期观察，不擅自回写季度末；样本过旧、不足 8 期。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "memory_yield_pct",
+      "classification": "未获取",
+      "evidence": "hbm_free_institution_evidence_audit；厂商IR",
+      "review": "免费原文只有HBM相对DDR5良率较低的区间描述，缺DDR5绝对基准及制程/TSV阶段定义，不能转成HBM绝对yield%。实际稳定数值序列仍未取得。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "model_api_revenue_usd",
+      "classification": "可间接估计",
+      "evidence": "zai_model_api_revenue_history_audit；HKEX原始招股书/年度/半年公告",
+      "review": "原稿取得Open Platform/API或云端部署商业收入代理：2022/23/24/25年度2.594M/11.924M/48.484M/190.379M RMB，2024/25/26H1 18.103M/29.100M/825.176M RMB；2026H1发布者近似123M USD。招股书明确旧云端类别含网页/移动应用高级功能订阅，2025新产品类别与旧云端数值相同，但未证明已剔除这些收入。纯API份额未披露，不能以类别名称还原纯API收入点值；上一轮已获取分类过宽，现改为非等价经济代理。年/H1分开，旧期USD为空，不算独立7期序列，完整同定义史和原量未取得。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "model_arr_usd",
+      "classification": "已获取",
+      "evidence": "company_activity_field_time_axis_audit；enterprise_activity_public_source_boundary_audit",
+      "review": "Epoch72收入行中38run-rate/15ARR分开；37run-rate/13ARR日期完整候选；10period-interpolation排除。新增AWS AI运行率两原稿下界：2026Q1说明超过15B USD、Q2超过25B USD；不是合同ARR、纯API收入或实际季度收入，不相加chips金额、不除4或算精确增长。两点且now无精确测量日，完整同定义时间史仍未完成。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "nand_bit_shipments",
+      "classification": "可间接估计",
+      "evidence": "Micron SEC相对量估计；micron_quarterly_bit_growth_archive_audit",
+      "review": "保留九个月收入/ASP比值相对bits估计。新增同4季度NAND原生披露，多为文字范围；FY26Q4约10%保留approximately。4个不连续季度不足8变换，缺绝对bits，不以文字中点或收入直接作实物供给。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "nand_orders_bits",
+      "classification": "未获取",
+      "evidence": "gpu_ir, memory_ir, korea_ir",
+      "review": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "new_power_capacity_mw",
+      "classification": "可间接估计",
+      "evidence": "eia_inventory_capacity_audit：20月官方存档",
+      "review": "同20月按Operating Year/Month统计快照中仍运行的当月投运铭牌MW，排除MWH电池。8缺MW行均不在相应当月投运组，不插值/填零；这不是净新增或AI交付，月内投运后退出者及修订仍需单位级比对。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "nuclear_output_mw",
+      "classification": "可间接估计",
+      "evidence": "eia_power_monthly_proxy_records；eia_power_monthly_audit",
+      "review": "同一官方免费月度工作簿取得19个月美国核电发电MWh，明确换算月平均MW；缺AI归属和电网交付约束，不把全国输出直接计为AI有效供给。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "open_weight_frontier_model_count",
+      "classification": "可间接估计",
+      "evidence": "epoch_models_zip",
+      "review": "可按开源权重及冻结的 frontier 定义统计事件；需审核许可、可下载时点和部署条件，不把数量当容量。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "openrouter_tokens",
+      "classification": "已获取",
+      "evidence": "openrouter_model_token_sample：官方公开排名",
+      "review": "已提取20个公开模型当前 week 窗口的 prompt+completion 原始 Token 样本；按“已取得样本”与其他字段一致归类。完整 top50+other 日度历史仍需密钥，不能把top20之和当全平台；2025历史及窗口起点未验收。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_16t_capacity_units",
+      "classification": "未获取",
+      "evidence": "optical_ir, cninfo, trendforce_paid",
+      "review": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_16t_orders_units",
+      "classification": "未获取",
+      "evidence": "lightcounting_2026q2",
+      "review": "免费摘要未给同口径连续订单数量。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_16t_shipments_units",
+      "classification": "未获取",
+      "evidence": "lightcounting_2026q2；厂商 IR",
+      "review": "量产叙述不能变成实际出货数量。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_800g_capacity_units",
+      "classification": "已获取",
+      "evidence": "aoi_optical_capacity_records；aoi_optical_capacity_audit",
+      "review": "AOI2026-05-07Q1公告明确季末800G制造能力接近100000只/月，保留nearly；不是实际出货或已认证产能。Q2接近200000只/月混合产能、年末650000目标分开，不赋800G或1.6T子项。连续季度出版已见，同定义容量仅一观测。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_800g_orders_units",
+      "classification": "未获取",
+      "evidence": "lightcounting_2026q2",
+      "review": "免费摘要未给同口径连续订单数量。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_800g_shipments_units",
+      "classification": "已获取",
+      "evidence": "AOI首批出货样本；aoi_optical_capacity_audit",
+      "review": "原首批10000只800G单模客户样本保留。Q2原稿披露800G volume较Q1超过翻倍，仅同比例辅助，不提供绝对只数；不能按10000单客户乘2。Q1近100k/月为制造能力，不以容量×月份算出货；持续绝对数量历史尚缺。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_backlog_usd",
+      "classification": "未获取",
+      "evidence": "optical_ir, cninfo",
+      "review": "No consistent unit/order/book-to-bill series for fixed 800G/1.6T basket; equipment/company aggregate backlog not equivalent. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_book_to_bill",
+      "classification": "未获取",
+      "evidence": "optical_ir, cninfo",
+      "review": "No consistent unit/order/book-to-bill series for fixed 800G/1.6T basket; equipment/company aggregate backlog not equivalent. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_lead_time_weeks",
+      "classification": "未获取",
+      "evidence": "optical_ir, cninfo, trendforce_paid",
+      "review": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "optical_yield_pct",
+      "classification": "未获取",
+      "evidence": "optical_ir, cninfo, trendforce_paid",
+      "review": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "output_tokens",
+      "classification": "已获取",
+      "evidence": "Ramp TSM；ramp_weekly_token_history_replay_audit",
+      "review": "取得output两maker样本，91周/78及39增长；与all_tokens分开诊断不重复相加，模型/样本篮子变化未验，不是全行业产出或成功任务数。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "p50_latency_ms",
+      "classification": "可间接估计",
+      "evidence": "inferencex_measurement_audit；inferencex_normalized_sample",
+      "review": "官方免费实验记录922条有中位TTFT/E2E，秒已转换为毫秒；可构建冻结模型、配置、序列和并发的实验延迟代理。不是生产API整体延迟，TTFT和E2E须分开；当前每完整配置仅1测量日，历史未验收。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "p95_latency_ms",
+      "classification": "可间接估计",
+      "evidence": "inferencex_measurement_audit；inferencex_normalized_sample",
+      "review": "156条agentic replay记录提供p95 TTFT/E2E；只能作为同条件实验尾延迟代理，不能与单轮测试拼接。生产服务p95与可比较历史仍未取得。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "power_purchase_commitment_mw",
+      "classification": "已获取",
+      "evidence": "coreweave_quarterly_records：6 期官方披露",
+      "review": "2025Q1 至 2026Q2 的 contracted power：约 1600、2200、2900、3100、>3500、3700MW；为公司合同电力样本，非客户 leased IT MW，不计当前有效供给。仅 6 期，尚不足 8 期。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "powered_on_gpu_units",
+      "classification": "可间接估计",
+      "evidence": "coreweave_running_gpu_bound_records；coreweave_running_gpu_bound_audit；IREN SEC状态证据",
+      "review": "CoreWeave原始S-1/A在2025-03-11回溯2022/23/24年末running GPU分别>17000/>53000/>250000；同运营商running蕴含powered-on，可作严格下界映射。点值、AI份额/型号、逐台commissioning/收入与持续更新未验，不用下界之比算真实增速。IREN816 H100运营状态样本另列，不跨主体拼接。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "ppa_operational_mw",
+      "classification": "未获取",
+      "evidence": "企业 PPA／发电项目披露",
+      "review": "PPA 签约量不等于已投运并供给 AI 的 MW。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "quality_adjusted_model_score",
+      "classification": "可间接估计",
+      "evidence": "epoch_benchmarks；swebench_vintage_source_audit；AA当前快照",
+      "review": "免费能力证据已有历史版本与逐题对账；SWE-bench是模型＋Agent系统分数，不能直接作纯模型质量。原始Agent版本/推理配置保留，冲突记录隔离；任务篮子、可比预算和实际可部署身份尚未冻结。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "quality_adjusted_serving_cost",
+      "classification": "可间接估计",
+      "evidence": "inferencex_modeled_cost_audit；epoch_benchmarks",
+      "review": "成本可使用明确假设的公开TCO估计，并非必须取得私人账单。已取得限定配置数值；仍需固定质量任务篮子、精度/MTP质量影响、吞吐分母与历史成本版本，不能将质量调整API标价直接改名为服务成本。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "rate_limit_tokens_per_min",
+      "classification": "已获取",
+      "evidence": "public_rate_limit_snapshot：Anthropic官方公开额度",
+      "review": "取得Start/Build/Scale三账户等级、9模型类共27条标准RPM/ITPM/OTPM快照；保留缓存输入规则和退役备注，不混合输入/输出。只代表公开标准组织额度，非实际账号保证吞吐或总生产容量；旧2025历史及生效日期未取得。Gemini当前文档指向账号控制台，未采信旧第三方数值。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "renewable_operational_mw",
+      "classification": "可间接估计",
+      "evidence": "eia_inventory_capacity_audit：20月官方存档",
+      "review": "2025-01至2026-08连续20个月已下载并核验标题/哈希/机组ID，筛(OP) Operating再汇总SUN/WND/GEO铭牌MW。8条其他燃料缺MW逐项隔离，不影响该子集。仅太阳能/风电/地热的美国区域代理，非全部可再生或AI保障供给；历史发布/修订与AI归属仍缺。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "reserved_power_mw",
+      "classification": "未获取",
+      "evidence": "企业／电网合同披露",
+      "review": "预订和接入排队口径不同，未取得连续原指标。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "revenue_generating_gpu_units",
+      "classification": "可间接估计",
+      "evidence": "iren_operating_fleet_records；iren_fy25_customer_service_fleet_audit",
+      "review": "2024-08-06的816H100客户服务/收入证据另存；新增2025-06-30约1900 H100/H200已部署并用于第三方AI云服务。仅近似客户服务机群条件证据，逐台计费/调试/实时通电未披露，原始精确收入GPU点值为空；不算增速、不当2026机群或处理器利用率。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "revenue_per_successful_task_usd",
+      "classification": "未获取",
+      "evidence": "模型公司实收收入／业务验收任务",
+      "review": "分母 successful tasks 未获取；不能用 AWU 或 token 数冒充成功任务。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "serving_cost_usd_per_m_tokens",
+      "classification": "可间接估计",
+      "evidence": "inferencex_modeled_cost_audit；inferencex_forward_tracking_audit；public_snapshot_history",
+      "review": "原规格允许公开TCO估计。R1/H200与V4/B20017配置成本已重复取数，13非clamped，GPU小时成本/吞吐公式全部复算。更新器按哈希归档并可指定性能日期；成本仍是抓取时注册假设。单日重复不证明长期稳定；质量/生产适用、历史成本版本与正式历史待验。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "signed_pfa_mw",
+      "classification": "未获取",
+      "evidence": "nebius_power_stage_review；原始客户合同",
+      "review": "公司土地/电力commitments披露不等于客户签署PFA。已保存合同容量下限，但未确认该原始字段对应合同及连续MW。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "successful_agent_tasks",
+      "classification": "未获取",
+      "evidence": "salesforce_AWU_quarterly_extension_audit；enterprise_activity_public_source_boundary_audit",
+      "review": "AWU是混合活动；ServiceNow官方公开文档有按天更新的执行Success与关闭任务字段，但数值在客户实例、需viewer/admin角色，本轮只取得定义。执行状态/关闭任务/AI推断满意度不自动等于业务验收成功；无公开同口径数值史。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "successful_tasks",
+      "classification": "未获取",
+      "evidence": "enterprise_activity_public_source_boundary_audit；ServiceNow公开分析文档",
+      "review": "公开字段定义有执行成功状态和关闭业务任务计数，实例数据并未公开；HTTP200为JS应用壳，文档正文通过官方Reader核对，来源类型分开。业务验收成功映射仍待定义，未访问任何客户实例。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "take_or_pay_commitments_usd",
+      "classification": "可间接估计",
+      "evidence": "memory_take_or_pay_minimum_RPO_proxy_audit；Micron原生SEC10Q",
+      "review": "美光2026-05-28明确take-or-pay条款，最低量×最低价RPO约5BUSD可作已定价子集承诺代理；不含无固定价/价带及<=1年合同，不能推全合同金额或AI/HBM金额。422M合同负债为存量分量，不与RPO相加。Sandisk41.6B RPO仅证长期协议，所核条款未证take-or-pay，不混入。仅一个同口径日期；原指标完整量和8增长历史仍缺。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "token_price_input_usd_per_m",
+      "classification": "已获取",
+      "evidence": "openrouter_model_snapshot；model_snapshot_audit",
+      "review": "464目录条目中457个有效数值输入标价；7个路由条目原值-1的价格已标空并保留拒用原因，不当作负价或免费。历史生效日仍缺；当前公开文档快照可手动版本归档。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "token_price_output_usd_per_m",
+      "classification": "已获取",
+      "evidence": "openrouter_model_snapshot；model_snapshot_audit",
+      "review": "同457个有效数值输出标价，7个-1路由条目字段拒用。输入/输出单位各自保存，不换算实收或内部成本；非历史价格序列。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "token_revenue_proxy_usd",
+      "classification": "可间接估计",
+      "evidence": "Ramp TSM；ramp_weekly_token_history_replay_audit",
+      "review": "同日期all_tokens的上游账单成本可作样本收入经济代理，91周/78及39增长。供应商实收、毛/净及确认准则未验，不是模型API净收入；不以今日标价回填。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "total_capex_usd",
+      "classification": "已获取",
+      "evidence": "sec_extended_financial_quarters；sec_extended_financial_history_audit",
+      "review": "2023Q1至2026Q2三家公司各14期，总42条Capex季度记录。原生单季与累计差分分别标注，跨申报差分/重报待复核；年合计已对账。所有值仍为公司总现金购置支出，不是AI专属。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_cluster_utilization_pct",
+      "classification": "未获取",
+      "evidence": "epoch_models_zip 仅支持模型事件 MFU",
+      "review": "单次训练 MFU 不等于行业运行集群利用率；未取得连续真实遥测。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_compute_spend_usd",
+      "classification": "可间接估计",
+      "evidence": "DeepSeek-V3发布者成本假设；Epoch2023美元估计",
+      "review": "DeepSeek-V3原表按2美元/H800 GPU小时估算557.6万美元，三阶段逐项复算一致；仅官方训练，排除前期研发/消融。明确租价假设的情景成本，不是实付、完整公司训练支出或当前价。Epoch10条2023不变美元记录另列，不混币值/范围/时间。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_gpu_equivalent_units",
+      "classification": "可间接估计",
+      "evidence": "epoch_models_zip",
+      "review": "训练硬件数量×冻结的跨代算力换算；模型事件估计，不能当活跃全集。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_gpu_hours",
+      "classification": "已获取",
+      "evidence": "Meta固定官方modelcards；DeepSeek-V3 arXivv1；Epoch估计另列",
+      "review": "Meta3/3.1/4共7原生模型行；DeepSeek-V3额外一个模型事件278.8万H800 GPU小时，266.4万预训练+11.9万扩上下文+0.5万后训练对账。分阶段与总量不重复，H100/H800不直接相加为等效算力；训练起止仍缺，8模型行不等于8独立时间观测。",
+      "tracking_status": "明确样本数据已取得；历史完整性与频率见备注",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_gpu_power_on_units",
+      "classification": "未获取",
+      "evidence": "us_ir, epoch, meta_card",
+      "review": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_power_mw",
+      "classification": "可间接估计",
+      "evidence": "epoch_training_event_proxies；Epoch字段定义",
+      "review": "105条模型事件有Training power draw，W÷1e6转MW；原字段依据TDP/PUE/服务器开销估算峰值，不是电表读数或训练集群实际利用率。训练发生区间未取得。",
+      "tracking_status": "估计所需的主体、口径或公式仍需固定",
+      "formal_complete": false
+    },
+    {
+      "metric": "training_run_delay_days",
+      "classification": "未获取",
+      "evidence": "us_ir, epoch, meta_card",
+      "review": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census. 本轮尚无同定义连续数值验收。",
+      "tracking_status": "未取得同口径序列，候选来源不算已实现",
+      "formal_complete": false
+    }
+  ],
+  "pillars": {
+    "hardware_demand": [
+      {
+        "pillar": "cloud",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "ai_cloud_revenue_usd",
+          "ai_rpo_usd",
+          "ai_capex_usd"
+        ]
+      },
+      {
+        "pillar": "training",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "training_compute_spend_usd",
+          "training_gpu_hours",
+          "training_cluster_utilization_pct"
+        ]
+      },
+      {
+        "pillar": "inference",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "inference_tokens",
+          "inference_api_calls",
+          "successful_agent_tasks"
+        ]
+      },
+      {
+        "pillar": "orders",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "gpu_orders_units",
+          "hbm_orders_bits",
+          "optical_800g_orders_units",
+          "optical_16t_orders_units"
+        ]
+      },
+      {
+        "pillar": "dc_demand",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "contracted_dc_mw",
+          "leased_dc_mw",
+          "reserved_power_mw"
+        ]
+      }
+    ],
+    "hardware_supply": [
+      {
+        "pillar": "gpu",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "powered_on_gpu_units",
+          "revenue_generating_gpu_units",
+          "gpu_equivalent_compute_capacity"
+        ]
+      },
+      {
+        "pillar": "dc",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "dc_energized_mw",
+          "dc_commissioned_mw",
+          "dc_revenue_generating_mw"
+        ]
+      },
+      {
+        "pillar": "memory",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "hbm_bit_shipments",
+          "hbm_qualified_capacity_bits"
+        ]
+      },
+      {
+        "pillar": "optical",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "optical_800g_shipments_units",
+          "optical_16t_shipments_units"
+        ]
+      },
+      {
+        "pillar": "power_cooling",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "grid_connected_mw",
+          "available_power_mw",
+          "ppa_operational_mw"
+        ]
+      }
+    ],
+    "model_demand": [
+      {
+        "pillar": "tokens",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "openrouter_tokens",
+          "api_tokens_total"
+        ]
+      },
+      {
+        "pillar": "token_revenue",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "token_revenue_proxy_usd"
+        ]
+      },
+      {
+        "pillar": "active_usage",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "consumer_wau",
+          "enterprise_wau",
+          "enterprise_ai_seats"
+        ]
+      },
+      {
+        "pillar": "tasks",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "agent_tasks",
+          "successful_tasks"
+        ]
+      },
+      {
+        "pillar": "revenue",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "model_arr_usd",
+          "model_api_revenue_usd",
+          "ai_cloud_revenue_usd"
+        ]
+      }
+    ],
+    "model_supply": [
+      {
+        "pillar": "quality",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "quality_adjusted_model_score"
+        ]
+      },
+      {
+        "pillar": "throughput",
+        "weight": 0.25,
+        "candidate_metrics": [
+          "api_capacity_tps",
+          "effective_tokens_per_second"
+        ]
+      },
+      {
+        "pillar": "availability",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "api_uptime_pct",
+          "rate_limit_tokens_per_min",
+          "p95_latency_ms"
+        ]
+      },
+      {
+        "pillar": "accessible_supply",
+        "weight": 0.15,
+        "candidate_metrics": [
+          "open_weight_frontier_model_count",
+          "api_available_regions"
+        ]
+      },
+      {
+        "pillar": "serving_efficiency",
+        "weight": 0.2,
+        "candidate_metrics": [
+          "quality_adjusted_serving_cost",
+          "serving_cost_usd_per_m_tokens"
+        ]
+      }
+    ]
+  },
+  "full_data_support_verified": false
+}

@@ -1,0 +1,3225 @@
+{
+  "as_of_date": "2026-10-05",
+  "status": "mapping_draft_evidence_in_progress",
+  "cicc_method_url": "https://finance.sina.com.cn/roll/2026-08-26/doc-iniprcpw5399273.shtml",
+  "cicc_rows": [
+    {
+      "category": "需求",
+      "category_weight_pct": 40,
+      "metric": "前沿模型能力",
+      "aisdi_relation": "model_supply.quality",
+      "free_source": "Artificial Analysis；Epoch benchmark",
+      "status": "部分支持",
+      "boundary": "AA 免费 API 需密钥；Epoch 是不同测试口径，不能冒充 AA 历史指数",
+      "row_id": 1
+    },
+    {
+      "category": "需求",
+      "category_weight_pct": 40,
+      "metric": "OpenRouter Token 调用",
+      "aisdi_relation": "model_demand.tokens",
+      "free_source": "OpenRouter rankings daily",
+      "status": "待接入",
+      "boundary": "免费公开页已获取当前周 top20 快照，非全量历史；完整日度数据接口需密钥，匿名请求返回 401。平台流量非全球总量",
+      "row_id": 2
+    },
+    {
+      "category": "需求",
+      "category_weight_pct": 40,
+      "metric": "使用加权 Token 成本与 B200 租金",
+      "aisdi_relation": "price_validation；model_supply.serving_efficiency",
+      "free_source": "Ramp tokenPrices；GPU 租赁公开报价",
+      "status": "部分支持",
+      "boundary": "Ramp TSM 企业样本的 7 日用量／账单成本，非 OpenRouter；只可另列代理。B200 连续同配置租金未验证",
+      "row_id": 3
+    },
+    {
+      "category": "需求",
+      "category_weight_pct": 40,
+      "metric": "美国企业付费采用率",
+      "aisdi_relation": "model_demand.active_usage",
+      "free_source": "Ramp AI Index",
+      "status": "历史已提取",
+      "boundary": "44 个月，2023-01 至 2026-08；企业采用比例不等于 WAU 或席位数",
+      "row_id": 4
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "OpenAI 应用每用户收入",
+      "aisdi_relation": "model_demand.revenue",
+      "free_source": "公开应用市场研究报告",
+      "status": "缺口",
+      "boundary": "尚无已验证免费连续同口径 ARPU；不能用 ARR 除全部用户替代",
+      "row_id": 5
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "Anthropic 应用每用户收入",
+      "aisdi_relation": "model_demand.revenue",
+      "free_source": "公开应用市场研究报告",
+      "status": "缺口",
+      "boundary": "移动端收入与全公司收入不同；分母及商店范围需一致",
+      "row_id": 6
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "OpenAI 年化收入",
+      "aisdi_relation": "model_demand.revenue",
+      "free_source": "Epoch company revenue reports；公司披露",
+      "status": "部分支持",
+      "boundary": "72 条收入记录覆盖多公司；事件披露并非固定月频，需保留报告日和估计标志",
+      "row_id": 7
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "Anthropic 年化收入",
+      "aisdi_relation": "model_demand.revenue",
+      "free_source": "Epoch company revenue reports；公司披露",
+      "status": "部分支持",
+      "boundary": "同上；年化运行收入并非已实现年度收入",
+      "row_id": 8
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "三家云厂商年度收入预期",
+      "aisdi_relation": "hardware_demand.cloud；model_demand.revenue",
+      "free_source": "公司季报及指引；免费券商报告",
+      "status": "缺口",
+      "boundary": "历史实际收入有来源，年度一致预期与每次修订历史未验证",
+      "row_id": 9
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "五家大厂年度自由现金流增长预期",
+      "aisdi_relation": "CFCE 财务验证",
+      "free_source": "SEC；公司指引；免费券商报告",
+      "status": "缺口",
+      "boundary": "实际 FCF 可计算，但不能代替周度一致预期",
+      "row_id": 10
+    },
+    {
+      "category": "现金流",
+      "category_weight_pct": 30,
+      "metric": "五家大厂预期资本开支／经营现金流",
+      "aisdi_relation": "CFCE 买方负担",
+      "free_source": "SEC；公司指引；免费券商报告",
+      "status": "缺口",
+      "boundary": "公开资本开支指引不一定同时提供经营现金流预期",
+      "row_id": 11
+    },
+    {
+      "category": "外部融资",
+      "category_weight_pct": 25,
+      "metric": "五家大厂预期债务／权益",
+      "aisdi_relation": "AICEI；buyer_adjusted_capital_burden",
+      "free_source": "SEC；免费券商报告",
+      "status": "缺口",
+      "boundary": "历史资产负债表不等于周度预期债务权益比",
+      "row_id": 12
+    },
+    {
+      "category": "外部融资",
+      "category_weight_pct": 25,
+      "metric": "五家大厂公司债发行",
+      "aisdi_relation": "AICEI；buyer_adjusted_capital_burden",
+      "free_source": "SEC 发行文件、公司公告",
+      "status": "部分支持",
+      "boundary": "可逐笔建立发行事件账本；新增债务不等于扣除偿还后的净融资",
+      "row_id": 13
+    },
+    {
+      "category": "外部融资",
+      "category_weight_pct": 25,
+      "metric": "五家大厂 CDS",
+      "aisdi_relation": "funding_stress_composite",
+      "free_source": "公开机构信用报告",
+      "status": "缺口",
+      "boundary": "未验证免费稳定日度历史；债券收益率不能当 CDS",
+      "row_id": 14
+    },
+    {
+      "category": "外部融资",
+      "category_weight_pct": 25,
+      "metric": "美国投资级科技信用利差",
+      "aisdi_relation": "funding_stress_composite",
+      "free_source": "指数发布商公开报告",
+      "status": "缺口",
+      "boundary": "行业口径连续免费序列未验证；全市场 OAS 仅可另列代理",
+      "row_id": 15
+    },
+    {
+      "category": "外部融资",
+      "category_weight_pct": 25,
+      "metric": "银行对非银金融机构贷款占比",
+      "aisdi_relation": "AICEI 外部融资环境",
+      "free_source": "Federal Reserve H.8",
+      "status": "部分支持",
+      "boundary": "已提取 612 个周度比例：同为全部商业银行、季调；分母含租赁。中金月度采样法未披露，不是 AI 专属私人信贷",
+      "row_id": 16
+    },
+    {
+      "category": "外部融资",
+      "category_weight_pct": 25,
+      "metric": "美国 AI 风险投资",
+      "aisdi_relation": "AICEI；financed_demand_ratio",
+      "free_source": "PitchBook-NVCA Venture Monitor；Epoch 融资事件",
+      "status": "部分支持",
+      "boundary": "NVCA 季报连续出版已确认，AI 分项待提取；Epoch 是部分公司事件，不是全市场总额",
+      "row_id": 17
+    },
+    {
+      "category": "外部约束",
+      "category_weight_pct": 5,
+      "metric": "科技与金融就业",
+      "aisdi_relation": "原 AISDI 无直接字段",
+      "free_source": "BLS CES",
+      "status": "待核对",
+      "boundary": "需固定行业定义；中金科技行业具体篮子未披露",
+      "row_id": 18
+    },
+    {
+      "category": "外部约束",
+      "category_weight_pct": 5,
+      "metric": "科技与金融裁员占比三月均值",
+      "aisdi_relation": "原 AISDI 无直接字段",
+      "free_source": "Challenger 月报",
+      "status": "待提取",
+      "boundary": "公告裁员不同于实际失业；需核对原表与三月平均计算规则",
+      "row_id": 19
+    },
+    {
+      "category": "外部约束",
+      "category_weight_pct": 5,
+      "metric": "数据中心建设支出年化值",
+      "aisdi_relation": "hardware_supply.dc 的建设前置信号",
+      "free_source": "Census C30",
+      "status": "待提取",
+      "boundary": "原始 Census 表本机返回 403；OWID 已取得 152 个月不变价未季调值，只作不同口径代理，不能当名义年化值",
+      "row_id": 20
+    }
+  ],
+  "aisdi_pillars": [
+    {
+      "requirement_id": "hardware_demand.cloud",
+      "weight": 0.25,
+      "metrics": [
+        "ai_cloud_revenue_usd",
+        "ai_rpo_usd",
+        "ai_capex_usd"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "dc_ir",
+        "nebius_ir",
+        "sec",
+        "us_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        7,
+        8,
+        9,
+        11
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "hardware_demand.training",
+      "weight": 0.2,
+      "metrics": [
+        "training_compute_spend_usd",
+        "training_gpu_hours",
+        "training_cluster_utilization_pct"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "epoch",
+        "meta_card",
+        "us_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "hardware_demand.inference",
+      "weight": 0.2,
+      "metrics": [
+        "inference_tokens",
+        "inference_api_calls",
+        "successful_agent_tasks"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        2,
+        3
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "hardware_demand.orders",
+      "weight": 0.2,
+      "metrics": [
+        "gpu_orders_units",
+        "hbm_orders_bits",
+        "optical_800g_orders_units",
+        "optical_16t_orders_units"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "cninfo",
+        "gpu_ir",
+        "korea_ir",
+        "memory_ir",
+        "optical_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "hardware_demand.dc_demand",
+      "weight": 0.15,
+      "metrics": [
+        "contracted_dc_mw",
+        "leased_dc_mw",
+        "reserved_power_mw"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        20
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "hardware_supply.gpu",
+      "weight": 0.25,
+      "metrics": [
+        "powered_on_gpu_units",
+        "revenue_generating_gpu_units",
+        "gpu_equivalent_compute_capacity"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "dc_ir",
+        "epoch",
+        "gpu_ir",
+        "mlperf"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        3
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "hardware_supply.dc",
+      "weight": 0.25,
+      "metrics": [
+        "dc_energized_mw",
+        "dc_commissioned_mw",
+        "dc_revenue_generating_mw"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "dc_ir",
+        "epoch",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        20
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "hardware_supply.memory",
+      "weight": 0.2,
+      "metrics": [
+        "hbm_bit_shipments",
+        "hbm_qualified_capacity_bits"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "korea_ir",
+        "memory_ir",
+        "trendforce_paid"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "hardware_supply.optical",
+      "weight": 0.15,
+      "metrics": [
+        "optical_800g_shipments_units",
+        "optical_16t_shipments_units"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "cninfo",
+        "optical_ir",
+        "trendforce_paid"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "hardware_supply.power_cooling",
+      "weight": 0.15,
+      "metrics": [
+        "grid_connected_mw",
+        "available_power_mw",
+        "ppa_operational_mw"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "dc_ir",
+        "eia",
+        "ferc",
+        "nebius_ir",
+        "pjm"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        20
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "model_demand.tokens",
+      "weight": 0.25,
+      "metrics": [
+        "openrouter_tokens",
+        "api_tokens_total"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        2
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "model_demand.token_revenue",
+      "weight": 0.2,
+      "metrics": [
+        "token_revenue_proxy_usd"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "or_models",
+        "or_traffic"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        3,
+        5,
+        6
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "model_demand.active_usage",
+      "weight": 0.15,
+      "metrics": [
+        "consumer_wau",
+        "enterprise_wau",
+        "enterprise_ai_seats"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "public_usage",
+        "us_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        4
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "model_demand.tasks",
+      "weight": 0.2,
+      "metrics": [
+        "agent_tasks",
+        "successful_tasks"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "model_demand.revenue",
+      "weight": 0.2,
+      "metrics": [
+        "model_arr_usd",
+        "model_api_revenue_usd",
+        "ai_cloud_revenue_usd"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "dc_ir",
+        "nebius_ir",
+        "public_usage",
+        "sec",
+        "us_ir"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "model_supply.quality",
+      "weight": 0.25,
+      "metrics": [
+        "quality_adjusted_model_score"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "aa_free",
+        "hf",
+        "mlperf"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        1
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    },
+    {
+      "requirement_id": "model_supply.throughput",
+      "weight": 0.25,
+      "metrics": [
+        "api_capacity_tps",
+        "effective_tokens_per_second"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "aa_free",
+        "mlperf",
+        "or_endpoints"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "model_supply.availability",
+      "weight": 0.15,
+      "metrics": [
+        "api_uptime_pct",
+        "rate_limit_tokens_per_min",
+        "p95_latency_ms"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "aa_free",
+        "mlperf",
+        "or_endpoints",
+        "or_models",
+        "status"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "model_supply.accessible_supply",
+      "weight": 0.15,
+      "metrics": [
+        "open_weight_frontier_model_count",
+        "api_available_regions"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "epoch",
+        "hf",
+        "or_models"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [],
+      "mapping_note": "中金表无直接对应项；保留在原 AISDI 中，不能删除后宣称完整映射"
+    },
+    {
+      "requirement_id": "model_supply.serving_efficiency",
+      "weight": 0.2,
+      "metrics": [
+        "quality_adjusted_serving_cost",
+        "serving_cost_usd_per_m_tokens"
+      ],
+      "full_requirement_covered": false,
+      "free_candidates": [
+        "aa_free",
+        "gpu_prices",
+        "mlperf",
+        "or_models"
+      ],
+      "gap": "Candidate-source discovery only: exact selected metrics, entities, same-method histories, PIT timestamps and source-bound audited evidence remain required.",
+      "cicc_rows": [
+        3
+      ],
+      "mapping_note": "概念或共享证据关系，不表示数值可互换；原 AISDI 权重保持不变"
+    }
+  ],
+  "derived_outputs": [
+    {
+      "metric": "aisdi",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "Need four auditable sides, fixed history/weights/coverage and component availability; no score from source-discovery counts."
+    },
+    {
+      "metric": "hsdi",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "Training/inference split and effective hardware supply not fully covered."
+    },
+    {
+      "metric": "msdi",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "Global demand/task revenue and deployable supply throughput/cost not fully covered."
+    },
+    {
+      "metric": "cfce",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "Public-issuer financial components partly derive; basket/currency/share basis and denominator normalization absent."
+    },
+    {
+      "metric": "ai_economic_spread",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "AI-specific incremental NOPAT/invested-capital and WACC method/disclosures incomplete."
+    },
+    {
+      "metric": "aicei",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "Complete eight-category formula/weights and private SPV/collateral data missing."
+    },
+    {
+      "metric": "psvg",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "The specification names PSVG but does not define its formula or required data."
+    },
+    {
+      "metric": "nsy",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "The specification names NSY but does not define its formula or required data."
+    },
+    {
+      "metric": "ai_credit_spread_proxy",
+      "availability": "definition_or_derived_data_gap",
+      "full_requirement_covered": false,
+      "gap": "Need explicit issuer/bond/callability/tenor/liquidity benchmark formula; broad IG/HY is not AI spread."
+    }
+  ],
+  "field_inventory": [
+    {
+      "metric": "active_frontier_training_runs",
+      "spec_sections": [
+        15
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "us_ir",
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Some dated public events only",
+      "remaining_gap": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "agent_tasks",
+      "spec_sections": [
+        15,
+        17
+      ],
+      "availability": "vendor_activity_proxy_only",
+      "source_ids": [
+        "public_usage",
+        "or_traffic"
+      ],
+      "coverage_scope": "No unified public industry task/compute census identified",
+      "remaining_gap": "仅两期已验证；累计数量与披露环比的分母不同，不能由累计量反推完整季度历史；缺业务成功标准及跨厂商可比性。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "agent_tasks",
+          "successful_tasks",
+          "successful_agent_tasks"
+        ],
+        "source_ids": [
+          "salesforce_awu_definition",
+          "salesforce_fy26q4",
+          "salesforce_fy27q1"
+        ],
+        "finding": "Salesforce AWU 有连续季报披露，但官方说明包含处理提示、完成推理链、调用工具等活动。不是统一业务成功验收后的任务数。",
+        "observations": [
+          {
+            "period_end": "2026-01-31",
+            "cumulative_awu": 2400000000,
+            "reported_qoq_growth_pct": 57
+          },
+          {
+            "period_end": "2026-04-30",
+            "cumulative_awu": 3800000000,
+            "reported_qoq_growth_pct": 111
+          }
+        ],
+        "admissibility": "vendor_activity_proxy_only",
+        "remaining_gap": "仅两期已验证；累计数量与披露环比的分母不同，不能由累计量反推完整季度历史；缺业务成功标准及跨厂商可比性。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "ai_capex_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "ai_capex_yoy",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "ai_cloud_revenue_usd",
+      "spec_sections": [
+        15,
+        17
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "ai_mau",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "ai_rpo_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "ai_wau",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "api_available_regions",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_derived_proxy",
+      "source_ids": [
+        "hf",
+        "or_models",
+        "epoch"
+      ],
+      "coverage_scope": "Public repos/model endpoints and official license/region policies",
+      "remaining_gap": "Must deduplicate revisions and verify license/access/region/quality/actual capacity; repo/release count is not deployed usable supply. Global deployment inventory missing.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "api_calls",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "coverage_scope": "Selected public OpenRouter app request totals only",
+      "remaining_gap": "App rankings include total_requests, but exclude private/direct-provider traffic; not global calls or successful tasks. Own key required; authenticated API zero-price not confirmed; history starts2025-01-01.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "api_capacity_tps",
+      "spec_sections": [
+        18
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "or_endpoints",
+        "aa_free"
+      ],
+      "coverage_scope": "Provider quotas/test-speed data are proxies only",
+      "remaining_gap": "Per-request generation speed/rate limits not fleet concurrent sustainable TPS. No public complete deployable API capacity series identified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "api_tokens_total",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "coverage_scope": "OpenRouter aggregate or own-account telemetry; cannot generalize",
+      "remaining_gap": "Rankings total_tokens has no marketwide input/output/calls split. Own logs cover only authorized account and inference execution is not a free source of industry demand.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "api_uptime_pct",
+      "spec_sections": [
+        18
+      ],
+      "availability": "incident_evidence_not_uptime",
+      "source_ids": [
+        "status",
+        "or_endpoints"
+      ],
+      "coverage_scope": "Public service aggregates/platform rolling endpoints",
+      "remaining_gap": "未取得完整长期事件历史、组件影响范围、统一故障时长分母及流量权重，不能据列表算全平台 uptime。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "api_uptime_pct"
+        ],
+        "source_ids": [
+          "anthropic_status",
+          "openai_status"
+        ],
+        "finding": "官方事件列表已获取，分别含 50 和 25 件近期事件。",
+        "admissibility": "incident_evidence_not_uptime",
+        "remaining_gap": "未取得完整长期事件历史、组件影响范围、统一故障时长分母及流量权重，不能据列表算全平台 uptime。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "available_power_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "eia",
+        "pjm",
+        "ferc"
+      ],
+      "coverage_scope": "Named site/utility project disclosures",
+      "remaining_gap": "Electricity region statistics/contracted MW cannot establish site-specific available AI MW; commissioning and time-to-connection series incomplete.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "b200_rental_usd_per_gpu_hour",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_quote_partial",
+      "source_ids": [
+        "gpu_prices"
+      ],
+      "coverage_scope": "Advertised current GPU/cluster configurations only",
+      "remaining_gap": "Each SKU and NVL topology/region/term must match; not every listed source advertises all six SKUs. Quotes not realized clearing prices; complete 2024-2026 free history not verified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "b300_rental_usd_per_gpu_hour",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_quote_partial",
+      "source_ids": [
+        "gpu_prices"
+      ],
+      "coverage_scope": "Advertised current GPU/cluster configurations only",
+      "remaining_gap": "Each SKU and NVL topology/region/term must match; not every listed source advertises all six SKUs. Quotes not realized clearing prices; complete 2024-2026 free history not verified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "benchmark_composite_score",
+      "spec_sections": [
+        18
+      ],
+      "availability": "benchmark_evidence_partial",
+      "source_ids": [
+        "aa_free",
+        "mlperf",
+        "hf"
+      ],
+      "coverage_scope": "Benchmark-covered models/tasks only",
+      "remaining_gap": "须固定测试版本和质量篮子；当前分数不能回写模型发布日期；模型质量不代表可用生产吞吐量。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "benchmark_composite_score",
+          "quality_adjusted_model_score"
+        ],
+        "source_ids": [
+          "epoch_benchmarks",
+          "openrouter_models"
+        ],
+        "finding": "Epoch 历史评测和 OpenRouter 转载的 290 个 AA 当前分数可取得。",
+        "admissibility": "benchmark_evidence_partial",
+        "remaining_gap": "须固定测试版本和质量篮子；当前分数不能回写模型发布日期；模型质量不代表可用生产吞吐量。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "buyer_ai_capex_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_capitalized_lease_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_debt_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_fcf_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Public issuer with complete source financials",
+      "remaining_gap": "Fix FCF/Capex/lease definition, actual share-count basis and split adjustment, issuance proceeds versus net shares, FX and same-period alignment.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_guarantees_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Explicit public filing commitments/investment notes",
+      "remaining_gap": "Material public notes may omit private SPV/JV cashflow/collateral and contingent exposures; cannot reconstruct all economic risks or prevent double-count without legal note review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_jv_exposure_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Explicit public filing commitments/investment notes",
+      "remaining_gap": "Material public notes may omit private SPV/JV cashflow/collateral and contingent exposures; cannot reconstruct all economic risks or prevent double-count without legal note review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_net_equity_issuance_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Public issuer with complete source financials",
+      "remaining_gap": "Fix FCF/Capex/lease definition, actual share-count basis and split adjustment, issuance proceeds versus net shares, FX and same-period alignment.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_spv_exposure_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Explicit public filing commitments/investment notes",
+      "remaining_gap": "Material public notes may omit private SPV/JV cashflow/collateral and contingent exposures; cannot reconstruct all economic risks or prevent double-count without legal note review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "buyer_take_or_pay_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Explicit public filing commitments/investment notes",
+      "remaining_gap": "Material public notes may omit private SPV/JV cashflow/collateral and contingent exposures; cannot reconstruct all economic risks or prevent double-count without legal note review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "cancelled_training_runs",
+      "spec_sections": [
+        15
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "us_ir",
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Some dated public events only",
+      "remaining_gap": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "cloud_revenue_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "cloud_revenue_yoy",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "compute_commitments_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "consumer_wau",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "context_window_tokens",
+      "spec_sections": [
+        18
+      ],
+      "availability": "current_snapshot_verified",
+      "source_ids": [
+        "or_models",
+        "aa_free"
+      ],
+      "coverage_scope": "Listed model/provider current endpoint metadata",
+      "remaining_gap": "没有历史价格生效日期；模型创建时间不能代替价格日期。需持续归档，不能回填 2025 年价格。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "token_price_input_usd_per_m",
+          "token_price_output_usd_per_m",
+          "context_window_tokens"
+        ],
+        "source_ids": [
+          "openrouter_models"
+        ],
+        "finding": "已从官方匿名目录解析 464 个模型的当前标价与上下文长度。",
+        "admissibility": "current_snapshot_verified",
+        "remaining_gap": "没有历史价格生效日期；模型创建时间不能代替价格日期。需持续归档，不能回填 2025 年价格。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "contracted_dc_mw",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "coverage_scope": "Named operators/projects only",
+      "remaining_gap": "Contracted/leased/preleased MW may include future capacity; not global demand. PFA definition and IT versus gross power/site sharing require explicit review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "customer_equity_exposure",
+      "spec_sections": [
+        21
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Explicit public filing commitments/investment notes",
+      "remaining_gap": "Material public notes may omit private SPV/JV cashflow/collateral and contingent exposures; cannot reconstruct all economic risks or prevent double-count without legal note review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_announced_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_commissioned_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_energized_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_lease_commitments_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_lease_rate_usd_per_kw_month",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir"
+      ],
+      "coverage_scope": "Listed DC operator leasing supplement sample",
+      "remaining_gap": "Rate must normalize kW/MW, gross/net rent, term/region/IT load and commencement; not global AI DC market clearing lease index.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_prelease_pct",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "coverage_scope": "Named operators/projects only",
+      "remaining_gap": "Contracted/leased/preleased MW may include future capacity; not global demand. PFA definition and IT versus gross power/site sharing require explicit review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_revenue_generating_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_under_construction_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_utilization_pct",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dc_vacancy_pct",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "epoch",
+        "us_ir"
+      ],
+      "coverage_scope": "Public operator/project sample",
+      "remaining_gap": "Announcements/construction cannot enter supply. Active power not proof of revenue-generating/commissioned subset; occupancy not compute utilization; partial global and historical coverage.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "delayed_training_runs",
+      "spec_sections": [
+        15
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "us_ir",
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Some dated public events only",
+      "remaining_gap": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "deployed_frontier_model_count",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_derived_proxy",
+      "source_ids": [
+        "hf",
+        "or_models",
+        "epoch"
+      ],
+      "coverage_scope": "Public repos/model endpoints and official license/region policies",
+      "remaining_gap": "Must deduplicate revisions and verify license/access/region/quality/actual capacity; repo/release count is not deployed usable supply. Global deployment inventory missing.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dram_bit_shipments",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dram_contract_price",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_basic_view_history_gap",
+      "source_ids": [
+        "dram_basic"
+      ],
+      "coverage_scope": "Free basic member price viewing",
+      "remaining_gap": "Registration needed; five-year downloadable history is paid Silver. Series/product identity and automated reuse rights require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dram_orders_bits",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dram_spot_price",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_basic_view_history_gap",
+      "source_ids": [
+        "dram_basic"
+      ],
+      "coverage_scope": "Free basic member price viewing",
+      "remaining_gap": "Registration needed; five-year downloadable history is paid Silver. Series/product identity and automated reuse rights require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "dso",
+      "spec_sections": [
+        21
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo"
+      ],
+      "coverage_scope": "Public issuer financial statement sample",
+      "remaining_gap": "Freeze average/end receivables, credit/total revenue, fiscal days and same-method YoY; no private-company comprehensive data.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "effective_tokens_per_second",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_partial_or_proxy",
+      "source_ids": [
+        "aa_free",
+        "or_endpoints",
+        "mlperf"
+      ],
+      "coverage_scope": "Observed benchmark/provider rolling samples",
+      "remaining_gap": "Free AA median output TPS/TTFT not task p95; sampled endpoint percentiles may be null or different quantiles. No guaranteed same-workload/fleet-global p95 series.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "enterprise_ai_seats",
+      "spec_sections": [
+        15,
+        17
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "enterprise_wau",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "finance_lease_additions_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "financed_demand_ratio",
+      "spec_sections": [
+        21
+      ],
+      "availability": "free_partial_derived",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Disclosed public issuer numerator/denominator components",
+      "remaining_gap": "Financed demand attribution, guarantees, commitments and net liquidity definitions incomplete; FCF<=0 and overlaps need explicit policy.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "funding_stress_composite",
+      "spec_sections": [
+        21
+      ],
+      "availability": "definition_and_source_gap",
+      "source_ids": [
+        "finra",
+        "treasury",
+        "fred_optional"
+      ],
+      "coverage_scope": "Broad public financial stress/credit benchmark only",
+      "remaining_gap": "Composite formula/basket absent; issuer CDS/AI credit history not free-complete. Optional broad IG/HY spread cannot become AI credit risk series.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "future_commitments_to_fcf",
+      "spec_sections": [
+        21
+      ],
+      "availability": "free_partial_derived",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Disclosed public issuer numerator/denominator components",
+      "remaining_gap": "Financed demand attribution, guarantees, commitments and net liquidity definitions incomplete; FCF<=0 and overlaps need explicit policy.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gas_power_output_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "eia"
+      ],
+      "coverage_scope": "Regional hourly/period generation under specified units",
+      "remaining_gap": "Generation energy must be converted to average MW over declared interval; not instantaneous/site-available/AI-dedicated output.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gb200_rental_usd_per_gpu_hour",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_quote_partial",
+      "source_ids": [
+        "gpu_prices"
+      ],
+      "coverage_scope": "Advertised current GPU/cluster configurations only",
+      "remaining_gap": "Each SKU and NVL topology/region/term must match; not every listed source advertises all six SKUs. Quotes not realized clearing prices; complete 2024-2026 free history not verified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gb300_rental_usd_per_gpu_hour",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_quote_partial",
+      "source_ids": [
+        "gpu_prices"
+      ],
+      "coverage_scope": "Advertised current GPU/cluster configurations only",
+      "remaining_gap": "Each SKU and NVL topology/region/term must match; not every listed source advertises all six SKUs. Quotes not realized clearing prices; complete 2024-2026 free history not verified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_allocation_units",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_backlog_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_cloud_available_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "gpu_prices",
+        "dc_ir"
+      ],
+      "coverage_scope": "Selected provider current stock flags/quotes are optional proxies",
+      "remaining_gap": "Stock category/available instance configurations not actual GPU unit count, queue duration or utilization. No free consistent global history identified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_cloud_wait_time_days",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "gpu_prices",
+        "dc_ir"
+      ],
+      "coverage_scope": "Selected provider current stock flags/quotes are optional proxies",
+      "remaining_gap": "Stock category/available instance configurations not actual GPU unit count, queue duration or utilization. No free consistent global history identified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_dc_residual_value_ltv",
+      "spec_sections": [
+        21
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "sec",
+        "dc_ir",
+        "finra"
+      ],
+      "coverage_scope": "Some debt collateral/covenant footnotes only",
+      "remaining_gap": "No complete public appraised residual values, senior claims, SPV-specific operating cashflow/debt service; borrower filings not full private structures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_equivalent_compute_capacity",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_derived_proxy",
+      "source_ids": [
+        "epoch",
+        "mlperf",
+        "gpu_ir"
+      ],
+      "coverage_scope": "Documented GPU/system sample with benchmark comparability",
+      "remaining_gap": "Must freeze precision/task/quality/multi-GPU efficiency and verify deployment status; theoretical FLOPS times counts is not usable/revenue-generating capacity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_orders_units",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_utilization_pct",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "gpu_prices",
+        "dc_ir"
+      ],
+      "coverage_scope": "Selected provider current stock flags/quotes are optional proxies",
+      "remaining_gap": "Stock category/available instance configurations not actual GPU unit count, queue duration or utilization. No free consistent global history identified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "gpu_wait_time_days",
+      "spec_sections": [
+        19
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "gpu_prices",
+        "dc_ir"
+      ],
+      "coverage_scope": "Selected provider current stock flags/quotes are optional proxies",
+      "remaining_gap": "Stock category/available instance configurations not actual GPU unit count, queue duration or utilization. No free consistent global history identified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "grid_connected_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "eia",
+        "pjm",
+        "ferc"
+      ],
+      "coverage_scope": "Named site/utility project disclosures",
+      "remaining_gap": "Electricity region statistics/contracted MW cannot establish site-specific available AI MW; commissioning and time-to-connection series incomplete.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "grid_connection_delay_months",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "eia",
+        "pjm",
+        "ferc"
+      ],
+      "coverage_scope": "Named site/utility project disclosures",
+      "remaining_gap": "Electricity region statistics/contracted MW cannot establish site-specific available AI MW; commissioning and time-to-connection series incomplete.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "guarantee_to_liquid_assets",
+      "spec_sections": [
+        21
+      ],
+      "availability": "free_partial_derived",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "dc_ir"
+      ],
+      "coverage_scope": "Disclosed public issuer numerator/denominator components",
+      "remaining_gap": "Financed demand attribution, guarantees, commitments and net liquidity definitions incomplete; FCF<=0 and overlaps need explicit policy.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "h100_rental_usd_per_gpu_hour",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_quote_partial",
+      "source_ids": [
+        "gpu_prices"
+      ],
+      "coverage_scope": "Advertised current GPU/cluster configurations only",
+      "remaining_gap": "Each SKU and NVL topology/region/term must match; not every listed source advertises all six SKUs. Quotes not realized clearing prices; complete 2024-2026 free history not verified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "h200_rental_usd_per_gpu_hour",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_quote_partial",
+      "source_ids": [
+        "gpu_prices"
+      ],
+      "coverage_scope": "Advertised current GPU/cluster configurations only",
+      "remaining_gap": "Each SKU and NVL topology/region/term must match; not every listed source advertises all six SKUs. Quotes not realized clearing prices; complete 2024-2026 free history not verified.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_asp",
+      "spec_sections": [
+        19
+      ],
+      "availability": "paid_or_undisclosed",
+      "source_ids": [
+        "trendforce_paid",
+        "memory_ir"
+      ],
+      "coverage_scope": "Paid HBM datasets or sporadic supplier commentary",
+      "remaining_gap": "No verified free complete HBM generation/unit-specific ASP history; generic DRAM prices cannot substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_bit_shipments",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_long_term_agreements_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_orders_bits",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_qualified_capacity_bits",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_utilization_pct",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "hbm_wafer_capacity",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "inference_api_calls",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "coverage_scope": "Selected public OpenRouter app request totals only",
+      "remaining_gap": "App rankings include total_requests, but exclude private/direct-provider traffic; not global calls or successful tasks. Own key required; authenticated API zero-price not confirmed; history starts2025-01-01.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "inference_compute_hours",
+      "spec_sections": [
+        17
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "public_usage",
+        "or_traffic"
+      ],
+      "coverage_scope": "No unified public industry task/compute census identified",
+      "remaining_gap": "Traffic/tokens/users not successfully completed tasks or actual GPU hours. Requires provider/workspace telemetry and consistent task success definition.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "inference_gpu_hours",
+      "spec_sections": [
+        15
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "public_usage",
+        "or_traffic"
+      ],
+      "coverage_scope": "No unified public industry task/compute census identified",
+      "remaining_gap": "Traffic/tokens/users not successfully completed tasks or actual GPU hours. Requires provider/workspace telemetry and consistent task success definition.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "inference_tokens",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "coverage_scope": "OpenRouter aggregate or own-account telemetry; cannot generalize",
+      "remaining_gap": "Rankings total_tokens has no marketwide input/output/calls split. Own logs cover only authorized account and inference execution is not a free source of industry demand.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "input_tokens",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "coverage_scope": "OpenRouter aggregate or own-account telemetry; cannot generalize",
+      "remaining_gap": "Rankings total_tokens has no marketwide input/output/calls split. Own logs cover only authorized account and inference execution is not a free source of industry demand.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "installed_gpu_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "gpu_ir",
+        "epoch"
+      ],
+      "coverage_scope": "Selected officially disclosed fleets/sites",
+      "remaining_gap": "Installed, power-on and earning revenue are different statuses; Epoch estimate alone cannot verify all three. Global totals or complete weekly current fleet not disclosed.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "interconnection_queue_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "lbl",
+        "pjm"
+      ],
+      "coverage_scope": "Covered US generator queues/forecast context",
+      "remaining_gap": "Generator supply queue not data-center load queue, planned pipeline never effective supply; partial regional annual snapshots.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "leased_dc_mw",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "coverage_scope": "Named operators/projects only",
+      "remaining_gap": "Contracted/leased/preleased MW may include future capacity; not global demand. PFA definition and IT versus gross power/site sharing require explicit review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "memory_yield_pct",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "model_api_revenue_usd",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "model_arr_usd",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "public_usage",
+        "us_ir"
+      ],
+      "coverage_scope": "Dated company milestone/segment disclosure",
+      "remaining_gap": "Milestones not a uniform weekly series; ARR/run-rate versus recognized revenue, paid seats versus active users and fiscal/calendar periods differ.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "nand_bit_shipments",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "memory_ir",
+        "korea_ir",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Public reported growth/qualification events; full industry data paid/absent",
+      "remaining_gap": "Absolute qualified HBM bits, product capacity/utilization/yield not a consistent free basket. DRAM/NAND reported bit growth is a proxy, not absolute units or HBM quantity.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "nand_orders_bits",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "gpu_ir",
+        "memory_ir",
+        "korea_ir"
+      ],
+      "coverage_scope": "Selected issuer qualitative orders/backlog/contracts",
+      "remaining_gap": "No verified complete free product-unit order/allocation series; revenue, supplier purchase commitments and sold-out statements are different economic measures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "nand_spot_price",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_basic_view_history_gap",
+      "source_ids": [
+        "dram_basic"
+      ],
+      "coverage_scope": "Free basic member price viewing",
+      "remaining_gap": "Registration needed; five-year downloadable history is paid Silver. Series/product identity and automated reuse rights require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "new_power_capacity_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "eia",
+        "ferc"
+      ],
+      "coverage_scope": "US generator inventory/operational capacity only",
+      "remaining_gap": "Not global AI-allocated power; dataset stock/flow, operational versus planned dates and MW basis must be frozen.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "nuclear_output_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "eia"
+      ],
+      "coverage_scope": "Regional hourly/period generation under specified units",
+      "remaining_gap": "Generation energy must be converted to average MW over declared interval; not instantaneous/site-available/AI-dedicated output.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "open_weight_frontier_model_count",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_derived_proxy",
+      "source_ids": [
+        "hf",
+        "or_models",
+        "epoch"
+      ],
+      "coverage_scope": "Public repos/model endpoints and official license/region policies",
+      "remaining_gap": "Must deduplicate revisions and verify license/access/region/quality/actual capacity; repo/release count is not deployed usable supply. Global deployment inventory missing.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "openrouter_tokens",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_platform_series_auth_unverified",
+      "source_ids": [
+        "or_traffic"
+      ],
+      "coverage_scope": "Public OpenRouter traffic only",
+      "remaining_gap": "JSON requires own key; price of authenticated data API not explicitly stated in inspected docs. 2025-01-01 start misses2024; no global/private/direct API coverage or historical revision certification.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_16t_capacity_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Product milestone and sporadic issuer disclosures",
+      "remaining_gap": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_16t_lead_time_weeks",
+      "spec_sections": [
+        19
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Sporadic supplier qualitative lead-time events",
+      "remaining_gap": "No verified free full 800G/1.6T numeric lead-time histories; rising sales/backlog cannot silently replace weeks.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_16t_orders_units",
+      "spec_sections": [
+        15
+      ],
+      "availability": "context_only",
+      "source_ids": [
+        "optical_ir",
+        "cninfo"
+      ],
+      "coverage_scope": "Selected vendor disclosures/events",
+      "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "optical_800g_shipments_units",
+          "optical_16t_shipments_units",
+          "optical_800g_orders_units",
+          "optical_16t_orders_units"
+        ],
+        "source_ids": [
+          "lightcounting_2026q2"
+        ],
+        "finding": "免费季度摘要持续更新，但已读摘要只给增速、市场判断和报告包含数据的说明；没有连续精确数量表。800ZR 相干长距端口也不能直接当数据中心短距 800G 光模块。",
+        "admissibility": "context_only",
+        "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "optical_16t_shipments_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "context_only",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Product milestone and sporadic issuer disclosures",
+      "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "optical_800g_shipments_units",
+          "optical_16t_shipments_units",
+          "optical_800g_orders_units",
+          "optical_16t_orders_units"
+        ],
+        "source_ids": [
+          "lightcounting_2026q2"
+        ],
+        "finding": "免费季度摘要持续更新，但已读摘要只给增速、市场判断和报告包含数据的说明；没有连续精确数量表。800ZR 相干长距端口也不能直接当数据中心短距 800G 光模块。",
+        "admissibility": "context_only",
+        "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "optical_800g_capacity_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Product milestone and sporadic issuer disclosures",
+      "remaining_gap": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_800g_lead_time_weeks",
+      "spec_sections": [
+        19
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Sporadic supplier qualitative lead-time events",
+      "remaining_gap": "No verified free full 800G/1.6T numeric lead-time histories; rising sales/backlog cannot silently replace weeks.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_800g_orders_units",
+      "spec_sections": [
+        15
+      ],
+      "availability": "context_only",
+      "source_ids": [
+        "optical_ir",
+        "cninfo"
+      ],
+      "coverage_scope": "Selected vendor disclosures/events",
+      "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "optical_800g_shipments_units",
+          "optical_16t_shipments_units",
+          "optical_800g_orders_units",
+          "optical_16t_orders_units"
+        ],
+        "source_ids": [
+          "lightcounting_2026q2"
+        ],
+        "finding": "免费季度摘要持续更新，但已读摘要只给增速、市场判断和报告包含数据的说明；没有连续精确数量表。800ZR 相干长距端口也不能直接当数据中心短距 800G 光模块。",
+        "admissibility": "context_only",
+        "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "optical_800g_shipments_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "context_only",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Product milestone and sporadic issuer disclosures",
+      "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "optical_800g_shipments_units",
+          "optical_16t_shipments_units",
+          "optical_800g_orders_units",
+          "optical_16t_orders_units"
+        ],
+        "source_ids": [
+          "lightcounting_2026q2"
+        ],
+        "finding": "免费季度摘要持续更新，但已读摘要只给增速、市场判断和报告包含数据的说明；没有连续精确数量表。800ZR 相干长距端口也不能直接当数据中心短距 800G 光模块。",
+        "admissibility": "context_only",
+        "remaining_gap": "需找到可免费持续获得且区分实际与预测、模块与端口、速率与距离类别的同口径数量系列。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "optical_backlog_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "optical_ir",
+        "cninfo"
+      ],
+      "coverage_scope": "Selected vendor disclosures/events",
+      "remaining_gap": "No consistent unit/order/book-to-bill series for fixed 800G/1.6T basket; equipment/company aggregate backlog not equivalent.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_book_to_bill",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "optical_ir",
+        "cninfo"
+      ],
+      "coverage_scope": "Selected vendor disclosures/events",
+      "remaining_gap": "No consistent unit/order/book-to-bill series for fixed 800G/1.6T basket; equipment/company aggregate backlog not equivalent.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_lead_time_weeks",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Product milestone and sporadic issuer disclosures",
+      "remaining_gap": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "optical_yield_pct",
+      "spec_sections": [
+        16
+      ],
+      "availability": "no_verified_free_complete_series",
+      "source_ids": [
+        "optical_ir",
+        "cninfo",
+        "trendforce_paid"
+      ],
+      "coverage_scope": "Product milestone and sporadic issuer disclosures",
+      "remaining_gap": "No verified complete free numeric product-unit/time/yield series. Capacity plan and production revenue are not qualified shipments; paid industry samples also require method review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "output_tokens",
+      "spec_sections": [
+        17
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_traffic",
+        "public_usage"
+      ],
+      "coverage_scope": "OpenRouter aggregate or own-account telemetry; cannot generalize",
+      "remaining_gap": "Rankings total_tokens has no marketwide input/output/calls split. Own logs cover only authorized account and inference execution is not a free source of industry demand.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "p50_latency_ms",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_partial_or_proxy",
+      "source_ids": [
+        "aa_free",
+        "or_endpoints",
+        "mlperf"
+      ],
+      "coverage_scope": "Observed benchmark/provider rolling samples",
+      "remaining_gap": "Free AA median output TPS/TTFT not task p95; sampled endpoint percentiles may be null or different quantiles. No guaranteed same-workload/fleet-global p95 series.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "p95_latency_ms",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_partial_or_proxy",
+      "source_ids": [
+        "aa_free",
+        "or_endpoints",
+        "mlperf"
+      ],
+      "coverage_scope": "Observed benchmark/provider rolling samples",
+      "remaining_gap": "Free AA median output TPS/TTFT not task p95; sampled endpoint percentiles may be null or different quantiles. No guaranteed same-workload/fleet-global p95 series.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "power_price_usd_per_mwh",
+      "spec_sections": [
+        19
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "eia",
+        "lbl",
+        "pjm"
+      ],
+      "coverage_scope": "US regional electricity/selected renewable PPA sample",
+      "remaining_gap": "Tariff/wholesale spot/PPA prices differ; not specific AI power contract or universal marginal energy cost; units and duration must be pinned.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "power_purchase_commitment_mw",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "coverage_scope": "Named operators/projects only",
+      "remaining_gap": "Contracted/leased/preleased MW may include future capacity; not global demand. PFA definition and IT versus gross power/site sharing require explicit review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "powered_on_gpu_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "gpu_ir",
+        "epoch"
+      ],
+      "coverage_scope": "Selected officially disclosed fleets/sites",
+      "remaining_gap": "Installed, power-on and earning revenue are different statuses; Epoch estimate alone cannot verify all three. Global totals or complete weekly current fleet not disclosed.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "ppa_operational_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "eia",
+        "pjm",
+        "ferc"
+      ],
+      "coverage_scope": "Named site/utility project disclosures",
+      "remaining_gap": "Electricity region statistics/contracted MW cannot establish site-specific available AI MW; commissioning and time-to-connection series incomplete.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "quality_adjusted_model_score",
+      "spec_sections": [
+        18
+      ],
+      "availability": "benchmark_evidence_partial",
+      "source_ids": [
+        "aa_free",
+        "mlperf",
+        "hf"
+      ],
+      "coverage_scope": "Benchmark-covered models/tasks only",
+      "remaining_gap": "须固定测试版本和质量篮子；当前分数不能回写模型发布日期；模型质量不代表可用生产吞吐量。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "benchmark_composite_score",
+          "quality_adjusted_model_score"
+        ],
+        "source_ids": [
+          "epoch_benchmarks",
+          "openrouter_models"
+        ],
+        "finding": "Epoch 历史评测和 OpenRouter 转载的 290 个 AA 当前分数可取得。",
+        "admissibility": "benchmark_evidence_partial",
+        "remaining_gap": "须固定测试版本和质量篮子；当前分数不能回写模型发布日期；模型质量不代表可用生产吞吐量。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "quality_adjusted_serving_cost",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_models",
+        "aa_free",
+        "gpu_prices",
+        "mlperf"
+      ],
+      "coverage_scope": "API list-price or benchmark-based cost proxy",
+      "remaining_gap": "API sale price is not provider serving cost; cost normalization requires utilization, batching, power, quality/task and model details often private.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "rate_limit_tokens_per_min",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "or_endpoints",
+        "or_models"
+      ],
+      "coverage_scope": "Published plan/provider quota documentation",
+      "remaining_gap": "Account/region/tier/model-specific entitlements, not actual globally available capacity; hidden dynamic limits and historical records missing.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "receivables_growth_minus_revenue_growth",
+      "spec_sections": [
+        21
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo"
+      ],
+      "coverage_scope": "Public issuer financial statement sample",
+      "remaining_gap": "Freeze average/end receivables, credit/total revenue, fiscal days and same-method YoY; no private-company comprehensive data.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "renewable_operational_mw",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "eia",
+        "ferc"
+      ],
+      "coverage_scope": "US generator inventory/operational capacity only",
+      "remaining_gap": "Not global AI-allocated power; dataset stock/flow, operational versus planned dates and MW basis must be frozen.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "reserved_power_mw",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "coverage_scope": "Named operators/projects only",
+      "remaining_gap": "Contracted/leased/preleased MW may include future capacity; not global demand. PFA definition and IT versus gross power/site sharing require explicit review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "revenue_generating_gpu_units",
+      "spec_sections": [
+        16
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "gpu_ir",
+        "epoch"
+      ],
+      "coverage_scope": "Selected officially disclosed fleets/sites",
+      "remaining_gap": "Installed, power-on and earning revenue are different statuses; Epoch estimate alone cannot verify all three. Global totals or complete weekly current fleet not disclosed.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "revenue_per_successful_task_usd",
+      "spec_sections": [
+        15,
+        17
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "public_usage",
+        "or_traffic"
+      ],
+      "coverage_scope": "No paired realized revenue / successful-task series",
+      "remaining_gap": "Both numerator and denominator missing for a consistent entity/task cohort; cannot replace with benchmark cost-per-task.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "serving_cost_usd_per_m_tokens",
+      "spec_sections": [
+        18
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "or_models",
+        "aa_free",
+        "gpu_prices",
+        "mlperf"
+      ],
+      "coverage_scope": "API list-price or benchmark-based cost proxy",
+      "remaining_gap": "API sale price is not provider serving cost; cost normalization requires utilization, batching, power, quality/task and model details often private.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "signed_pfa_mw",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "dc_ir",
+        "nebius_ir",
+        "us_ir"
+      ],
+      "coverage_scope": "Named operators/projects only",
+      "remaining_gap": "Contracted/leased/preleased MW may include future capacity; not global demand. PFA definition and IT versus gross power/site sharing require explicit review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "spv_jv_dscr",
+      "spec_sections": [
+        21
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "sec",
+        "dc_ir",
+        "finra"
+      ],
+      "coverage_scope": "Some debt collateral/covenant footnotes only",
+      "remaining_gap": "No complete public appraised residual values, senior claims, SPV-specific operating cashflow/debt service; borrower filings not full private structures.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "successful_agent_tasks",
+      "spec_sections": [
+        15
+      ],
+      "availability": "vendor_activity_proxy_only",
+      "source_ids": [
+        "public_usage",
+        "or_traffic"
+      ],
+      "coverage_scope": "No unified public industry task/compute census identified",
+      "remaining_gap": "仅两期已验证；累计数量与披露环比的分母不同，不能由累计量反推完整季度历史；缺业务成功标准及跨厂商可比性。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "agent_tasks",
+          "successful_tasks",
+          "successful_agent_tasks"
+        ],
+        "source_ids": [
+          "salesforce_awu_definition",
+          "salesforce_fy26q4",
+          "salesforce_fy27q1"
+        ],
+        "finding": "Salesforce AWU 有连续季报披露，但官方说明包含处理提示、完成推理链、调用工具等活动。不是统一业务成功验收后的任务数。",
+        "observations": [
+          {
+            "period_end": "2026-01-31",
+            "cumulative_awu": 2400000000,
+            "reported_qoq_growth_pct": 57
+          },
+          {
+            "period_end": "2026-04-30",
+            "cumulative_awu": 3800000000,
+            "reported_qoq_growth_pct": 111
+          }
+        ],
+        "admissibility": "vendor_activity_proxy_only",
+        "remaining_gap": "仅两期已验证；累计数量与披露环比的分母不同，不能由累计量反推完整季度历史；缺业务成功标准及跨厂商可比性。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "successful_tasks",
+      "spec_sections": [
+        17
+      ],
+      "availability": "vendor_activity_proxy_only",
+      "source_ids": [
+        "public_usage",
+        "or_traffic"
+      ],
+      "coverage_scope": "No unified public industry task/compute census identified",
+      "remaining_gap": "仅两期已验证；累计数量与披露环比的分母不同，不能由累计量反推完整季度历史；缺业务成功标准及跨厂商可比性。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "agent_tasks",
+          "successful_tasks",
+          "successful_agent_tasks"
+        ],
+        "source_ids": [
+          "salesforce_awu_definition",
+          "salesforce_fy26q4",
+          "salesforce_fy27q1"
+        ],
+        "finding": "Salesforce AWU 有连续季报披露，但官方说明包含处理提示、完成推理链、调用工具等活动。不是统一业务成功验收后的任务数。",
+        "observations": [
+          {
+            "period_end": "2026-01-31",
+            "cumulative_awu": 2400000000,
+            "reported_qoq_growth_pct": 57
+          },
+          {
+            "period_end": "2026-04-30",
+            "cumulative_awu": 3800000000,
+            "reported_qoq_growth_pct": 111
+          }
+        ],
+        "admissibility": "vendor_activity_proxy_only",
+        "remaining_gap": "仅两期已验证；累计数量与披露环比的分母不同，不能由累计量反推完整季度历史；缺业务成功标准及跨厂商可比性。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "supplier_cash_dividends_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_diluted_shares",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_eps_diluted",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_fcf_per_share",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Public issuer with complete source financials",
+      "remaining_gap": "Fix FCF/Capex/lease definition, actual share-count basis and split adjustment, issuance proceeds versus net shares, FX and same-period alignment.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_fcf_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Public issuer with complete source financials",
+      "remaining_gap": "Fix FCF/Capex/lease definition, actual share-count basis and split adjustment, issuance proceeds versus net shares, FX and same-period alignment.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_gross_buyback_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_net_share_change_pct",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_derived_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Public issuer with complete source financials",
+      "remaining_gap": "Fix FCF/Capex/lease definition, actual share-count basis and split adjustment, issuance proceeds versus net shares, FX and same-period alignment.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_revenue_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "supplier_sbc_usd",
+      "spec_sections": [
+        20
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "take_or_pay_commitments_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_partial_disclosure",
+      "source_ids": [
+        "us_ir",
+        "sec",
+        "dc_ir",
+        "nebius_ir"
+      ],
+      "coverage_scope": "Occasional explicit company disclosures",
+      "remaining_gap": "AI-specific breakdown not consistently disclosed for all entities. Total Capex/cloud revenue/RPO or future commitment cannot silently substitute.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "token_price_input_usd_per_m",
+      "spec_sections": [
+        17
+      ],
+      "availability": "current_snapshot_verified",
+      "source_ids": [
+        "or_models",
+        "aa_free"
+      ],
+      "coverage_scope": "Listed model/provider current endpoint metadata",
+      "remaining_gap": "没有历史价格生效日期；模型创建时间不能代替价格日期。需持续归档，不能回填 2025 年价格。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "token_price_input_usd_per_m",
+          "token_price_output_usd_per_m",
+          "context_window_tokens"
+        ],
+        "source_ids": [
+          "openrouter_models"
+        ],
+        "finding": "已从官方匿名目录解析 464 个模型的当前标价与上下文长度。",
+        "admissibility": "current_snapshot_verified",
+        "remaining_gap": "没有历史价格生效日期；模型创建时间不能代替价格日期。需持续归档，不能回填 2025 年价格。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "token_price_output_usd_per_m",
+      "spec_sections": [
+        17
+      ],
+      "availability": "current_snapshot_verified",
+      "source_ids": [
+        "or_models",
+        "aa_free"
+      ],
+      "coverage_scope": "Listed model/provider current endpoint metadata",
+      "remaining_gap": "没有历史价格生效日期；模型创建时间不能代替价格日期。需持续归档，不能回填 2025 年价格。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "token_price_input_usd_per_m",
+          "token_price_output_usd_per_m",
+          "context_window_tokens"
+        ],
+        "source_ids": [
+          "openrouter_models"
+        ],
+        "finding": "已从官方匿名目录解析 464 个模型的当前标价与上下文长度。",
+        "admissibility": "current_snapshot_verified",
+        "remaining_gap": "没有历史价格生效日期；模型创建时间不能代替价格日期。需持续归档，不能回填 2025 年价格。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "token_revenue_proxy_usd",
+      "spec_sections": [
+        15,
+        17
+      ],
+      "availability": "free_derived_proxy",
+      "source_ids": [
+        "or_traffic",
+        "or_models"
+      ],
+      "coverage_scope": "Comparable platform/model sample only",
+      "remaining_gap": "Need separate actual billable input/output/cache/reasoning volume and contemporaneous realized prices; total tokens times one list price is not revenue. Historical prices/platform history also missing.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "total_capex_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_direct_scoped",
+      "source_ids": [
+        "sec",
+        "us_ir",
+        "gpu_ir",
+        "cninfo",
+        "korea_ir"
+      ],
+      "coverage_scope": "Disclosing public-company issuer only",
+      "remaining_gap": "Not a complete AI-only/global basket; fiscal periods, lease/cash definitions, original source fields/units and FX mapping require review.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "training_cluster_utilization_pct",
+      "spec_sections": [
+        15
+      ],
+      "availability": "released_model_event_estimate",
+      "source_ids": [
+        "us_ir",
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Some dated public events only",
+      "remaining_gap": "缺活动训练全集、失败或取消训练及持续利用率；不能按模型发布日期将完整训练成本计入当期。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "training_cluster_utilization_pct",
+          "training_gpu_hours",
+          "training_compute_spend_usd"
+        ],
+        "source_ids": [
+          "epoch_models_zip"
+        ],
+        "finding": "Epoch 已下载模型训练耗时、芯片小时、MFU 与估计成本字段。它们按模型事件记录；不是行业持续运行集群的月度利用率与当期训练支出。",
+        "admissibility": "released_model_event_estimate",
+        "remaining_gap": "缺活动训练全集、失败或取消训练及持续利用率；不能按模型发布日期将完整训练成本计入当期。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "training_compute_spend_usd",
+      "spec_sections": [
+        15
+      ],
+      "availability": "released_model_event_estimate",
+      "source_ids": [
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Estimated completed models / published cluster specs",
+      "remaining_gap": "缺活动训练全集、失败或取消训练及持续利用率；不能按模型发布日期将完整训练成本计入当期。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "training_cluster_utilization_pct",
+          "training_gpu_hours",
+          "training_compute_spend_usd"
+        ],
+        "source_ids": [
+          "epoch_models_zip"
+        ],
+        "finding": "Epoch 已下载模型训练耗时、芯片小时、MFU 与估计成本字段。它们按模型事件记录；不是行业持续运行集群的月度利用率与当期训练支出。",
+        "admissibility": "released_model_event_estimate",
+        "remaining_gap": "缺活动训练全集、失败或取消训练及持续利用率；不能按模型发布日期将完整训练成本计入当期。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "training_gpu_equivalent_units",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Estimated completed models / published cluster specs",
+      "remaining_gap": "Compute/cost/power estimates not actual training allocation/spend; missing normalized generation/basket and actual ongoing run utilization.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "training_gpu_hours",
+      "spec_sections": [
+        15
+      ],
+      "availability": "released_model_event_estimate",
+      "source_ids": [
+        "meta_card",
+        "epoch"
+      ],
+      "coverage_scope": "Individual completed training runs",
+      "remaining_gap": "缺活动训练全集、失败或取消训练及持续利用率；不能按模型发布日期将完整训练成本计入当期。",
+      "full_requirement_covered": false,
+      "current_review": {
+        "metrics": [
+          "training_cluster_utilization_pct",
+          "training_gpu_hours",
+          "training_compute_spend_usd"
+        ],
+        "source_ids": [
+          "epoch_models_zip"
+        ],
+        "finding": "Epoch 已下载模型训练耗时、芯片小时、MFU 与估计成本字段。它们按模型事件记录；不是行业持续运行集群的月度利用率与当期训练支出。",
+        "admissibility": "released_model_event_estimate",
+        "remaining_gap": "缺活动训练全集、失败或取消训练及持续利用率；不能按模型发布日期将完整训练成本计入当期。",
+        "full_requirement_covered": false
+      }
+    },
+    {
+      "metric": "training_gpu_power_on_units",
+      "spec_sections": [
+        15
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "us_ir",
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Some dated public events only",
+      "remaining_gap": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "training_power_mw",
+      "spec_sections": [
+        15
+      ],
+      "availability": "free_proxy_only",
+      "source_ids": [
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Estimated completed models / published cluster specs",
+      "remaining_gap": "Compute/cost/power estimates not actual training allocation/spend; missing normalized generation/basket and actual ongoing run utilization.",
+      "full_requirement_covered": false
+    },
+    {
+      "metric": "training_run_delay_days",
+      "spec_sections": [
+        15
+      ],
+      "availability": "no_verified_free_series",
+      "source_ids": [
+        "us_ir",
+        "epoch",
+        "meta_card"
+      ],
+      "coverage_scope": "Some dated public events only",
+      "remaining_gap": "No verified complete free continuous actual training telemetry/run registry. Release/safety delay alone is not declining compute demand; isolated announcements cannot fill a numeric census.",
+      "full_requirement_covered": false
+    }
+  ],
+  "field_inventory_status": "原字段清单继承；新增来源尚需逐字段验收，不能将清单覆盖率当数据覆盖率",
+  "full_data_support_verified": false,
+  "exact_cicc_replication_verified": false,
+  "critical_distinction": "AISDI 衡量供需紧张度，中金指数衡量泡沫压力；不存在已证明的 100-AISDI 换算。中金内部权重及完整变换规则未披露。"
+}

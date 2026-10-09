@@ -1,0 +1,122 @@
+{
+  "as_of_date": "2026-10-05",
+  "records": [
+    {
+      "entity": "Google",
+      "product": "Gemini app",
+      "metric": "ai_mau",
+      "period": "Monthly active users",
+      "value_users_reported": 750000000,
+      "value_type": "lower_bound",
+      "observation_date_exact": null,
+      "disclosed_current_at_release": true,
+      "release_datetime_native": "2026-02-04T22:25:00+00:00",
+      "source_meta": {
+        "id": "google_activity_q42025",
+        "url": "https://blog.google/company-news/inside-google/message-ceo/alphabet-earnings-q4-2025/",
+        "retrieved_at": "2026-10-07T23:42:00.435374+00:00",
+        "status": 200,
+        "tls_verified": true,
+        "process_exit": 0,
+        "error": null,
+        "research_only": true,
+        "sha256": "bad01d421765d09bffeade51a0be94bd9b3d60a077c63bfb74fd36808a4e1131",
+        "bytes": 375777
+      },
+      "matched_text": "Gemini App now has over 750 million monthly active users",
+      "measurement_window_exact": null,
+      "scope_note": "Gemini app only; excludes separate AI Mode/Overviews and Gemini Enterprise paid MAU",
+      "publication_quarter_is_not_observation_date": true,
+      "official_history_eligible": false
+    },
+    {
+      "entity": "Google",
+      "product": "Gemini app",
+      "metric": "ai_mau",
+      "period": "Monthly active users",
+      "value_users_reported": 950000000,
+      "value_type": "publisher_rounded_level",
+      "observation_date_exact": null,
+      "disclosed_current_at_release": true,
+      "release_datetime_native": "2026-07-22T20:45:00+00:00",
+      "source_meta": {
+        "id": "google_activity_q22026",
+        "url": "https://blog.google/company-news/inside-google/message-ceo/alphabet-earnings-q2-2026/",
+        "retrieved_at": "2026-10-07T23:42:02.769194+00:00",
+        "status": 200,
+        "tls_verified": true,
+        "process_exit": 0,
+        "error": null,
+        "research_only": true,
+        "sha256": "f116e2873026915e62c5b95a32d03342e057d010d8f282613ac07833011be945",
+        "bytes": 381644
+      },
+      "matched_text": "Gemini app, which now has 950 million monthly active users",
+      "measurement_window_exact": null,
+      "scope_note": "Gemini app only; excludes separate AI Mode/Overviews and Gemini Enterprise paid MAU",
+      "publication_quarter_is_not_observation_date": true,
+      "official_history_eligible": false
+    },
+    {
+      "entity": "Google",
+      "product": "Gemini app",
+      "metric": "ai_mau",
+      "period": "Monthly active users",
+      "value_users_reported": 1000000000,
+      "value_type": "lower_bound",
+      "observation_date_exact": null,
+      "disclosed_current_at_release": true,
+      "release_datetime_native": "2026-08-11T16:00:00+00:00",
+      "source_meta": {
+        "id": "google_activity_billion_20260811",
+        "url": "https://blog.google/innovation-and-ai/products/gemini-app/one-billion-monthly-users/",
+        "retrieved_at": "2026-10-07T23:42:04.089980+00:00",
+        "status": 200,
+        "tls_verified": true,
+        "process_exit": 0,
+        "error": null,
+        "research_only": true,
+        "sha256": "fa889088d73307e544503705a801fa386f2a34efb7530f13b45fedc424c8351d",
+        "bytes": 389405
+      },
+      "matched_text": "Gemini app has officially surpassed 1 billion monthly users",
+      "measurement_window_exact": null,
+      "scope_note": "Gemini app only; excludes separate AI Mode/Overviews and Gemini Enterprise paid MAU",
+      "publication_quarter_is_not_observation_date": true,
+      "official_history_eligible": false
+    }
+  ],
+  "issuer_disclosures": 3,
+  "lower_bound_observations": 2,
+  "Q1_source_scope_gap": {
+    "release_datetime_native": "2026-04-29T20:45:00+00:00",
+    "source_meta": {
+      "id": "google_activity_q12026",
+      "url": "https://blog.google/company-news/inside-google/message-ceo/alphabet-earnings-q1-2026/",
+      "retrieved_at": "2026-10-07T23:42:01.549723+00:00",
+      "status": 200,
+      "tls_verified": true,
+      "process_exit": 0,
+      "error": null,
+      "research_only": true,
+      "sha256": "28e430a6b52569d3452e39d040eac0cc77355fd98ba4bab99d882e95a49ead2d",
+      "bytes": 389320
+    },
+    "consumer_Gemini_MAU_amount_found": false,
+    "source_scope": "Entire captured Q1 CEO remarks checked; does not prove no amount elsewhere",
+    "enterprise_paid_MAU_qoq_growth_pct": 40,
+    "growth_not_absolute_users": true,
+    "consumer_MAU_filled": false
+  },
+  "same_product_updates_observed": true,
+  "regular_complete_monthly_panel_verified": false,
+  "eight_comparable_changes_verified": false,
+  "full_metric_history_eligible": false,
+  "limits": [
+    "Now/current publisher language retained; no quarter-end dates fabricated.",
+    "Lower bounds do not yield exact growth ratios or normalizable point levels.",
+    "Quarterly earnings outlet plus product milestone supports observed repeat updates, not promised fixed MAU cadence.",
+    "Q1 enterprise percentage is not consumer Gemini app absolute MAU; no carry-forward.",
+    "Existing four Epoch Gemini rows remain separate upstream-unverified historical evidence."
+  ]
+}
