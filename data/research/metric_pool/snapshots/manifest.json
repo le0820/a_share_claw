@@ -1,0 +1,286 @@
+{
+  "classification.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.json",
+    "original_sha256": "4076cf9766ca94237bba257635a04bcb8975a7e1a1ad56405830910fd934a9e9",
+    "packaged_sha256": "936c65486996f5578bcff3525db895feef2424d7aabe0ac6015843f9837ddb88",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "tracking.json": {
+    "original_file": "data/harness_acceptance/aisdi_full_support_20261005/metric_tracking_review.json",
+    "original_sha256": "b2b6cb5901fc4dbce5b894a5a96488b11095d19feb94279317361204acdb8a56",
+    "packaged_sha256": "b0c45027d3e22292869e447f123349a00c9370151f74ce857547ee9367502a38",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "pillars.json": {
+    "original_file": "data/harness_acceptance/aisdi_full_support_20261005/pillar_readiness_review.json",
+    "original_sha256": "969a616b2a88e2485f88f2ba30f315c6eba85c85acc330a6605e70923dda0efa",
+    "packaged_sha256": "969a616b2a88e2485f88f2ba30f315c6eba85c85acc330a6605e70923dda0efa",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "remaining_gaps.json": {
+    "original_file": "data/harness_acceptance/aisdi_full_support_20261005/remaining_gap_dependency_audit.json",
+    "original_sha256": "3eae1a761ce9ea2156b19ba31f49f24405d8588bb6d848fc385b794825f91722",
+    "packaged_sha256": "3eae1a761ce9ea2156b19ba31f49f24405d8588bb6d848fc385b794825f91722",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "win_odds.json": {
+    "original_file": "data/research/output/win_odds_20261007/framework_and_input_audit.json",
+    "original_sha256": "d147791f9bb8f0431ff570fae58170339b5fa0587c13735fef3bf691ca75a04b",
+    "packaged_sha256": "8e3646f17534cfa1e605d1c189ff3bac57b0023af458aa68a0c322853c4016b9",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "forecast_source_matrix.json": {
+    "original_file": "data/research/output/win_odds_20261007/cross_market_forecast_source_matrix.json",
+    "original_sha256": "554e921e4f6b377f40725ba055370145db8c749d0c80681d22e0a26560ea52b8",
+    "packaged_sha256": "4b91d9cc0114370783bb8df456e57d174921ef82a335bac3f0a4fd8508f952f0",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "goal_acceptance.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/完整目标验收与外部依赖.json",
+    "original_sha256": "2218011eb6d12dbbe758c5602a1271385e2f7bf7fb76056c86ea73490b64ab1d",
+    "packaged_sha256": "449b94078610e57e09f8e271ca917f2f43226ee892d9649d4b174a5fef21b2cd",
+    "snapshot_kind": "review metadata; referenced raw payloads remain local and are not packaged"
+  },
+  "model_spec_v1.md": {
+    "packaged_sha256": "150417f45532e430bc1d01abdb459dd60a6fb687f33e7761c2df7a0a7637679f",
+    "snapshot_kind": "original own-workspace research specification"
+  },
+  "AISDI_20支柱准入复核.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/AISDI_20支柱准入复核.json",
+    "original_sha256": "b239d777ad307441d195dd93d8d4ac78faa4dafd1d564cdcf012480e89973e52",
+    "packaged_sha256": "be60bdf59692f1cfd0614244552248a4078d4283d81f8f71fd391002df3b9e2f",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "AISDI_时间轴支撑矩阵.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/AISDI_时间轴支撑矩阵.csv",
+    "original_sha256": "948f69d29d154d7df38efd4df0e8b8062d36ea0c0c234475ba20ce03c540b50a",
+    "packaged_sha256": "dbc175ba122a360a2df71636dccce019db1192aa01cc4c263cec643bd8e3d1bf",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "AISDI_时间轴支撑矩阵.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/AISDI_时间轴支撑矩阵.json",
+    "original_sha256": "2c86529cd9966bd9a5826b5a857edb51bf0bb1d2a2d49ee020489523a87e828e",
+    "packaged_sha256": "2c86529cd9966bd9a5826b5a857edb51bf0bb1d2a2d49ee020489523a87e828e",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "AISDI_核心指标三分类.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.csv",
+    "original_sha256": "a50371ad54b74a97a68af9b0190d0a427147a5c2c85a45683b79192d6ac3ecf3",
+    "packaged_sha256": "70aa58c554023e36356ef92e4f5eaf4dd02d4140b8565186b5427ff5cc1704ba",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "AISDI_核心指标三分类.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.json",
+    "original_sha256": "4076cf9766ca94237bba257635a04bcb8975a7e1a1ad56405830910fd934a9e9",
+    "packaged_sha256": "936c65486996f5578bcff3525db895feef2424d7aabe0ac6015843f9837ddb88",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "aisdi_cicc_crosswalk.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/aisdi_cicc_crosswalk.json",
+    "original_sha256": "935aba0256f889af929510bd75843a1f652db6389be711bb577350dfa6e03dce",
+    "packaged_sha256": "b24aec18bd37651453f8555c2bfba771e89b2909648d3149f8a31efd534fc118",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "company_activity_field_time_axis_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/company_activity_field_time_axis_audit.json",
+    "original_sha256": "ee6c80c18b479b7ec564dcc399281c7654bd8a0f624268d002e8a93a34977e23",
+    "packaged_sha256": "ee6c80c18b479b7ec564dcc399281c7654bd8a0f624268d002e8a93a34977e23",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "coreweave_active_power_native_date_samples.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/coreweave_active_power_native_date_samples.csv",
+    "original_sha256": "34bda2f72b40d559b9653ae20877f3ddbbf5c169a18bc6411f661728dd33308a",
+    "packaged_sha256": "405eb98b2cbd7da94057c65d85adb88737bde29ad9c4fe017369d405c7661d81",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "coreweave_active_power_time_axis_admission_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/coreweave_active_power_time_axis_admission_audit.json",
+    "original_sha256": "23f82bbce70c48d8e0382056ca516dabe522d7bb18dd9d05b2e4aa25b7110102",
+    "packaged_sha256": "23f82bbce70c48d8e0382056ca516dabe522d7bb18dd9d05b2e4aa25b7110102",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "enterprise_activity_public_source_boundary_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/enterprise_activity_public_source_boundary_audit.json",
+    "original_sha256": "336d973616a32791b5ca93aa4f731c2f2ec015401cfb2b384f91249956785d1b",
+    "packaged_sha256": "9116b9e0f503210e20d4afcfbc244e09ef03b848f9bd8b4283f179e6a38d27ff",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "google_native_MAU_update_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/google_native_MAU_update_audit.json",
+    "original_sha256": "4bf52eb637731b9d36714a4c9bc17c6e525cb98510e46cea02b0818f1de69b1b",
+    "packaged_sha256": "4bf52eb637731b9d36714a4c9bc17c6e525cb98510e46cea02b0818f1de69b1b",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "iren_GAAP_comparative_revision_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/iren_GAAP_comparative_revision_audit.json",
+    "original_sha256": "83dda98eeea018755d4a75e47035171e5ae7feac12d64015fb65119c17c68bd4",
+    "packaged_sha256": "f58ccb5fc6c278448f6895ae7d1877997e051ede54c78bc487187fd2d16e65ce",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "iren_current_GAAP_quarter_history.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/iren_current_GAAP_quarter_history.csv",
+    "original_sha256": "f0935f628b9aaa719edc30180e03a96d014e09daaa9acdd204f51236c6ff63f4",
+    "packaged_sha256": "50e33b3aa61e6c740a648e4e0b76bdeaa58b753bee42edefc279401eb8c08e6d",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "iren_current_GAAP_quarter_history_admission_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/iren_current_GAAP_quarter_history_admission_audit.json",
+    "original_sha256": "90373caac284266512a52b27e881977ee49cc91560040fb58af9bc7d41c8f2c2",
+    "packaged_sha256": "992066ee88af2056f67a1bfc92ce6591f0f764b0030f0ae5f7f59fb23e0608e1",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "iren_fy25_customer_service_fleet_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/iren_fy25_customer_service_fleet_audit.json",
+    "original_sha256": "31db3c330e41e33239d99b11a0500faf0e71c8675bb064598fd0eaac61801699",
+    "packaged_sha256": "65ce2fa1cb6582a2e0207243c2243ea0087e7811b21a846e84ae629786b79ac7",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "iren_monthly_GPU_state_events.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/iren_monthly_GPU_state_events.csv",
+    "original_sha256": "a190667c86e8b44c3f8f8e488206c38d114df630592a7af3e472103d6d863864",
+    "packaged_sha256": "be506e8760c5cdd44afa80663c9d492ff05b37d3bc90ba4446e7f1d424102f52",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "iren_monthly_GPU_state_timeline_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/iren_monthly_GPU_state_timeline_audit.json",
+    "original_sha256": "744106c75f427c3af42f5ed6f6800400e3166dd88af79d9409951239b9b805dd",
+    "packaged_sha256": "dd54062347126b7d3e8cea9be46f47632e0d026b90ec659cc2b795e627990a04",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "memory_customer_contract_RPO_components.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/memory_customer_contract_RPO_components.csv",
+    "original_sha256": "dcc3107b5216469d577142eaecfcc2e5daddabfddce65e2ee98098060d77fea0",
+    "packaged_sha256": "69e58315969b6ee6be585947b2910a059463d0187bee802ed579b06439a010ee",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "memory_take_or_pay_minimum_RPO_proxy_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/memory_take_or_pay_minimum_RPO_proxy_audit.json",
+    "original_sha256": "bb48015ed4c8e42e9a383d22ff53aae09ff3c09b67ef62e421f469194770f029",
+    "packaged_sha256": "b011a8846dfbaff6b05fc7455d130b53c0b5a88033358b39ff07322738d5c6cc",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "micron_quarterly_bit_growth_archive_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/micron_quarterly_bit_growth_archive_audit.json",
+    "original_sha256": "260f94cb8647d2018fef4e23faa21e6c595b9d4dd3173eb72888c935696318f5",
+    "packaged_sha256": "260f94cb8647d2018fef4e23faa21e6c595b9d4dd3173eb72888c935696318f5",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "micron_quarterly_bit_growth_disclosures.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/micron_quarterly_bit_growth_disclosures.csv",
+    "original_sha256": "e9f6167e6747c7f3b757231b866886b20e8e003cebd39981e08429895ce9c195",
+    "packaged_sha256": "e697a77fd727e4b61bd66b8251dc2722447f71ff2e228a7053543369293615ed",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "msft_uncommenced_DC_lease_proxy_history_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/msft_uncommenced_DC_lease_proxy_history_audit.json",
+    "original_sha256": "1dfe25e3b4817089d7d72c40de568ee6b81d01e8779380c77e6012a4fd999518",
+    "packaged_sha256": "1dfe25e3b4817089d7d72c40de568ee6b81d01e8779380c77e6012a4fd999518",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "msft_uncommenced_lease_diagnostic_changes.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/msft_uncommenced_lease_diagnostic_changes.csv",
+    "original_sha256": "72b60bfaf18174f936de5f07ff40ef273a433e7eca43f616f518d883bcb38567",
+    "packaged_sha256": "882bdb7d419aa89600d60a92d86e4dafe18fe6643857be8a8602bc924ff8a138",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "msft_uncommenced_lease_native_levels.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/msft_uncommenced_lease_native_levels.csv",
+    "original_sha256": "9c2498798cca571426bbdf8e82e6350fcec2b1ce11e6d4f5fa00e2a43806f152",
+    "packaged_sha256": "54c9852a9a8b4248e77cd1e37e2c5a96906aa0caf874a0c16ae22c941afb0f57",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "nebius_RPO_explicit_scope_records.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/nebius_RPO_explicit_scope_records.csv",
+    "original_sha256": "c155b181bde0a421d42c48ce896c34ceedea7cbb8455295087593b4e2826e6cd",
+    "packaged_sha256": "6cda7d433be5e2dbee11b757aeec136806c3e1fe7cc53cc57bb315f9600815b6",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "nebius_current_vintage_AI_revenue_quarter_candidates.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/nebius_current_vintage_AI_revenue_quarter_candidates.csv",
+    "original_sha256": "6eae6654707a9527f6a3774005c3b40049b535866389bd3b95f7b4881fd1583a",
+    "packaged_sha256": "f89b6124b21a234a15ea567583b03b794b1d639fdea2696caa0529bd93411bdf",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "nebius_early_AI_revenue_quarter_bridge_admission_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/nebius_early_AI_revenue_quarter_bridge_admission_audit.json",
+    "original_sha256": "371ed777b949962f03e6256bb91688549961dcd9cc360cf57adda3787c907ec0",
+    "packaged_sha256": "371ed777b949962f03e6256bb91688549961dcd9cc360cf57adda3787c907ec0",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "nebius_explicit_AI_RPO_and_segment_history_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/nebius_explicit_AI_RPO_and_segment_history_audit.json",
+    "original_sha256": "6a973ae7eab4c03170ad03150d67cd580029771cad0ec6b7ad63d7e2512e14b6",
+    "packaged_sha256": "6a973ae7eab4c03170ad03150d67cd580029771cad0ec6b7ad63d7e2512e14b6",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "nebius_reported_segment_revenue_current_vintage.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/nebius_reported_segment_revenue_current_vintage.csv",
+    "original_sha256": "ebd28c5e58c806e963067e73400517d4b782ef3d0275c534cf44d565ff9596f0",
+    "packaged_sha256": "f6f509aaf60f4ee2036bdbfb5319a85bab29f2658dc5597248154f5bb21a56e3",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_conditional_total_input_components.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_conditional_total_input_components.csv",
+    "original_sha256": "eaf85785564c66cce249ffe1a75688be5e50979ec35810d7fe7c0fcbdfef4c60",
+    "packaged_sha256": "3a1362ec27168861050cc9feb90f10ca19e4660e7c258d361ce021d937512355",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_manual_archive_pipeline_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_manual_archive_pipeline_audit.json",
+    "original_sha256": "ec2bed49694df91aff8d85dc7c11edf8b3bdc4a84f6aa79559c9f4e494d02ba2",
+    "packaged_sha256": "0d4564a503c97aea8ca6fb4ccd9b23a90a0807b43d8c68fc75865fb786cc8e8a",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_original_input_token_mapping_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_original_input_token_mapping_audit.json",
+    "original_sha256": "fb8e7225b79f3d09d0724f5bd58e38489926516b27fa6c5425aeb07e8cc25e4b",
+    "packaged_sha256": "2ce34e7be3bdaad3a0c5374b6b0e7d3db80f910332bbbb340d7025a1a4dfda71",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_public_series_update_revision_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_public_series_update_revision_audit.json",
+    "original_sha256": "4425c054f4837e4fe50a1a4582f063475f6e85adc19a5a594bee1590e27f07ca",
+    "packaged_sha256": "4425c054f4837e4fe50a1a4582f063475f6e85adc19a5a594bee1590e27f07ca",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_weekly_token_growth_replay.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_weekly_token_growth_replay.csv",
+    "original_sha256": "b51486ef8bf50aee1503cb3204c6c2b26f4f103b62ef891f6cd41f23a0eb9333",
+    "packaged_sha256": "53fcddbff79aaa3a5cda231a408438922839ea3933b06c8f0f7926ec77b470dd",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_weekly_token_history_replay_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_weekly_token_history_replay_audit.json",
+    "original_sha256": "c6dd1f3b677b6d1ff61200417cb4549b79338b82ca013d699d6ee23befc17dd9",
+    "packaged_sha256": "d51277cd7ff085b607eda4a98bd8aa8e476860f286a5631bc3ae55d4bfd8a692",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "ramp_weekly_token_levels.csv": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/ramp_weekly_token_levels.csv",
+    "original_sha256": "fea10fc0733bbb522f774a6f601aec88178f2dac8bacbcb702b65bbabf78d3fa",
+    "packaged_sha256": "5c539c98d3187f4fc26e524c36f79ee7986992f8783fcf953742cfefc95cfc6a",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "salesforce_AWU_quarterly_extension_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/salesforce_AWU_quarterly_extension_audit.json",
+    "original_sha256": "d2f675d28b19da329aaa588fb4704be7fab697f0cfc9855114cbb1021968080d",
+    "packaged_sha256": "4a158953856e1ecb54ea8b1a6067f1c2725b0479fdbf8ffdf35eb39dbee4f21f",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "zai_model_api_revenue_history_audit.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/zai_model_api_revenue_history_audit.json",
+    "original_sha256": "875ccbd921cc99ddbc49b03b77a68636700e1db1f8dd657c3b87c9de7ecc3f36",
+    "packaged_sha256": "875ccbd921cc99ddbc49b03b77a68636700e1db1f8dd657c3b87c9de7ecc3f36",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "完整目标验收与外部依赖.json": {
+    "original_file": "data/research/output/aisdi_full_support_20261005/完整目标验收与外部依赖.json",
+    "original_sha256": "2218011eb6d12dbbe758c5602a1271385e2f7bf7fb76056c86ea73490b64ab1d",
+    "packaged_sha256": "449b94078610e57e09f8e271ca917f2f43226ee892d9649d4b174a5fef21b2cd",
+    "snapshot_kind": "captured normalized research data/audit; raw source payloads remain local; never official scoring inputs"
+  },
+  "refresh_verification_20261008.json": {
+    "packaged_sha256": "a670e566f21552950bad38ad1d72d731c8dd8cf2d91ee1d9032a6d04f8a8fc13",
+    "snapshot_kind": "current public refresh verification; capture timestamps separate from frozen research cutoff"
+  }
+}

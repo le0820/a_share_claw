@@ -1,0 +1,298 @@
+{
+  "review_local_date": "2026-10-08",
+  "capture_dates_are_UTC": true,
+  "sources": [
+    {
+      "source_id": "ramp_tsm",
+      "retrieved_at": "2026-10-09T02:49:47.958898+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "3efb63f561b2c308cfea937af773b789e74106aa67b1efb44e1aa0e0b825613d",
+      "latest_source_data_date": "2026-09-29",
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": true,
+      "summary": {
+        "rows": 3822,
+        "date_labels": 637,
+        "first_date_label": "2025-01-01",
+        "last_date_label": "2026-09-29",
+        "makers": [
+          "anthropic",
+          "openai"
+        ],
+        "types": [
+          "all_tokens",
+          "uncached_input",
+          "output"
+        ],
+        "calendar_gaps": [],
+        "measure": "TSM enterprise sample, native daily-labelled rolling7d counts and billed USD costs",
+        "fixed_customer_cohort_verified": false,
+        "historical_PIT_verified": false,
+        "all_tokens_counted_once": true,
+        "age_days_at_capture_UTC": 10,
+        "native_daily5day_freshness": false,
+        "weekly21day_freshness": true,
+        "freshness_does_not_promote_scoring": true
+      },
+      "quarantine_reason": null
+    },
+    {
+      "source_id": "openrouter_models",
+      "retrieved_at": "2026-10-09T02:49:49.097814+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "5209b9998f53b9bee03e812e1eaaeae8d97e0a589b6755b23da5e863a3144f58",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": true,
+      "summary": {
+        "model_count": 469,
+        "pricing_unit": "advertised USD/token",
+        "excluded_price_fields": [
+          {
+            "model": "typesafe/jev-router",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "typesafe/jev-router",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "nvidia/switchyard",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "nvidia/switchyard",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/auto-beta",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/auto-beta",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/fusion",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/fusion",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/pareto-code",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/pareto-code",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/bodybuilder",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/bodybuilder",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/auto",
+            "field": "prompt",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          },
+          {
+            "model": "openrouter/auto",
+            "field": "completion",
+            "raw_value": "-1",
+            "reason": "Not usable numeric price; excluded, never zero-filled"
+          }
+        ],
+        "numeric_pricing_models": 462,
+        "historical_prices_verified": false
+      },
+      "quarantine_reason": null
+    },
+    {
+      "source_id": "vast_h100_offers",
+      "retrieved_at": "2026-10-09T02:49:49.897750+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "a9f57a33cd06903da88e7e95edae7a24c1f380d6f0856cf17a003fa705003d16",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": true,
+      "summary": {
+        "offer_count": 8,
+        "unique_platform_gpu_ids": 14,
+        "truncated": false,
+        "count_scope": "filtered platform listing; not guaranteed physical supply"
+      },
+      "quarantine_reason": null
+    },
+    {
+      "source_id": "vercel_text_shares",
+      "retrieved_at": "2026-10-09T02:49:51.014466+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "1a4e9a7c6764b743b85c3bfa6faedc0a432c733c1173f40eff3839cb844772e5",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": true,
+      "summary": {
+        "rows": 1498,
+        "days": 61,
+        "absolute_volume": false,
+        "spend_basis": "list-price normalized",
+        "license": "CC-BY-4.0"
+      },
+      "quarantine_reason": null
+    },
+    {
+      "source_id": "inferencex_cost_registry",
+      "retrieved_at": "2026-10-09T02:49:51.838883+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "4962556a2987015f27c81868d10bf785812f8b724f780f17ed26160703e40e8f",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": false,
+      "summary": {
+        "basis": "registered modeled ownership TCO USD/GPU/hour",
+        "prices": {
+          "h200": "1.22",
+          "b200": "1.73"
+        },
+        "historical_cost_vintage_verified": false
+      },
+      "quarantine_reason": null
+    },
+    {
+      "source_id": "inferencex_r1_modeled_cost",
+      "retrieved_at": "2026-10-09T02:49:53.386986+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "a710008b7682ef4011827fc93cb969831996bbc394ea62fd7fd1761d1b828faa",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": false,
+      "summary": {
+        "model": "DeepSeek-R1-0528",
+        "configurations": 8,
+        "unclamped_configurations": [
+          "h200_dynamo-trt_mtp",
+          "h200_trt_mtp",
+          "h200_dynamo-sglang_mtp",
+          "h200_sglang_mtp",
+          "h200_sglang",
+          "h200_dynamo-trt",
+          "h200_trt",
+          "h200_dynamo-sglang"
+        ],
+        "excluded_clamped_configurations": [],
+        "frozen_params": {
+          "model": "DeepSeek-R1-0528",
+          "sequence": "8k/1k",
+          "precisions": [
+            "fp8"
+          ],
+          "target": 35,
+          "mode": "interactivity-to-throughput",
+          "costProvider": "costh",
+          "costType": "total",
+          "percentile": "p90",
+          "tcoBasis": "internal",
+          "hideSkuAboveConfigLimit": true,
+          "date": "2026-10-05",
+          "gpus": [
+            "h200"
+          ],
+          "format": "json",
+          "unofficialrun": null
+        },
+        "performance_asof_date": "2026-10-05",
+        "cost_observation_basis": "snapshot retrieval time, not performance asof date",
+        "historical_cost_vintage_verified": false,
+        "production_applicability_verified": false
+      },
+      "quarantine_reason": null
+    },
+    {
+      "source_id": "inferencex_v4_modeled_cost",
+      "retrieved_at": "2026-10-09T02:49:54.528452+00:00",
+      "accepted_research_snapshot": true,
+      "payload_sha256": "c44cb0f68629419fcb2363924fdc4cb0ceb5f16575029e235e98cd3ee515d8bd",
+      "latest_source_data_date": null,
+      "original_cutoff_not_modified": true,
+      "snapshot_payload_changed_vs_baseline": false,
+      "summary": {
+        "model": "DeepSeek-V4-Pro",
+        "configurations": 9,
+        "unclamped_configurations": [
+          "b200_dynamo-sglang",
+          "b200_vllm_mtp",
+          "b200_trt",
+          "b200_vllm",
+          "b200_sglang"
+        ],
+        "excluded_clamped_configurations": [
+          "b200_dynamo-sglang_mtp",
+          "b200_dynamo-vllm_mtp",
+          "b200_trt_mtp",
+          "b200_dynamo-vllm"
+        ],
+        "frozen_params": {
+          "model": "DeepSeek-V4-Pro",
+          "sequence": "8k/1k",
+          "precisions": [
+            "fp4"
+          ],
+          "target": 35,
+          "mode": "interactivity-to-throughput",
+          "costProvider": "costh",
+          "costType": "total",
+          "percentile": "p90",
+          "tcoBasis": "internal",
+          "hideSkuAboveConfigLimit": true,
+          "date": "2026-10-05",
+          "gpus": [
+            "b200"
+          ],
+          "format": "json",
+          "unofficialrun": null
+        },
+        "performance_asof_date": "2026-10-05",
+        "cost_observation_basis": "snapshot retrieval time, not performance asof date",
+        "historical_cost_vintage_verified": false,
+        "production_applicability_verified": false
+      },
+      "quarantine_reason": null
+    }
+  ],
+  "live_accepted_sources": 7,
+  "offline_replay_sources": 7,
+  "scheduler_installed": false,
+  "formal_state_changed": false,
+  "original_cutoffs_changed": false
+}

@@ -1,0 +1,188 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "sources": [
+    {
+      "id": "amazon_cy25q4_news",
+      "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_cy25q4_news.raw",
+      "source_URL": "https://www.aboutamazon.com/news/company-news/amazon-earnings-q4-2025-report",
+      "source_sha256": "fea163376f421f964d4ea23d4657d31432187d32b6dd9fbab56c7538109cb4c0",
+      "capture_time": "2026-10-08T12:45:23.435085+00:00",
+      "declared_structured_timestamps": {
+        "datePublished": "2026-01-22T21:51:56.955Z",
+        "dateModified": "2026-02-05T21:46:48.159Z"
+      },
+      "original_first_release_verified": false,
+      "precreated_page_timestamp_warning": true,
+      "exact_disclosure_available_date": null
+    },
+    {
+      "id": "amazon_fy26q1",
+      "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_fy26q1.raw",
+      "source_URL": "https://www.aboutamazon.com/news/company-news/amazon-earnings-q1-2026-report",
+      "source_sha256": "ac9059ef4d4390c3fc89a3fa713626519735911e91d544731c73ef91e773eca6",
+      "capture_time": "2026-10-08T12:44:34.074015+00:00",
+      "declared_structured_timestamps": {
+        "datePublished": "2026-04-15T20:07:17.559Z",
+        "dateModified": "2026-04-29T20:20:57.657Z"
+      },
+      "original_first_release_verified": false,
+      "precreated_page_timestamp_warning": true,
+      "exact_disclosure_available_date": null
+    },
+    {
+      "id": "amazon_fy26q1_ai",
+      "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_fy26q1_ai.raw",
+      "source_URL": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-aws-ai-q1-2026-earnings",
+      "source_sha256": "d82dc78b5f59bae472d02ca58179f8de1fd1fa609ada7be9062118fe9a3d54ce",
+      "capture_time": "2026-10-08T12:44:34.074089+00:00",
+      "declared_structured_timestamps": {
+        "datePublished": "2026-04-30T00:20:32.013Z",
+        "dateModified": "2026-04-30T00:20:32.013Z"
+      },
+      "original_first_release_verified": false
+    },
+    {
+      "id": "amazon_fy26q2",
+      "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_fy26q2.raw",
+      "source_URL": "https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report",
+      "source_sha256": "a90a9a65c6d8f0ee012d7bf9951f408d84e64c2194ae3c478950c33a57863a2c",
+      "capture_time": "2026-10-08T12:44:34.863220+00:00",
+      "declared_structured_timestamps": {
+        "datePublished": "2026-07-16T20:06:30.528Z",
+        "dateModified": "2026-07-30T20:23:14.710Z"
+      },
+      "original_first_release_verified": false,
+      "precreated_page_timestamp_warning": true,
+      "exact_disclosure_available_date": null
+    }
+  ],
+  "AWS_AI_run_rate_lower_bound_records": [
+    {
+      "reference_earnings_quarter": "2026Q1",
+      "amount_usd": 15000000000.0,
+      "comparison": "greater_than",
+      "metric_native": "AWS AI annual revenue run rate",
+      "as_of_measurement_date": null,
+      "publication_container": {
+        "id": "amazon_fy26q1_ai",
+        "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_fy26q1_ai.raw",
+        "source_URL": "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-aws-ai-q1-2026-earnings",
+        "source_sha256": "d82dc78b5f59bae472d02ca58179f8de1fd1fa609ada7be9062118fe9a3d54ce",
+        "capture_time": "2026-10-08T12:44:34.074089+00:00",
+        "declared_structured_timestamps": {
+          "datePublished": "2026-04-30T00:20:32.013Z",
+          "dateModified": "2026-04-30T00:20:32.013Z"
+        },
+        "original_first_release_verified": false
+      }
+    },
+    {
+      "reference_earnings_quarter": "2026Q2",
+      "amount_usd": 25000000000.0,
+      "comparison": "greater_than",
+      "metric_native": "AWS AI annual revenue run rate",
+      "as_of_measurement_date": null,
+      "publication_container": {
+        "id": "amazon_fy26q2",
+        "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_fy26q2.raw",
+        "source_URL": "https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report",
+        "source_sha256": "a90a9a65c6d8f0ee012d7bf9951f408d84e64c2194ae3c478950c33a57863a2c",
+        "capture_time": "2026-10-08T12:44:34.863220+00:00",
+        "declared_structured_timestamps": {
+          "datePublished": "2026-07-16T20:06:30.528Z",
+          "dateModified": "2026-07-30T20:23:14.710Z"
+        },
+        "original_first_release_verified": false,
+        "precreated_page_timestamp_warning": true,
+        "exact_disclosure_available_date": null
+      }
+    }
+  ],
+  "AWS_run_rate_not_actual_quarter_revenue": true,
+  "AWS_run_rate_not_contract_ARR": true,
+  "AWS_run_rate_not_Bedrock_or_model_API_revenue": true,
+  "AWS_run_rate_comparable_growth_computed": false,
+  "absolute_Bedrock_tokens_acquired": false,
+  "Bedrock_customer_disclosures": [
+    {
+      "reference_earnings_quarter": "2025Q4",
+      "customers_lower_bound": 100000,
+      "comparison": "100000_plus",
+      "population_native": "companies",
+      "observation_date": null,
+      "source_id": "amazon_cy25q4_news"
+    },
+    {
+      "reference_earnings_quarter": "2026Q2",
+      "customers_lower_bound": null,
+      "qualitative_label": "hundreds of thousands",
+      "population_native": "customers",
+      "observation_date": null,
+      "source_id": "amazon_fy26q2"
+    }
+  ],
+  "Bedrock_growth_only_disclosures": [
+    {
+      "reference_earnings_quarter": "2026Q1",
+      "customer_spend_QoQ_pct": 170,
+      "absolute_spend_usd": null,
+      "tokens_total": null,
+      "tokens_relation": "Q1 exceeds all prior years combined",
+      "source_id": "amazon_fy26q1"
+    },
+    {
+      "reference_earnings_quarter": "2026Q2",
+      "absolute_spend_usd": null,
+      "spend_relation": "Q2 exceeds all prior quarters combined",
+      "tokens_total": null,
+      "source_id": "amazon_fy26q2"
+    }
+  ],
+  "Servicenow_public_schema": {
+    "reader_evidence_file": "data/harness_acceptance/aisdi_full_support_20261005/servicenow_agent_analytics_reader_scope_evidence.json",
+    "reader_evidence_sha256": "63731e06ab4262a207c4618668e774550de18273a7fecaff6496f0a523de0ab5",
+    "native_HTTP200_content_is_application_shell": true,
+    "private_tenant_numeric_series_acquired": false,
+    "required_role": "sn_aia.viewer or sn_aia.admin",
+    "schema_update_interval": "most daily, latency every15 minutes",
+    "execution_success_business_acceptance_equivalence_verified": false,
+    "inferred_CSAT_is_human_acceptance": false,
+    "public_numerical_history_acquired": false
+  },
+  "failed_transport_evidence": [
+    {
+      "id": "amazon_fy25q4",
+      "status": 403,
+      "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/amazon_fy25q4.raw",
+      "sha256": "2e9b5a65a5768c7a6b3c6fa8a03c1e6f29277fe3acccc41c5039c682ea21016b"
+    },
+    {
+      "id": "servicenow_fy26q2",
+      "status": 403,
+      "source_file": "data/harness_acceptance/aisdi_full_support_20261005/raw/enterprise_activity_boundaries/servicenow_fy26q2.raw",
+      "sha256": "09f4989b365629d05b342d95ce66ba9b9642b66af9d1def0125cdcd05ec1863f"
+    }
+  ],
+  "affected_original_fields": [
+    "model_arr_usd",
+    "model_api_revenue_usd",
+    "ai_cloud_revenue_usd",
+    "api_tokens_total",
+    "enterprise_wau",
+    "successful_agent_tasks",
+    "successful_tasks",
+    "revenue_per_successful_task_usd"
+  ],
+  "classification_counts_changed": false,
+  "official_admission": false,
+  "stable_original_metric_history_verified": false,
+  "limits": [
+    "Quarterly Amazon publications demonstrate repeated free issuer disclosure, not a guaranteed same-field numeric time series. Only two AI run-rate lower bounds exist in this sample; no actual quarter revenue, pure API scope or eight valid transformed observations.",
+    "Customer companies/customers are not weekly-active unique enterprise people. Qualitative counts are not replaced with a guessed number.",
+    "Tokens and spend growth statements do not identify absolute tokens, API calls, GPU hours, deployed capacity or serving cost.",
+    "AWS AI and chips run-rate values are different overlapping business views; do not add them, divide by four for realized revenue, or label them model ARR.",
+    "Three result pages have creation timestamps about two weeks before their latest content modification; page datePublished is not accepted as first availability of the final results.",
+    "ServiceNow documents field definitions and instance collection cadence; this is not a free public numeric feed. Success execution status, closed business tasks and inferred satisfaction require distinct acceptance definitions."
+  ]
+}

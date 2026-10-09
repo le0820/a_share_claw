@@ -1,0 +1,182 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "explicit_AI_RPO_samples": [
+    {
+      "entity": "Nebius",
+      "period_end": "2026-06-30",
+      "value_USD": 37490600000,
+      "native_value_USDmillions": 37490.6,
+      "native_metric": "unsatisfied RPO",
+      "AI_scope_explicit": true,
+      "scope_evidence": "Amounts fully attributed to Nebius AI cloud business",
+      "remaining_24months_revenue_share_pct": 36,
+      "months25to48_share_pct": 40,
+      "variable_consideration_included": true,
+      "original_term1year_or_less_excluded": true,
+      "not_actual_revenue": true,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926094844/nbis-20260812xex99d2.htm",
+      "evidence_sha256": "24cb563da547f88cc6952684e1b55f8addd4c49bb2677b0a9315f1ba099ebb04",
+      "first_available_timestamp": null,
+      "official_input": false
+    }
+  ],
+  "group_RPO_samples_not_promoted_to_AI": [
+    {
+      "entity": "Nebius",
+      "period_end": "2026-03-31",
+      "value_USD": 33585300000,
+      "native_value_USDmillions": 33585.3,
+      "native_metric": "group unsatisfied RPO",
+      "AI_scope_explicit": false,
+      "scope_evidence": "ReviewedQ1RPOpassage does not provideQ2 explicit AI attribution; no historical copy",
+      "remaining_24months_revenue_share_pct": 29,
+      "months25to48_share_pct": 39,
+      "variable_consideration_included": true,
+      "original_term1year_or_less_excluded": true,
+      "not_actual_revenue": true,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926064092/nbis-20260331xex99d2.htm",
+      "evidence_sha256": "24cb563da547f88cc6952684e1b55f8addd4c49bb2677b0a9315f1ba099ebb04",
+      "first_available_timestamp": null,
+      "official_input": false
+    }
+  ],
+  "AI_RPO_value_USD": 37490600000,
+  "AI_RPO_numeric_dates": 1,
+  "AI_RPO_growth": null,
+  "revenue_direct_segment_levels": [
+    {
+      "period_end": "2025-03-31",
+      "revenue_USD": 41400000,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926064092/nbis-20260331xex99d2.htm",
+      "available_in_report_period": "2026-03-31",
+      "source_kind": "primary SEC comparative segment table",
+      "native_unit": "USDmillions, rounded0.1million",
+      "external_only": false,
+      "intersegment_transactions_included": true,
+      "official_input": false,
+      "evidence_sha256": "a6983a6180e262a5310bd59e438f0500a492450f3a6ecf3db09b4be953485a77"
+    },
+    {
+      "period_end": "2025-06-30",
+      "revenue_USD": 93700000,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926094844/nbis-20260812xex99d2.htm",
+      "available_in_report_period": "2026-06-30",
+      "source_kind": "primary SEC comparative segment table",
+      "native_unit": "USDmillions, rounded0.1million",
+      "external_only": false,
+      "intersegment_transactions_included": true,
+      "official_input": false,
+      "evidence_sha256": "a6983a6180e262a5310bd59e438f0500a492450f3a6ecf3db09b4be953485a77"
+    },
+    {
+      "period_end": "2025-09-30",
+      "revenue_USD": 131100000,
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465925110831/tm2531034d1_ex99-1.htm",
+      "available_in_report_period": "2025-09-30",
+      "source_kind": "primary SEC direct segment table",
+      "native_unit": "USDmillions, rounded0.1million",
+      "external_only": false,
+      "intersegment_transactions_included": true,
+      "official_input": false,
+      "evidence_sha256": "24cb563da547f88cc6952684e1b55f8addd4c49bb2677b0a9315f1ba099ebb04"
+    },
+    {
+      "period_end": "2025-12-31",
+      "revenue_USD": 214200000,
+      "source_url": "https://assets.nebius.com/assets/85571bd2-050b-468c-954c-42e9d24e4cd2/Letter%20to%20Shareholders%20Q4%202025.pdf",
+      "available_in_report_period": "2025-12-31",
+      "source_kind": "native issuerSHL PDF",
+      "native_unit": "USDmillions, rounded0.1million",
+      "external_only": false,
+      "intersegment_transactions_included": true,
+      "official_input": false,
+      "evidence_sha256": "d81fdf5ebd93060a05bfc5341416f364f934807d7c2a03990027fd19450e5fe1"
+    },
+    {
+      "period_end": "2026-03-31",
+      "revenue_USD": 389700000,
+      "source_url": "https://assets.nebius.com/assets/aa1bc2e6-df83-40cd-a6a2-95e7cda3d16c/Nebius%20SHL_Q1%202026.pdf",
+      "available_in_report_period": "2026-03-31",
+      "source_kind": "native issuerSHL PDF",
+      "native_unit": "USDmillions, rounded0.1million",
+      "external_only": false,
+      "intersegment_transactions_included": true,
+      "official_input": false,
+      "evidence_sha256": "83a68d99d7f50c7df2406add513a7c7913b99e18e3a6d8b97e59433ba7128832"
+    },
+    {
+      "period_end": "2026-06-30",
+      "revenue_USD": 574900000,
+      "source_url": "https://assets.nebius.com/assets/4462517b-ce83-41f2-96ed-f2ac1bc06a05/SHLQ226%20%281%29.pdf",
+      "available_in_report_period": "2026-06-30",
+      "source_kind": "native issuerSHL PDF",
+      "native_unit": "USDmillions, rounded0.1million",
+      "external_only": false,
+      "intersegment_transactions_included": true,
+      "official_input": false,
+      "evidence_sha256": "aec30236b7903532684ddf43fd5006ef89a945118366d767315434fd65b4dc29"
+    }
+  ],
+  "consecutive_revenue_quarter_levels": 6,
+  "revenue_QoQ_diagnostic_changes": [
+    {
+      "base_date": "2025-03-31",
+      "date": "2025-06-30",
+      "QoQ_log_growth_annualized": 3.267269233652431,
+      "source_basis_bridge_fully_verified": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-06-30",
+      "date": "2025-09-30",
+      "QoQ_log_growth_annualized": 1.3434488061011103,
+      "source_basis_bridge_fully_verified": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-09-30",
+      "date": "2025-12-31",
+      "QoQ_log_growth_annualized": 1.963799068975977,
+      "source_basis_bridge_fully_verified": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-12-31",
+      "date": "2026-03-31",
+      "QoQ_log_growth_annualized": 2.3938682173240604,
+      "source_basis_bridge_fully_verified": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2026-03-31",
+      "date": "2026-06-30",
+      "QoQ_log_growth_annualized": 1.5552756011383269,
+      "source_basis_bridge_fully_verified": false,
+      "official_input": false
+    }
+  ],
+  "minimum8_revenue_growth_met": false,
+  "current_version_direct_prior_values_replace_share_proxy": true,
+  "not_historical_first_vintage_reconstruction": true,
+  "revenue_basis": "Reported AI cloud/core segment including intersegment transactions, external-only split not supplied",
+  "data_aggregation_checks": {
+    "2026Q2_segment_sum_USDmillions": 585.9,
+    "2026Q2_eliminations_USDmillions": 3.6,
+    "2026Q2_group_revenue_USDmillions": 582.3,
+    "2025Q2_segment_sum_USDmillions": 106.2,
+    "2025Q2_eliminations_USDmillions": 1.1,
+    "2025Q2_group_revenue_USDmillions": 105.1,
+    "allocation_of_eliminations_to_single_segment_verified": false
+  },
+  "formal_score": null,
+  "official_input": false,
+  "limits": [
+    "No subtraction of all group eliminations fromAIcloud to invent exact external sales",
+    "Latest explicitAIattribution not copied backward toQ1groupRPO",
+    "RPO is contract stock with variable consideration and duration exclusions, not annualizedrunrate, shipment or actualrevenue",
+    "Direct comparative revenues first proved in captured later financial statements, not backdated to period end or original report",
+    "Old approximate share proxies retained as old source evidence, not concatenated with exact segment series",
+    "Only6 revenue levels/5growth and1AI_RPOdate; original minimum8 unmet, no full pillar/index score"
+  ]
+}

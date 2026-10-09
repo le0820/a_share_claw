@@ -1,0 +1,322 @@
+{
+  "date": "2026-10-07",
+  "sources": [
+    {
+      "provider": "EastmoneyHKF10",
+      "primary_page_file": "em_hk_f10_page_00700_direct.raw",
+      "declared_script": "em_hk_f10_declared_js_direct.raw",
+      "review": "DownloadedcurrentprimaryHKF10script exposedhistoricalfinancialindicator/financialstatement/businessreview tables; noA-sharestyle forecastROEroute found inthis artifact. NotproofHKforecastneveravailable."
+    },
+    {
+      "provider": "ETNet",
+      "sample_audit": "data/research/output/win_odds_20261007/hk_native_forecast_sample_audit.json",
+      "numericEPSsample": true,
+      "projectedROE": false,
+      "projectedBVPS": false,
+      "coverage": "Tencentonly; notHSTECH",
+      "update_history_verified": false
+    },
+    {
+      "provider": "CMBI public report",
+      "sample_audit": "data/research/output/win_odds_20261007/historical_broker_forward_ROE_sample_audit.json",
+      "native_ROE_1FY": true,
+      "stock_table_time": "2026-04-10 11:30",
+      "current_20261007_admitted": false,
+      "exact_forward_horizon_verified": false,
+      "coverage": "selectedstocks, notfullindexconstituents"
+    }
+  ],
+  "unresolved": [
+    "ForecastROE orconsistentprojectedequity",
+    "CurrencyconsistentEPS andprimaryprice/FX",
+    "USbenchmarkexpectedfinancials latestdatedcomparablefullseriesqualification",
+    "Comparableforecastversiontimeaxesandvaluationhistory"
+  ],
+  "full35scores": false,
+  "official_HSTECH_members_weights": {
+    "audit": "data/research/output/win_odds_20261007/hstech_official_universe_audit.json",
+    "members": 30,
+    "trade_date": "2026-10-07",
+    "weight_sum_pct": 100
+  },
+  "HSTECH_full_publisher_forecast_capture": {
+    "audit": "data/research/output/win_odds_20261007/hstech_forecast_coverage_audit.json",
+    "stocks": 30,
+    "annual_rows": 90,
+    "any_horizon_EPS_weight_coverage_pct": 100,
+    "reporting_currencies": {
+      "CNY": 26,
+      "USD": 4
+    },
+    "forecast_ROE": false,
+    "horizon_alignment": false
+  },
+  "official_ChiNext50_members_partial_weights": {
+    "audit": "data/research/output/win_odds_20261007/chinext50_official_universe_audit.json",
+    "members": 50,
+    "weight_date": "2026-09-30",
+    "known_weight_members": 10,
+    "known_weight_sum_pct": 67.27,
+    "missing_weight_members": 40,
+    "EPS_ROE_company_coverage": 49,
+    "full_weighted_coverage_pct": null,
+    "full_weights_verified": false,
+    "public_export_audit": "data/research/output/win_odds_20261007/chinext50_public_export_audit.json",
+    "export_also_missing_40_weights": true
+  },
+  "ChiNext50_native_valuation_snapshot": {
+    "audit": "data/research/output/win_odds_20261007/chinext50_native_valuation_snapshot_audit.json",
+    "issuer": true,
+    "actual_valuation_date": null,
+    "five_year_history": false,
+    "PS": false,
+    "forward_PE_verified": false,
+    "odds_score_eligible": false
+  },
+  "CMBI_current_report_schema_review": {
+    "audit": "data/research/output/win_odds_20261007/cmbi_current_report_forecast_schema_audit.json",
+    "daily_dates": [
+      "2026-10-06",
+      "2026-10-07"
+    ],
+    "daily_forecast_ROE_table": false,
+    "September_Chinese_summary_ROE": "FY25A_actual",
+    "April_1FY_continuity_into_current_summary_verified": false
+  },
+  "CMBI_linked_English_forward_ROE_sample": {
+    "audit": "data/research/output/win_odds_20261007/cmbi_english_BYD_forecast_ROE_audit.json",
+    "report_date": "2026-09-10",
+    "listing": "01211.HK",
+    "FY26E_ROE_pct": 13.7,
+    "FY26E_EPS_RMB": 3.96,
+    "current_HSTECH_member_matched": true,
+    "current_Oct7_weight_pct": 7.34,
+    "Oct7_current_forecast_admitted": false,
+    "consensus_equivalent_verified": false
+  },
+  "CMBI_Tencent_fixed_FY_forecast_vintages": {
+    "audit": "data/research/output/win_odds_20261007/cmbi_tencent_forecast_vintage_history_audit.json",
+    "vintages": 3,
+    "dates": [
+      "2026-07-08",
+      "2026-08-13",
+      "2026-09-10"
+    ],
+    "same_FY_EPS_updates_observed": true,
+    "exact_forecast_effective_dates_verified": false,
+    "ROE": false,
+    "full_HSTECH": false
+  },
+  "HSTECH_official_monthly_PE_history": {
+    "audit": "data/research/output/win_odds_20261007/hstech_native_monthly_PE_history_audit.json",
+    "observations": 12,
+    "frequency": "monthly",
+    "first_month": "2025-10",
+    "last_month": "2026-09",
+    "native_PE_basis": "month-end weighted average",
+    "PB": false,
+    "PS": false,
+    "five_year_window_complete": false
+  },
+  "HSTECH_native_monthly_report_PE_supplement": {
+    "audit": "data/research/output/win_odds_20261007/hstech_monthly_roundup_history_audit.json",
+    "reports": 6,
+    "numeric_overlap_months": 3,
+    "distinct_month_labels_across_sources": 15,
+    "five_year_month_labels_missing": 45,
+    "method_equivalence_verified": false,
+    "combined_scoring": false
+  },
+  "HSTECH_native_monthly_report_PE_archive": {
+    "audit": "data/research/output/win_odds_20261007/hstech_native_monthly_report_archive_audit.json",
+    "records": 59,
+    "workbook_exact_overlap": 12,
+    "missing_report_months": [
+      "2025-01"
+    ],
+    "nonpositive_PE_rows": 8,
+    "PB_PS": false,
+    "forward_PE": false,
+    "original_first_release_certified": false,
+    "full_odds_complete": false
+  },
+  "reference_method_fidelity": {
+    "audit": "data/research/output/win_odds_20261007/reference_method_requirement_fidelity_audit.json",
+    "explicit_NTM_requirement": false,
+    "reference_PE_horizon_unresolved": true
+  },
+  "StockCheck_public_weekly_valuation_candidates": {
+    "audit": "data/research/output/win_odds_20261007/stockcheck_public_weekly_valuation_candidate_audit.json",
+    "indices": [
+      "NDX",
+      "SPX",
+      "HSTECH"
+    ],
+    "five_year_weekly_rows_each": 261,
+    "five_year_weekly_rows_total": 783,
+    "unverified_source": true,
+    "PS_acquired": false,
+    "formal_scoring_admitted": false
+  },
+  "StockCheck_HSTECH_exact_date_comparison": {
+    "audit": "data/research/output/win_odds_20261007/stockcheck_HSTECH_issuer_exact_date_comparison_audit.json",
+    "sample_dates": 4,
+    "numeric_matches": 0,
+    "sign_mismatches": 1,
+    "same_basis_verified": false
+  },
+  "Multpl_SPX_PE_PB_PS_source_review": {
+    "audit": "data/research/output/win_odds_20261007/multpl_SPX_valuation_history_and_estimate_audit.json",
+    "PS_numerical_history_available": true,
+    "PB_PS_latest_nonestimate": "2025-09-30",
+    "current_PB_PS_publisher_estimates": true,
+    "financial_denominator_age_days": 372,
+    "missing_2026_quarters": 3,
+    "full_odds_admitted": false
+  },
+  "SPDji_SPX_benchmark_factor_statistics": {
+    "audit": "data/research/output/win_odds_20261007/spdj_SPX_benchmark_factor_statistics_audit.json",
+    "native_verified_date": "2026-09-30",
+    "weighted_mean_ROE_pct": 42.58,
+    "forecast_ROE": false,
+    "exact_PE_PB_PS_admitted": false,
+    "Sept2026_reader_only_visual_QA": false,
+    "direct_current_PDF_status": 403,
+    "full_score_admitted": false,
+    "Sept2026_native_PDF_visual_QA": true
+  },
+  "SPDji_SPX_benchmark_factor_monthly_archive": {
+    "audit": "data/research/output/win_odds_20261007/spdj_SPX_monthly_benchmark_factor_history_audit.json",
+    "records": 58,
+    "missing_months": [
+      "2025-04",
+      "2026-03"
+    ],
+    "exact_mean_rows_visually_verified": true,
+    "actual_financial_measurement_dates_verified": false,
+    "forecast_ROE": false,
+    "exact_PE_PB_PS_admitted": false,
+    "full_score_admitted": false
+  },
+  "FactSet_SPX_free_weekly_forecast_vintages": {
+    "audit": "data/research/output/win_odds_20261007/factset_SPX_free_weekly_forecast_vintage_audit.json",
+    "native_PDF_reports": 5,
+    "consecutive_weekly_reports": true,
+    "complete_annual_EPS_chart_versions": 4,
+    "latest_report_date": "2026-10-02",
+    "same_version_CY25_EPS_base_in_latest": false,
+    "native_earnings_growth_equals_EPS_ratio_verified": false,
+    "forecast_ROE_acquired": false,
+    "five_year_valuation_series_acquired": false,
+    "full_win_odds": false
+  },
+  "public_US_company_forecast_ROE_BVPS_sample_candidates": {
+    "audit": "data/research/output/win_odds_20261007/public_US_company_forecast_ROE_BVPS_sample_audit.json",
+    "sha256": "50a2e31547c17d1d74a3e1bdbb7f1448a3afee163116905395ec3b90c659ca9c",
+    "provider": "MarketScreener",
+    "companies": 3,
+    "annual_cross_horizon_rows": 24,
+    "forecast_horizon_rows": 9,
+    "public_Reader_EPS_BVPS_ROE_sample_acquired": true,
+    "native_HTTP200_body_acquired": false,
+    "direct403_count": 3,
+    "review_date": "2026-10-08",
+    "available_by_20261007_verified": false,
+    "historical_forecast_vintages": 0,
+    "stable_source_update_acquisition_verified": false,
+    "index_membership_weights_bound": false,
+    "full_US_index_expected_ROE": false,
+    "official_admission": false
+  },
+  "DWS_SPX_source_declared_forward_ROE_samples": {
+    "audit": "data/research/output/win_odds_20261007/dws_SPX_source_declared_forward_ROE_audit.json",
+    "sha256": "79ddac0c55b3d545aeff921341278fd9bfb3059cf70fc9d99bef41eee76061ae",
+    "native_PDFs": 3,
+    "dated_versions": 2,
+    "source_declared_2026E_aggregate_ROE_numeric_sample": true,
+    "consensus_ROE": false,
+    "same_definition_dynamic_ROE_YoY_history": false,
+    "latest_exact_publication_date_verified": false,
+    "BVPS_year_label_conflict_unresolved": true,
+    "public_stable_feed_qualified": false,
+    "current_win_odds_admitted": false
+  },
+  "Wacai_public_PS_short_history_candidates": {
+    "file": "data/research/output/win_odds_20261007/wacai_public_PS_short_history_audit.json",
+    "sha256": "c93a4bed04ca2e1e3639a14978d5987df83dc366ee4e3e1b7ee63f486dc99474",
+    "validated_pages": 11,
+    "requested_indices": [
+      "399673",
+      "801010"
+    ],
+    "records": 22,
+    "issuer_PE_PB_exact_date_matches": 11,
+    "PS_method_verified": false,
+    "five_year_complete": false,
+    "scores_admitted": false
+  },
+  "GuruFocus_NDX_public_PS_candidate": {
+    "reader_file": "data/harness_acceptance/win_odds_20261007/gurufocus_NDX_PS_public_reader_evidence.json",
+    "reader_sha256": "cd862abdfeaa0cbe1c614dfe9586108ff7a0410d989a0a206136f00baf994c51",
+    "observation_date_label": "2026-10-07",
+    "PS": 6.68,
+    "native_direct_status": 403,
+    "full_free_numerical_history_acquired": false,
+    "premium_export_accessed": false,
+    "first_publication_timestamp_verified": false,
+    "scoring_admitted": false
+  },
+  "Baifenwei_public_rank_history_source_qualification": {
+    "file": "data/research/output/win_odds_20261007/baifenwei_public_rank_history_source_audit.json",
+    "sha256": "b64006f6689062461ce32484b680f5db57dfb3ff4fb7bdd58d0e862dde962443",
+    "catalog": 109,
+    "requested_exact_matches": [
+      "HSTECH",
+      "399673"
+    ],
+    "HSTECH_rank_history_rows": 319,
+    "date_labels_at_or_before_cutoff": 318,
+    "underlying_PS_levels_acquired": false,
+    "rank_lookback": "10year or expanding",
+    "five_year_PS_recomputed": false,
+    "scoring_admitted": false
+  },
+  "Daxiapi_public_PS_source_followup": {
+    "guide_url": "https://daxiapi.com/article/help/2026-06-28-guzhi-guide/",
+    "guide_native_HTTP200": true,
+    "claimed_industry_PS_coverage": 30,
+    "claimed_source": "Eastmoney, distinct from Jiuquant percentile source",
+    "native_market_valuation_page_HTTP": 404,
+    "native_mobile_page_HTTP": 200,
+    "mobile_content": "client application shell, linked public JavaScript resources not yet inspected",
+    "actual_numeric_history_acquired": false,
+    "identity_coverage_verified": false,
+    "linked_mobile_bundle_native_HTTP": 403,
+    "bundle_metadata_file": "data/harness_acceptance/win_odds_20261007/raw/daxiapi_public_valuation/mobile_public_bundle.meta.json",
+    "bundle_payload_sha256": "04492569fd0c4fc3a3c80a152cabbe601a8cce323e2cc832f4bac63667a089df",
+    "reader_bundle_access": "not accessible via tool",
+    "next_gate": "public page must expose actual dated PS and exact industry identity; documentation coverage claims not admitted"
+  },
+  "Tplus_public_sector_valuation_candidates": {
+    "file": "data/research/output/win_odds_20261007/tplus_public_sector_valuation_source_audit.json",
+    "sha256": "2f99f8dbbd5d2c703da5f31dd09d86904a17a61278abbb57c21607c741bc14a7",
+    "sector_name_matches": 31,
+    "monthly_PE_PB_rows": 3751,
+    "same_date_issuer_pairs": 31,
+    "exact_PE_PB_pair_matches": 0,
+    "industry_PS_fields": 0,
+    "scoring_admitted": false,
+    "status": "Name-only matching; publisher internal codes and financial basis unresolved. Market PS belongs to CSI All Share, not sectors."
+  },
+  "Datacube_consensus_documented_access_boundary": {
+    "file": "data/research/output/win_odds_20261007/datacube_consensus_public_documentation_access_audit.json",
+    "sha256": "6f6825621275534c50f4a42731b4a98cbd111535c2196589c2db22153ea8b5f6",
+    "interface": "con_forecast_sw",
+    "EPS_ROE_PS_schema_documented": true,
+    "token_required": true,
+    "anonymous_free_access_verified": false,
+    "numeric_records": 0,
+    "full_SW31_history_verified": false,
+    "scoring_admitted": false
+  }
+}

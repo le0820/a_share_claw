@@ -1,0 +1,40 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "previous_capture_sha256": "ab4b9d4c6e92bd3c682e3cbd5301446f658fb97542fcf4a77d5fef8dc55e4387",
+  "followup_capture_sha256": "83dbac4f5553729442f39d7c225427e52f7c810d108c2f13507aaed299df296e",
+  "followup_capture_time": "2026-10-09T00:05:53.737548+00:00",
+  "source_url": "https://ramp.com/data/ai-index",
+  "old_dates": 637,
+  "old_last": "2026-09-29",
+  "new_dates": 637,
+  "new_last": "2026-09-29",
+  "old_records": 3822,
+  "new_records": 3822,
+  "common_keys": 3822,
+  "changed_common_records": 0,
+  "dropped_keys": 0,
+  "new_keys": 0,
+  "new_dates_added": [],
+  "new_makers": [
+    "anthropic",
+    "openai"
+  ],
+  "new_types": [
+    "all_tokens",
+    "output",
+    "uncached_input"
+  ],
+  "changed_records": [],
+  "same_history_exactly_preserved": true,
+  "numeric_series_update_observed": false,
+  "followup_merged_into_scoring": false,
+  "historical_PIT_verified": false,
+  "official_input": false,
+  "limitations": [
+    "Two captures alone do not prove future update guarantee or historical first-publication dates",
+    "New records after original cutoff excluded from existing factor replay",
+    "Unchanged overlap does not certify fixed customer cohort or all-provider coverage",
+    "Transport, schema, repeated publication, and numeric time-axis changes assessed separately"
+  ]
+}

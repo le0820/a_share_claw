@@ -1,0 +1,414 @@
+{
+  "review_date": "2026-10-08",
+  "artifacts": [
+    {
+      "artifact": "AISDI_20支柱准入复核.json",
+      "packaged_snapshot": "snapshots/AISDI_20支柱准入复核.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/AISDI_20支柱准入复核.json",
+      "original_sha256": "b239d777ad307441d195dd93d8d4ac78faa4dafd1d564cdcf012480e89973e52",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "AISDI_时间轴支撑矩阵.csv",
+      "packaged_snapshot": "snapshots/AISDI_时间轴支撑矩阵.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/AISDI_时间轴支撑矩阵.csv",
+      "original_sha256": "948f69d29d154d7df38efd4df0e8b8062d36ea0c0c234475ba20ce03c540b50a",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "AISDI_时间轴支撑矩阵.json",
+      "packaged_snapshot": "snapshots/AISDI_时间轴支撑矩阵.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/AISDI_时间轴支撑矩阵.json",
+      "original_sha256": "2c86529cd9966bd9a5826b5a857edb51bf0bb1d2a2d49ee020489523a87e828e",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "AISDI_核心指标三分类.csv",
+      "packaged_snapshot": "snapshots/AISDI_核心指标三分类.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.csv",
+      "original_sha256": "a50371ad54b74a97a68af9b0190d0a427147a5c2c85a45683b79192d6ac3ecf3",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "AISDI_核心指标三分类.json",
+      "packaged_snapshot": "snapshots/AISDI_核心指标三分类.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.json",
+      "original_sha256": "4076cf9766ca94237bba257635a04bcb8975a7e1a1ad56405830910fd934a9e9",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "aisdi_cicc_crosswalk.json",
+      "packaged_snapshot": "snapshots/aisdi_cicc_crosswalk.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/aisdi_cicc_crosswalk.json",
+      "original_sha256": "935aba0256f889af929510bd75843a1f652db6389be711bb577350dfa6e03dce",
+      "declared_source_urls": [
+        "https://finance.sina.com.cn/roll/2026-08-26/doc-iniprcpw5399273.shtml"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "company_activity_field_time_axis_audit.json",
+      "packaged_snapshot": "snapshots/company_activity_field_time_axis_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/company_activity_field_time_axis_audit.json",
+      "original_sha256": "ee6c80c18b479b7ec564dcc399281c7654bd8a0f624268d002e8a93a34977e23",
+      "declared_source_urls": [
+        "https://epoch.ai/data/ai_companies.zip"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "coreweave_active_power_native_date_samples.csv",
+      "packaged_snapshot": "snapshots/coreweave_active_power_native_date_samples.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/coreweave_active_power_native_date_samples.csv",
+      "original_sha256": "34bda2f72b40d559b9653ae20877f3ddbbf5c169a18bc6411f661728dd33308a",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "coreweave_active_power_time_axis_admission_audit.json",
+      "packaged_snapshot": "snapshots/coreweave_active_power_time_axis_admission_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/coreweave_active_power_time_axis_admission_audit.json",
+      "original_sha256": "23f82bbce70c48d8e0382056ca516dabe522d7bb18dd9d05b2e4aa25b7110102",
+      "declared_source_urls": [
+        "https://investors.coreweave.com/news/news-details/2025/CoreWeave-Reports-Strong-First-Quarter-2025-Results/default.aspx",
+        "https://investors.coreweave.com/news/news-details/2025/CoreWeave-Reports-Strong-Second-Quarter-2025-Results/",
+        "https://investors.coreweave.com/news/news-details/2025/CoreWeave-Reports-Strong-Third-Quarter-2025-Results/",
+        "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-First-Quarter-2026-Results/",
+        "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Fourth-Quarter-and-Fiscal-Year-2025-Results/",
+        "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Second-Quarter-2026-Results/default.aspx",
+        "https://www.sec.gov/Archives/edgar/data/1769628/000119312525052207/d899798ds1a.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "enterprise_activity_public_source_boundary_audit.json",
+      "packaged_snapshot": "snapshots/enterprise_activity_public_source_boundary_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/enterprise_activity_public_source_boundary_audit.json",
+      "original_sha256": "336d973616a32791b5ca93aa4f731c2f2ec015401cfb2b384f91249956785d1b",
+      "declared_source_urls": [
+        "https://www.aboutamazon.com/news/company-news/amazon-ceo-andy-jassy-aws-ai-q1-2026-earnings",
+        "https://www.aboutamazon.com/news/company-news/amazon-earnings-q1-2026-report",
+        "https://www.aboutamazon.com/news/company-news/amazon-earnings-q2-2026-report",
+        "https://www.aboutamazon.com/news/company-news/amazon-earnings-q4-2025-report"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "google_native_MAU_update_audit.json",
+      "packaged_snapshot": "snapshots/google_native_MAU_update_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/google_native_MAU_update_audit.json",
+      "original_sha256": "4bf52eb637731b9d36714a4c9bc17c6e525cb98510e46cea02b0818f1de69b1b",
+      "declared_source_urls": [
+        "https://blog.google/company-news/inside-google/message-ceo/alphabet-earnings-q1-2026/",
+        "https://blog.google/company-news/inside-google/message-ceo/alphabet-earnings-q2-2026/",
+        "https://blog.google/company-news/inside-google/message-ceo/alphabet-earnings-q4-2025/",
+        "https://blog.google/innovation-and-ai/products/gemini-app/one-billion-monthly-users/"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "iren_GAAP_comparative_revision_audit.json",
+      "packaged_snapshot": "snapshots/iren_GAAP_comparative_revision_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/iren_GAAP_comparative_revision_audit.json",
+      "original_sha256": "83dda98eeea018755d4a75e47035171e5ae7feac12d64015fb65119c17c68bd4",
+      "declared_source_urls": [
+        "https://www.sec.gov/Archives/edgar/data/1878848/000187884825000063/iren-20250630.htm",
+        "https://www.sec.gov/Archives/edgar/data/1878848/000187884826000015/iren-20251231.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "iren_current_GAAP_quarter_history.csv",
+      "packaged_snapshot": "snapshots/iren_current_GAAP_quarter_history.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/iren_current_GAAP_quarter_history.csv",
+      "original_sha256": "f0935f628b9aaa719edc30180e03a96d014e09daaa9acdd204f51236c6ff63f4",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "iren_current_GAAP_quarter_history_admission_audit.json",
+      "packaged_snapshot": "snapshots/iren_current_GAAP_quarter_history_admission_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/iren_current_GAAP_quarter_history_admission_audit.json",
+      "original_sha256": "90373caac284266512a52b27e881977ee49cc91560040fb58af9bc7d41c8f2c2",
+      "declared_source_urls": [
+        "https://iren.gcs-web.com/news-releases/news-release-details/iren-business-update-and-q3-fy26-results",
+        "https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-fy26-results",
+        "https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-q1-fy26-results",
+        "https://iren.gcs-web.com/news-releases/news-release-details/iren-reports-q2-fy26-results",
+        "https://www.sec.gov/Archives/edgar/data/1878848/000187884825000063/iren-20250630.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "iren_fy25_customer_service_fleet_audit.json",
+      "packaged_snapshot": "snapshots/iren_fy25_customer_service_fleet_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/iren_fy25_customer_service_fleet_audit.json",
+      "original_sha256": "31db3c330e41e33239d99b11a0500faf0e71c8675bb064598fd0eaac61801699",
+      "declared_source_urls": [
+        "https://www.sec.gov/Archives/edgar/data/1878848/000187884825000063/iren-20250630.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "iren_monthly_GPU_state_events.csv",
+      "packaged_snapshot": "snapshots/iren_monthly_GPU_state_events.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/iren_monthly_GPU_state_events.csv",
+      "original_sha256": "a190667c86e8b44c3f8f8e488206c38d114df630592a7af3e472103d6d863864",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "iren_monthly_GPU_state_timeline_audit.json",
+      "packaged_snapshot": "snapshots/iren_monthly_GPU_state_timeline_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/iren_monthly_GPU_state_timeline_audit.json",
+      "original_sha256": "744106c75f427c3af42f5ed6f6800400e3166dd88af79d9409951239b9b805dd",
+      "declared_source_urls": [
+        "https://irisenergy.gcs-web.com/news-releases/news-release-details/iren-april-2025-monthly-update",
+        "https://irisenergy.gcs-web.com/news-releases/news-release-details/iren-december-2024-monthly-update",
+        "https://irisenergy.gcs-web.com/news-releases/news-release-details/iren-may-2025-monthly-update",
+        "https://irisenergy.gcs-web.com/news-releases/news-release-details/iren-november-2024-monthly-investor-update",
+        "https://www.sec.gov/Archives/edgar/data/1878848/000187884824000029/irenoctober2024monthlyin.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "memory_customer_contract_RPO_components.csv",
+      "packaged_snapshot": "snapshots/memory_customer_contract_RPO_components.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/memory_customer_contract_RPO_components.csv",
+      "original_sha256": "dcc3107b5216469d577142eaecfcc2e5daddabfddce65e2ee98098060d77fea0",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "memory_take_or_pay_minimum_RPO_proxy_audit.json",
+      "packaged_snapshot": "snapshots/memory_take_or_pay_minimum_RPO_proxy_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/memory_take_or_pay_minimum_RPO_proxy_audit.json",
+      "original_sha256": "bb48015ed4c8e42e9a383d22ff53aae09ff3c09b67ef62e421f469194770f029",
+      "declared_source_urls": [
+        "https://www.sec.gov/Archives/edgar/data/2023554/000162828026029401/sndk-20260403.htm",
+        "https://www.sec.gov/Archives/edgar/data/723125/000072312526000015/mu-20260528.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "micron_quarterly_bit_growth_archive_audit.json",
+      "packaged_snapshot": "snapshots/micron_quarterly_bit_growth_archive_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/micron_quarterly_bit_growth_archive_audit.json",
+      "original_sha256": "260f94cb8647d2018fef4e23faa21e6c595b9d4dd3173eb72888c935696318f5",
+      "declared_source_urls": [
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2024/q1/Q1-24-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2024/q2/Q2-24-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2024/q3/Q3-24-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2024/q4/Q4-24-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2025/q1/Q1-25-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2025/q2/Q2-25-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2025/q3/Q3-25-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2025/q4/Q4-25-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2026/q1/Q1-26-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2026/q2/Q2-26-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2026/q3/Q3-26-Earnings-Deck.pdf",
+        "https://s25.q4cdn.com/621799436/files/doc_financials/2026/q4/Q4-26-Earnings-Deck.pdf"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "micron_quarterly_bit_growth_disclosures.csv",
+      "packaged_snapshot": "snapshots/micron_quarterly_bit_growth_disclosures.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/micron_quarterly_bit_growth_disclosures.csv",
+      "original_sha256": "e9f6167e6747c7f3b757231b866886b20e8e003cebd39981e08429895ce9c195",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "msft_uncommenced_DC_lease_proxy_history_audit.json",
+      "packaged_snapshot": "snapshots/msft_uncommenced_DC_lease_proxy_history_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/msft_uncommenced_DC_lease_proxy_history_audit.json",
+      "original_sha256": "1dfe25e3b4817089d7d72c40de568ee6b81d01e8779380c77e6012a4fd999518",
+      "declared_source_urls": [
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2024-Q4/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q1/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q2/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q3/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q4/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2026-Q1/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2026-Q2/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.microsoft.com/en-us/Investor/earnings/FY-2026-Q3/IRFinancialStatementsPopups?tag=us-gaap%3ALesseeOperatingAndFinanceLeasesTextBlock&title=Leases",
+        "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "msft_uncommenced_lease_diagnostic_changes.csv",
+      "packaged_snapshot": "snapshots/msft_uncommenced_lease_diagnostic_changes.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/msft_uncommenced_lease_diagnostic_changes.csv",
+      "original_sha256": "72b60bfaf18174f936de5f07ff40ef273a433e7eca43f616f518d883bcb38567",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "msft_uncommenced_lease_native_levels.csv",
+      "packaged_snapshot": "snapshots/msft_uncommenced_lease_native_levels.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/msft_uncommenced_lease_native_levels.csv",
+      "original_sha256": "9c2498798cca571426bbdf8e82e6350fcec2b1ce11e6d4f5fa00e2a43806f152",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "nebius_RPO_explicit_scope_records.csv",
+      "packaged_snapshot": "snapshots/nebius_RPO_explicit_scope_records.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/nebius_RPO_explicit_scope_records.csv",
+      "original_sha256": "c155b181bde0a421d42c48ce896c34ceedea7cbb8455295087593b4e2826e6cd",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "nebius_current_vintage_AI_revenue_quarter_candidates.csv",
+      "packaged_snapshot": "snapshots/nebius_current_vintage_AI_revenue_quarter_candidates.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/nebius_current_vintage_AI_revenue_quarter_candidates.csv",
+      "original_sha256": "6eae6654707a9527f6a3774005c3b40049b535866389bd3b95f7b4881fd1583a",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "nebius_early_AI_revenue_quarter_bridge_admission_audit.json",
+      "packaged_snapshot": "snapshots/nebius_early_AI_revenue_quarter_bridge_admission_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/nebius_early_AI_revenue_quarter_bridge_admission_audit.json",
+      "original_sha256": "371ed777b949962f03e6256bb91688549961dcd9cc360cf57adda3787c907ec0",
+      "declared_source_urls": [
+        "https://assets.nebius.com/assets/4462517b-ce83-41f2-96ed-f2ac1bc06a05/SHLQ226%20%281%29.pdf",
+        "https://assets.nebius.com/assets/85571bd2-050b-468c-954c-42e9d24e4cd2/Letter%20to%20Shareholders%20Q4%202025.pdf",
+        "https://assets.nebius.com/assets/aa1bc2e6-df83-40cd-a6a2-95e7cda3d16c/Nebius%20SHL_Q1%202026.pdf",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465925110831/tm2531034d1_ex99-1.htm",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465926052948/nbis-20251231x20f.htm",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465926064092/nbis-20260331xex99d2.htm",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465926094844/nbis-20260812xex99d2.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "nebius_explicit_AI_RPO_and_segment_history_audit.json",
+      "packaged_snapshot": "snapshots/nebius_explicit_AI_RPO_and_segment_history_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/nebius_explicit_AI_RPO_and_segment_history_audit.json",
+      "original_sha256": "6a973ae7eab4c03170ad03150d67cd580029771cad0ec6b7ad63d7e2512e14b6",
+      "declared_source_urls": [
+        "https://assets.nebius.com/assets/4462517b-ce83-41f2-96ed-f2ac1bc06a05/SHLQ226%20%281%29.pdf",
+        "https://assets.nebius.com/assets/85571bd2-050b-468c-954c-42e9d24e4cd2/Letter%20to%20Shareholders%20Q4%202025.pdf",
+        "https://assets.nebius.com/assets/aa1bc2e6-df83-40cd-a6a2-95e7cda3d16c/Nebius%20SHL_Q1%202026.pdf",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465925110831/tm2531034d1_ex99-1.htm",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465926064092/nbis-20260331xex99d2.htm",
+        "https://www.sec.gov/Archives/edgar/data/1513845/000110465926094844/nbis-20260812xex99d2.htm"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "nebius_reported_segment_revenue_current_vintage.csv",
+      "packaged_snapshot": "snapshots/nebius_reported_segment_revenue_current_vintage.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/nebius_reported_segment_revenue_current_vintage.csv",
+      "original_sha256": "ebd28c5e58c806e963067e73400517d4b782ef3d0275c534cf44d565ff9596f0",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_conditional_total_input_components.csv",
+      "packaged_snapshot": "snapshots/ramp_conditional_total_input_components.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_conditional_total_input_components.csv",
+      "original_sha256": "eaf85785564c66cce249ffe1a75688be5e50979ec35810d7fe7c0fcbdfef4c60",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_manual_archive_pipeline_audit.json",
+      "packaged_snapshot": "snapshots/ramp_manual_archive_pipeline_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_manual_archive_pipeline_audit.json",
+      "original_sha256": "ec2bed49694df91aff8d85dc7c11edf8b3bdc4a84f6aa79559c9f4e494d02ba2",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_original_input_token_mapping_audit.json",
+      "packaged_snapshot": "snapshots/ramp_original_input_token_mapping_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_original_input_token_mapping_audit.json",
+      "original_sha256": "fb8e7225b79f3d09d0724f5bd58e38489926516b27fa6c5425aeb07e8cc25e4b",
+      "declared_source_urls": [
+        "https://ramp.com/data/ai-index"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_public_series_update_revision_audit.json",
+      "packaged_snapshot": "snapshots/ramp_public_series_update_revision_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_public_series_update_revision_audit.json",
+      "original_sha256": "4425c054f4837e4fe50a1a4582f063475f6e85adc19a5a594bee1590e27f07ca",
+      "declared_source_urls": [
+        "https://ramp.com/data/ai-index"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_weekly_token_growth_replay.csv",
+      "packaged_snapshot": "snapshots/ramp_weekly_token_growth_replay.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_weekly_token_growth_replay.csv",
+      "original_sha256": "b51486ef8bf50aee1503cb3204c6c2b26f4f103b62ef891f6cd41f23a0eb9333",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_weekly_token_history_replay_audit.json",
+      "packaged_snapshot": "snapshots/ramp_weekly_token_history_replay_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_weekly_token_history_replay_audit.json",
+      "original_sha256": "c6dd1f3b677b6d1ff61200417cb4549b79338b82ca013d699d6ee23befc17dd9",
+      "declared_source_urls": [
+        "https://ramp.com/data/ai-index"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "ramp_weekly_token_levels.csv",
+      "packaged_snapshot": "snapshots/ramp_weekly_token_levels.csv",
+      "original_path": "data/research/output/aisdi_full_support_20261005/ramp_weekly_token_levels.csv",
+      "original_sha256": "fea10fc0733bbb522f774a6f601aec88178f2dac8bacbcb702b65bbabf78d3fa",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "salesforce_AWU_quarterly_extension_audit.json",
+      "packaged_snapshot": "snapshots/salesforce_AWU_quarterly_extension_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/salesforce_AWU_quarterly_extension_audit.json",
+      "original_sha256": "d2f675d28b19da329aaa588fb4704be7fab697f0cfc9855114cbb1021968080d",
+      "declared_source_urls": [
+        "https://investor.salesforce.com/news/news-details/2026/Salesforce-Delivers-Record-First-Quarter-Fiscal-2027-Results/default.aspx",
+        "https://investor.salesforce.com/news/news-details/2026/Salesforce-Delivers-Record-Fourth-Quarter-Fiscal-2026-Results/default.aspx",
+        "https://www.salesforce.com/news/news/stories/agentic-work-units/",
+        "https://www.salesforce.com/news/press-releases/2026/08/26/fy27-q2-earnings/",
+        "https://www.salesforce.com/news/stories/agentic-work-units/?bc=OTH"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "zai_model_api_revenue_history_audit.json",
+      "packaged_snapshot": "snapshots/zai_model_api_revenue_history_audit.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/zai_model_api_revenue_history_audit.json",
+      "original_sha256": "875ccbd921cc99ddbc49b03b77a68636700e1db1f8dd657c3b87c9de7ecc3f36",
+      "declared_source_urls": [
+        "https://www1.hkexnews.hk/listedco/listconews/sehk/2025/1230/2025123000017.pdf",
+        "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0331/2026033101549.pdf",
+        "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0831/2026083101539.pdf"
+      ],
+      "raw_payload_packaged": false
+    },
+    {
+      "artifact": "完整目标验收与外部依赖.json",
+      "packaged_snapshot": "snapshots/完整目标验收与外部依赖.json",
+      "original_path": "data/research/output/aisdi_full_support_20261005/完整目标验收与外部依赖.json",
+      "original_sha256": "2218011eb6d12dbbe758c5602a1271385e2f7bf7fb76056c86ea73490b64ab1d",
+      "declared_source_urls": [],
+      "raw_payload_packaged": false
+    }
+  ],
+  "scope": "All39 normalized AISDI output JSON/CSV artifacts captured at PR preparation; full raw originals remain in existing local evidence store."
+}

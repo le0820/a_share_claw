@@ -1,0 +1,124 @@
+{
+  "review_date": "2026-10-08",
+  "AISDI_as_of_date": "2026-10-05",
+  "win_odds_as_of_date": "2026-10-07",
+  "previous_turn_classification": "progress_public_schema_access_boundary_verified",
+  "requirements": [
+    {
+      "requirement": "完整原规格全部候选指标重新review并三分类",
+      "status": "delivered",
+      "scope": "111/111候选；40已获取/33可间接估计/38未获取",
+      "evidence": "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.json"
+    },
+    {
+      "requirement": "免费可信、稳定更新并可沿时间轴计算完整AISDI",
+      "status": "incomplete",
+      "scope": "样本更新和局部历史已取；完整原规格历史准入未通过",
+      "evidence": "data/harness_acceptance/aisdi_full_support_20261005/metric_tracking_review.json"
+    },
+    {
+      "requirement": "完整原规格20支柱、四侧有效覆盖与正式指数计算",
+      "status": "incomplete",
+      "scope": "支柱内篮子/权重及历史与实际供给准入未冻结；四侧覆盖为null",
+      "evidence": "data/harness_acceptance/aisdi_full_support_20261005/pillar_readiness_review.json"
+    },
+    {
+      "requirement": "申万一级31+NDX+SPX+399673+HSTECH全部覆盖",
+      "status": "identities_and_prices_delivered_scores_incomplete",
+      "scope": "35原身份保留；35价格历史；0完整有效评分",
+      "evidence": "data/research/output/win_odds_20261007/framework_and_input_audit.json"
+    },
+    {
+      "requirement": "胜率含微观流动性和盈利预期",
+      "status": "incomplete",
+      "scope": "缺完整预测EPS/ROE序列、因子方法及当月ICIR权重",
+      "evidence": "data/research/output/win_odds_20261007/reference_method_requirement_fidelity_audit.json"
+    },
+    {
+      "requirement": "赔率由可比五年PE/PB/PS衡量均值回归空间",
+      "status": "incomplete",
+      "scope": "行业PS和跨市场可比估值/历史缺口未闭合；样本或其他窗口百分位不替代",
+      "evidence": "data/research/output/win_odds_20261007/cross_market_forecast_source_matrix.json"
+    },
+    {
+      "requirement": "80%胜率+20%赔率、坐标交点50/50、真实35点图",
+      "status": "calculation_and_empty_axes_delivered_real_chart_incomplete",
+      "scope": "计算器12项合成检查；真实0点，不将缺失放到中心",
+      "evidence": "data/research/output/win_odds_20261007/win_odds_input_review.html"
+    }
+  ],
+  "AISDI_counts": {
+    "已获取": 40,
+    "可间接估计": 33,
+    "未获取": 38
+  },
+  "four_side_coverage": {
+    "hardware_demand": null,
+    "hardware_supply": null,
+    "model_demand": null,
+    "model_supply": null
+  },
+  "missing_candidate_groups": [
+    {
+      "category": "训练运行遥测",
+      "count": 6,
+      "cause": "事件存在但没有连续同口径真实训练负载/运行登记；发布节奏和MFU不等价",
+      "next_required_evidence": "查固定实验室预算/训练运行披露；需事件日期、实际配置与取消/延迟影响，不能把未公告记0"
+    },
+    {
+      "category": "GPU云运行遥测",
+      "count": 4,
+      "cause": "挂牌/客户分配/Token量无法识别实际等待、处理器利用率及GPU小时",
+      "next_required_evidence": "取同平台排队/用量公开原始指标；无型号、负载、时间及利用率时不逆算Token为GPU小时"
+    },
+    {
+      "category": "模型部署容量",
+      "count": 3,
+      "cause": "性能实验、端点目录和质量分数尚未连接为实际可部署供给",
+      "next_required_evidence": "冻结模型/端点/任务质量篮子，核实访问及容量与可靠性；单系统性能不能加总成API生产容量"
+    },
+    {
+      "category": "企业活动与收入拆分",
+      "count": 4,
+      "cause": "总收入/ARR/AWU不能识别企业WAU或验收成功任务；单列API收入已另核，完整史仍缺",
+      "next_required_evidence": "优先企业原始产品分部及业务成功定义；成功任务缺分母时不计算收入/成功任务"
+    },
+    {
+      "category": "订单与合同原量",
+      "count": 10,
+      "cause": "已有部分金额/承诺证据，但AI分部、bit/只数、买卖方或不可取消条款不同",
+      "next_required_evidence": "逐份合同/季度附注取数；RPO与backlog分开，取消/租赁重组对账，book-to-bill须相同分子分母篮子"
+    },
+    {
+      "category": "合资格制造供给",
+      "count": 8,
+      "cause": "机构预测、相对良率和混合产能缺实际量/分母/客户认证",
+      "next_required_evidence": "核实际qualified shipments/wafer output；缺bits/die、yield和qualification时不将晶圆/混合容量转原量"
+    },
+    {
+      "category": "电力交付与客户合同",
+      "count": 3,
+      "cause": "签约/排队/园区可用电力与AI实际交付或客户PFA不是同一状态",
+      "next_required_evidence": "核PPA投运、供电对象、预留权利及PFA原合同；区分发电侧/负荷侧，排除将签约容量作为运行供给"
+    }
+  ],
+  "real_scored_indices": 0,
+  "full_objective_achieved": false,
+  "external_dependencies": [
+    "同定义可持续的训练/GPU/部署运行与合资格制造供给证据",
+    "完整或可合规重建的预测EPS/ROE与可比五年估值历史",
+    "研报未公开的ICIR/量价/合同负债调整参数及跨市场方法冻结"
+  ],
+  "no_claim_all_free_sources_exhausted": true,
+  "no_claim_every_missing_candidate_mandatory": true,
+  "no_claim_paid_access_sufficient": true,
+  "evidence_hashes": {
+    "data/research/output/aisdi_full_support_20261005/AISDI_核心指标三分类.json": "4076cf9766ca94237bba257635a04bcb8975a7e1a1ad56405830910fd934a9e9",
+    "data/harness_acceptance/aisdi_full_support_20261005/metric_tracking_review.json": "b2b6cb5901fc4dbce5b894a5a96488b11095d19feb94279317361204acdb8a56",
+    "data/harness_acceptance/aisdi_full_support_20261005/pillar_readiness_review.json": "969a616b2a88e2485f88f2ba30f315c6eba85c85acc330a6605e70923dda0efa",
+    "data/research/output/win_odds_20261007/framework_and_input_audit.json": "d147791f9bb8f0431ff570fae58170339b5fa0587c13735fef3bf691ca75a04b",
+    "data/research/output/win_odds_20261007/reference_method_requirement_fidelity_audit.json": "11acfaf1c8fddbb47ac2c0c48ac74ec5e438056db0042b1773503807cfbfd5ce",
+    "data/research/output/win_odds_20261007/cross_market_forecast_source_matrix.json": "554e921e4f6b377f40725ba055370145db8c749d0c80681d22e0a26560ea52b8",
+    "data/research/output/win_odds_20261007/win_odds_input_review.html": "bd96f3d1237ed31692287724192c3d0e0405343ea99a95394608c977ea52253a"
+  }
+}

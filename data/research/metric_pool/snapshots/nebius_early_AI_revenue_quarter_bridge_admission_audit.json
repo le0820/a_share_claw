@@ -1,0 +1,203 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "candidate_quarter_levels": [
+    {
+      "period_end": "2024-09-30",
+      "revenue_USD": 27100000,
+      "method": "direct_comparative_quarter",
+      "evidence_sha256": "24cb563da547f88cc6952684e1b55f8addd4c49bb2677b0a9315f1ba099ebb04",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465925110831/tm2531034d1_ex99-1.htm",
+      "native_name": "Nebius core AI infrastructure",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2024-12-31",
+      "revenue_USD": 23800000,
+      "method": "annual_minus9month_candidate",
+      "evidence_sha256": "58fd0700fec694bf4c4600f08e783c1eb9e1ed6b81228559d34d10b337485cdd",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926052948/nbis-20251231x20f.htm",
+      "native_name": "Nebius AI cloud annual comparative;9month core Nebius",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2025-03-31",
+      "revenue_USD": 41400000,
+      "method": "direct_current_report_or_comparative",
+      "evidence_sha256": "a6983a6180e262a5310bd59e438f0500a492450f3a6ecf3db09b4be953485a77",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926064092/nbis-20260331xex99d2.htm",
+      "native_name": "Nebius AI cloud/core segment",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2025-06-30",
+      "revenue_USD": 93700000,
+      "method": "direct_current_report_or_comparative",
+      "evidence_sha256": "a6983a6180e262a5310bd59e438f0500a492450f3a6ecf3db09b4be953485a77",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465926094844/nbis-20260812xex99d2.htm",
+      "native_name": "Nebius AI cloud/core segment",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2025-09-30",
+      "revenue_USD": 131100000,
+      "method": "direct_current_report_or_comparative",
+      "evidence_sha256": "24cb563da547f88cc6952684e1b55f8addd4c49bb2677b0a9315f1ba099ebb04",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/1513845/000110465925110831/tm2531034d1_ex99-1.htm",
+      "native_name": "Nebius AI cloud/core segment",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2025-12-31",
+      "revenue_USD": 214200000,
+      "method": "direct_current_report_or_comparative",
+      "evidence_sha256": "d81fdf5ebd93060a05bfc5341416f364f934807d7c2a03990027fd19450e5fe1",
+      "source_url": "https://assets.nebius.com/assets/85571bd2-050b-468c-954c-42e9d24e4cd2/Letter%20to%20Shareholders%20Q4%202025.pdf",
+      "native_name": "Nebius AI cloud/core segment",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2026-03-31",
+      "revenue_USD": 389700000,
+      "method": "direct_current_report_or_comparative",
+      "evidence_sha256": "83a68d99d7f50c7df2406add513a7c7913b99e18e3a6d8b97e59433ba7128832",
+      "source_url": "https://assets.nebius.com/assets/aa1bc2e6-df83-40cd-a6a2-95e7cda3d16c/Nebius%20SHL_Q1%202026.pdf",
+      "native_name": "Nebius AI cloud/core segment",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    },
+    {
+      "period_end": "2026-06-30",
+      "revenue_USD": 574900000,
+      "method": "direct_current_report_or_comparative",
+      "evidence_sha256": "aec30236b7903532684ddf43fd5006ef89a945118366d767315434fd65b4dc29",
+      "source_url": "https://assets.nebius.com/assets/4462517b-ce83-41f2-96ed-f2ac1bc06a05/SHLQ226%20%281%29.pdf",
+      "native_name": "Nebius AI cloud/core segment",
+      "all_filing_vintage_bridges_verified": false,
+      "external_customer_only": false,
+      "intersegment_transactions_included": true,
+      "original_publication_vintage_verified": false,
+      "official_input": false
+    }
+  ],
+  "quarter_levels_including_bridge": 8,
+  "direct_levels": 7,
+  "derived_bridge_levels": 1,
+  "adjacent_quarter_growth_candidates": 7,
+  "direct_to_direct_growth_candidates": 5,
+  "changes": [
+    {
+      "base_date": "2024-09-30",
+      "date": "2024-12-31",
+      "annualized_log_QoQ_candidate": -0.5193925888329048,
+      "uses_unverified_annual_bridge": true,
+      "official_input": false
+    },
+    {
+      "base_date": "2024-12-31",
+      "date": "2025-03-31",
+      "annualized_log_QoQ_candidate": 2.214381200615359,
+      "uses_unverified_annual_bridge": true,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-03-31",
+      "date": "2025-06-30",
+      "annualized_log_QoQ_candidate": 3.267269233652431,
+      "uses_unverified_annual_bridge": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-06-30",
+      "date": "2025-09-30",
+      "annualized_log_QoQ_candidate": 1.3434488061011103,
+      "uses_unverified_annual_bridge": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-09-30",
+      "date": "2025-12-31",
+      "annualized_log_QoQ_candidate": 1.963799068975977,
+      "uses_unverified_annual_bridge": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2025-12-31",
+      "date": "2026-03-31",
+      "annualized_log_QoQ_candidate": 2.3938682173240604,
+      "uses_unverified_annual_bridge": false,
+      "official_input": false
+    },
+    {
+      "base_date": "2026-03-31",
+      "date": "2026-06-30",
+      "annualized_log_QoQ_candidate": 1.5552756011383269,
+      "uses_unverified_annual_bridge": false,
+      "official_input": false
+    }
+  ],
+  "minimum8_growth_met": false,
+  "additional_halfyear_observation": {
+    "start": "2024-01-01",
+    "end": "2024-06-30",
+    "segment_revenue_USD": 17400000,
+    "native_scope": "core Nebius AI segment includes intersegment transactions",
+    "quarter1_USD": null,
+    "quarter2_USD": null,
+    "used_as_single_quarter": false
+  },
+  "bridge": {
+    "year2024_revenue_USD": 68300000,
+    "9month2024_revenue_USD": 44500000,
+    "candidate_Q42024_USD": 23800000,
+    "same_exact_filing_vintage": false,
+    "period_scope_restatement_bridge_verified": false,
+    "exact_source_point_revenue_USD": null
+  },
+  "annual_rounding_check2025": {
+    "four_disclosed_quarters_sum_USD": 480400000,
+    "native_annual_USD": 480300000,
+    "difference_USD": 100000,
+    "disclosure_rounding_tolerance_USD": 250000,
+    "within_rounding_tolerance": true,
+    "exact_equality": false,
+    "complete_semantic_basis_reconciliation_verified": false
+  },
+  "formal_score": null,
+  "official_input": false,
+  "limits": [
+    "H117.4M is cumulative six-month amount, not a quarter; Q1/Q2 still missing separately",
+    "Annual-minus9month is a dated financial bridge candidate, not exact same-vintage quarter until reconciled",
+    "Eight levels yield seven quarter transforms; do not count eight levels as minimum8growth",
+    "Group/AIsegment/ARR kept separate; no percentage-backsolving or total group substitution",
+    "Current-vintage later comparatives not originalPIT history; no historic date backfill",
+    "Internal segment revenue cannot be converted to external sales by assigning all group eliminations to one segment"
+  ]
+}

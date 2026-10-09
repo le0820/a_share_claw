@@ -1,0 +1,41 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "source_url": "https://ramp.com/data/ai-index",
+  "source_file": "data/harness_acceptance/aisdi_full_support_20261005/ramp_index.raw",
+  "source_sha256": "ab4b9d4c6e92bd3c682e3cbd5301446f658fb97542fcf4a77d5fef8dc55e4387",
+  "native_provider_date_rows": 1274,
+  "native_dates": 637,
+  "native_makers": [
+    "anthropic",
+    "openai"
+  ],
+  "input_tokens_mapping": {
+    "previous_classification": "已获取",
+    "revised_classification": "可间接估计",
+    "directly_acquired_component": "uncached_input token_count_7d",
+    "candidate_formula": "all_tokens_7d-output_tokens_7d",
+    "required_unverified_assumptions": [
+      "all_tokens exhaustively partitions into total input and declared output on the same billing/time boundary",
+      "output covers every output/reasoning category included in all_tokens",
+      "cache read/write counts and provider tokenizers are consistent with the intended input-token definition"
+    ],
+    "exact_equivalence_verified": false,
+    "unclassified_remainder_rule": "Candidate total-input minus uncached-input is not declared cached-only volume"
+  },
+  "arithmetic_checks": {
+    "negative_candidate_rows": 0,
+    "negative_unclassified_remainder_rows": 0,
+    "positive_remainder_rows": 1274
+  },
+  "adoption_auxiliary": {
+    "native_months": 44,
+    "definition": "Share of Ramp businesses with observed AI-product payment in month",
+    "original111field_match": null,
+    "mapped_to_WAU_or_paid_seats": false,
+    "scoring_added": false
+  },
+  "formal_score": null,
+  "official_input": false,
+  "scope": "Field semantics audit, not industry extrapolation; cohort/time-axis/PIT qualification unchanged"
+}

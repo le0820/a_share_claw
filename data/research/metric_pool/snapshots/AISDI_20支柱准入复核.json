@@ -1,0 +1,20 @@
+{
+  "research_as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "spec_sha256": "150417f45532e430bc1d01abdb459dd60a6fb687f33e7761c2df7a0a7637679f",
+  "readiness_file": "data/harness_acceptance/aisdi_full_support_20261005/pillar_readiness_review.json",
+  "readiness_sha256": "969a616b2a88e2485f88f2ba30f315c6eba85c85acc330a6605e70923dda0efa",
+  "html_file": "data/research/output/aisdi_full_support_20261005/AISDI_20支柱准入复核.html",
+  "html_sha256": "1509fca89836bde37d45d0be61c84ee9a4923e16399ae739d11d3e32b06e31bc",
+  "pillars": 20,
+  "sides": 4,
+  "within_pillar_weights_frozen": false,
+  "effective_side_coverage": {
+    "hardware_demand": null,
+    "hardware_supply": null,
+    "model_demand": null,
+    "model_supply": null
+  },
+  "full_support": false,
+  "visual_browser_QA": "not_performed; static HTML row/structure verified"
+}

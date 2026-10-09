@@ -1,0 +1,545 @@
+{
+  "as_of_date": "2026-10-05",
+  "review_date": "2026-10-08",
+  "spec_sha256": "150417f45532e430bc1d01abdb459dd60a6fb687f33e7761c2df7a0a7637679f",
+  "input_review_sha256": "4076cf9766ca94237bba257635a04bcb8975a7e1a1ad56405830910fd934a9e9",
+  "pillars": [
+    {
+      "side": "hardware_demand",
+      "pillar": "cloud",
+      "original_side_weight": 0.25,
+      "candidate_metrics": [
+        "ai_cloud_revenue_usd",
+        "ai_rpo_usd",
+        "ai_capex_usd"
+      ],
+      "acquired_samples": [
+        "ai_cloud_revenue_usd",
+        "ai_rpo_usd"
+      ],
+      "conditional_estimates": [
+        "ai_capex_usd"
+      ],
+      "missing": [],
+      "tracking_evidence": "IREN8GAAP水平/7增长；Nebius8季候选=7直接+1未验桥接，仅7增长候选/5直接对直接；1期明确AI RPO；Capex代理",
+      "next_required_work": "补更早GAAP季度或明确准则桥接以满足8变换；年度舍入和不等于季度确认一致；首发/PIT和AI份额待核",
+      "source_families": [
+        "IREN月度AI云/Nebius季度分部",
+        "NebiusSEC原生明确AIcloud归属；IREN条件样本另列",
+        "Nebius公司GPU/DC导向Capex代理"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_demand",
+      "pillar": "training",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "training_compute_spend_usd",
+        "training_gpu_hours",
+        "training_cluster_utilization_pct"
+      ],
+      "acquired_samples": [
+        "training_gpu_hours"
+      ],
+      "conditional_estimates": [
+        "training_compute_spend_usd"
+      ],
+      "missing": [
+        "training_cluster_utilization_pct"
+      ],
+      "tracking_evidence": "Meta7模型原生GPU小时/3发布家族；Epoch估计另列，没有真实月季负荷序列",
+      "next_required_work": "补实际训练发生期/复用关系与表首发版本；不能按发布日期拼负荷或因Llama4较少推断公司训练下降",
+      "source_families": [
+        "Epoch模型事件训练字段",
+        "Meta固定版本官方modelcards；DeepSeek-V3 arXivv1；Epoch估计另列",
+        "Epoch事件/估计资料"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_demand",
+      "pillar": "inference",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "inference_tokens",
+        "inference_api_calls",
+        "successful_agent_tasks"
+      ],
+      "acquired_samples": [
+        "inference_tokens"
+      ],
+      "conditional_estimates": [
+        "inference_api_calls"
+      ],
+      "missing": [
+        "successful_agent_tasks"
+      ],
+      "tracking_evidence": "Ramp免费637日期，7日重叠Token窗口",
+      "next_required_work": "冻结企业平台样本及Token窗口；验证月份/公开时点，重叠窗不累加",
+      "source_families": [
+        "Ramp TSM",
+        "OpenRouter/ToolDrift",
+        "Salesforce官方季度公告/原生AWU定义"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_demand",
+      "pillar": "orders",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "gpu_orders_units",
+        "hbm_orders_bits",
+        "optical_800g_orders_units",
+        "optical_16t_orders_units"
+      ],
+      "acquired_samples": [
+        "gpu_orders_units"
+      ],
+      "conditional_estimates": [],
+      "missing": [
+        "hbm_orders_bits",
+        "optical_800g_orders_units",
+        "optical_16t_orders_units"
+      ],
+      "tracking_evidence": "IREN免费五采购事件；零披露期不能补零",
+      "next_required_work": "对账取消、租赁重组及型号单位；查季度采购净流量，订单不得转成供给",
+      "source_families": [
+        "IREN官方采购事件/SEC订单；KGI承诺线索分开",
+        "存储厂商 IR",
+        "lightcounting_2026q2"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_demand",
+      "pillar": "dc_demand",
+      "original_side_weight": 0.15,
+      "candidate_metrics": [
+        "contracted_dc_mw",
+        "leased_dc_mw",
+        "reserved_power_mw"
+      ],
+      "acquired_samples": [
+        "contracted_dc_mw",
+        "leased_dc_mw"
+      ],
+      "conditional_estimates": [],
+      "missing": [
+        "reserved_power_mw"
+      ],
+      "tracking_evidence": "TeraWulf/Equinix签约样本与CBRE半年报告",
+      "next_required_work": "固定租赁园区样本；区分新增租赁流量/已签约库存，补合同取消和交付状态",
+      "source_families": [
+        "TeraWulf",
+        "Equinix",
+        "企业／电网合同披露"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_supply",
+      "pillar": "gpu",
+      "original_side_weight": 0.25,
+      "candidate_metrics": [
+        "powered_on_gpu_units",
+        "revenue_generating_gpu_units",
+        "gpu_equivalent_compute_capacity"
+      ],
+      "acquired_samples": [],
+      "conditional_estimates": [
+        "powered_on_gpu_units",
+        "revenue_generating_gpu_units",
+        "gpu_equivalent_compute_capacity"
+      ],
+      "missing": [],
+      "tracking_evidence": "CoreWeave running下界；IREN11-06原稿H100816运行/H2001080调试、01-07安装1896签约继续；7状态行/5容器",
+      "next_required_work": "核同日期商业运行总量和连续史，不额外要求逐台发票；近满载无数值，不推GPU小时；H100等价、CoreWeave下界增速和MAD史待验",
+      "source_families": [
+        "CoreWeave S-1/A原生running下界及IREN状态",
+        "IREN原始年报/月报",
+        "Epoch事件/估计资料"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_supply",
+      "pillar": "dc",
+      "original_side_weight": 0.25,
+      "candidate_metrics": [
+        "dc_energized_mw",
+        "dc_commissioned_mw",
+        "dc_revenue_generating_mw"
+      ],
+      "acquired_samples": [
+        "dc_energized_mw",
+        "dc_revenue_generating_mw"
+      ],
+      "conditional_estimates": [
+        "dc_commissioned_mw"
+      ],
+      "missing": [],
+      "tracking_evidence": "TeraWulf3运行点；CoreWeave原生active power9日期但仅7连续季点/6季转换，限定词保留",
+      "next_required_work": "补运行交付同定义史；CoreWeave IT/设施功率未证，不借Nebius定义，不把active等同commissioned或收入MW",
+      "source_families": [
+        "TeraWulf原始季度IR/10Q"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_supply",
+      "pillar": "memory",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "hbm_bit_shipments",
+        "hbm_qualified_capacity_bits"
+      ],
+      "acquired_samples": [],
+      "conditional_estimates": [
+        "hbm_bit_shipments"
+      ],
+      "missing": [
+        "hbm_qualified_capacity_bits"
+      ],
+      "tracking_evidence": "美光4原生PDF/8增速原文，多为模糊范围；无合资格绝对量",
+      "next_required_work": "补连续可量化bit出货历史与SEC期间绑定；不把low/mid/flattish设精确数，不把总DRAM或预测作HBM实测",
+      "source_families": [
+        "Epoch事件/估计资料",
+        "TrendForce免费原文/厂商IR"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_supply",
+      "pillar": "optical",
+      "original_side_weight": 0.15,
+      "candidate_metrics": [
+        "optical_800g_shipments_units",
+        "optical_16t_shipments_units"
+      ],
+      "acquired_samples": [
+        "optical_800g_shipments_units"
+      ],
+      "conditional_estimates": [],
+      "missing": [
+        "optical_16t_shipments_units"
+      ],
+      "tracking_evidence": "AOI首批10000只单客户发货事件",
+      "next_required_work": "补公司季度实际出货数量/认证状态；收入不能无ASP假设换成只数",
+      "source_families": [
+        "AOI原始公司季度IR/事件",
+        "lightcounting_2026q2；厂商 IR"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "hardware_supply",
+      "pillar": "power_cooling",
+      "original_side_weight": 0.15,
+      "candidate_metrics": [
+        "grid_connected_mw",
+        "available_power_mw",
+        "ppa_operational_mw"
+      ],
+      "acquired_samples": [
+        "grid_connected_mw",
+        "available_power_mw"
+      ],
+      "conditional_estimates": [],
+      "missing": [
+        "ppa_operational_mw"
+      ],
+      "tracking_evidence": "Hawesville480MW并网可用单点；尚在开发",
+      "next_required_work": "补电力权利/可保障容量与运行交付；不能把电力可用量当商业运行AI MW",
+      "source_families": [
+        "TeraWulf原始季度IR/10Q",
+        "企业 PPA／发电项目披露"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_demand",
+      "pillar": "tokens",
+      "original_side_weight": 0.25,
+      "candidate_metrics": [
+        "openrouter_tokens",
+        "api_tokens_total"
+      ],
+      "acquired_samples": [
+        "openrouter_tokens",
+        "api_tokens_total"
+      ],
+      "conditional_estimates": [],
+      "missing": [],
+      "tracking_evidence": "Ramp91周/13及52周78与39增长；两maker样本，全行独立复算",
+      "next_required_work": "核客户样本cohort、模型/tokenizer/缓存与首次发布；二次SSR无新增，持续数值更新待验，周频不修复日频时效",
+      "source_families": [
+        "OpenRouter/ToolDrift",
+        "Ramp TSM"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_demand",
+      "pillar": "token_revenue",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "token_revenue_proxy_usd"
+      ],
+      "acquired_samples": [],
+      "conditional_estimates": [
+        "token_revenue_proxy_usd"
+      ],
+      "missing": [],
+      "tracking_evidence": "Ramp91周同日期all_tokens账单费用与Token；78/39增长可复算",
+      "next_required_work": "核账单金额与供应商收入毛/净确认、cohort；不以今日标价回填，不把费用当实收API净收入",
+      "source_families": [
+        "Ramp TSM"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_demand",
+      "pillar": "active_usage",
+      "original_side_weight": 0.15,
+      "candidate_metrics": [
+        "consumer_wau",
+        "enterprise_wau",
+        "enterprise_ai_seats"
+      ],
+      "acquired_samples": [
+        "consumer_wau",
+        "enterprise_ai_seats"
+      ],
+      "conditional_estimates": [],
+      "missing": [
+        "enterprise_wau"
+      ],
+      "tracking_evidence": "Epoch跨公司WAU事件、微软3次付费席位",
+      "next_required_work": "冻结WAU/付费席位产品篮子及单位；补早期同产品版本，不混WAU/MAU/席位",
+      "source_families": [
+        "Epoch免费公司数据包逐字段审计；上游原稿资格另核",
+        "Salesforce AWU及亚马逊官方季度披露；ServiceNow公开字段文档",
+        "Microsoft365 Copilot"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_demand",
+      "pillar": "tasks",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "agent_tasks",
+        "successful_tasks"
+      ],
+      "acquired_samples": [
+        "agent_tasks"
+      ],
+      "conditional_estimates": [],
+      "missing": [
+        "successful_tasks"
+      ],
+      "tracking_evidence": "Salesforce三累计AWU、一期原生季流量；ServiceNow仅实例schema",
+      "next_required_work": "三累计只有两变化，一季直接流量不足8；AWU不是成功任务，不回推季量；ServiceNow无公共数值",
+      "source_families": [
+        "Salesforce官方季度公告/原生AWU定义",
+        "Salesforce AWU及亚马逊官方季度披露；ServiceNow公开字段文档"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_demand",
+      "pillar": "revenue",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "model_arr_usd",
+        "model_api_revenue_usd",
+        "ai_cloud_revenue_usd"
+      ],
+      "acquired_samples": [
+        "model_arr_usd",
+        "ai_cloud_revenue_usd"
+      ],
+      "conditional_estimates": [
+        "model_api_revenue_usd"
+      ],
+      "missing": [],
+      "tracking_evidence": "Z.AI商业类别7原币值/一近似USD点，纯API收入为条件代理；IREN收入与Epoch ARR分开",
+      "next_required_work": "Z.AI三原稿重复类别披露已核；网页/应用订阅与API无法剥离；旧期美元不填，年/H1不拼；产品新分类与历史首发待核；IREN当前GAAP仅7增长、混合准则历史另存；ARR/run-rate范围分别验收",
+      "source_families": [
+        "Epoch免费公司数据包逐字段审计；上游原稿资格另核",
+        "Z.AI HKEX原始财务公告",
+        "IREN月度AI云/Nebius季度分部"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_supply",
+      "pillar": "quality",
+      "original_side_weight": 0.25,
+      "candidate_metrics": [
+        "quality_adjusted_model_score"
+      ],
+      "acquired_samples": [],
+      "conditional_estimates": [
+        "quality_adjusted_model_score"
+      ],
+      "missing": [],
+      "tracking_evidence": "Epoch测试、SWE-bench版本；存在修订冲突",
+      "next_required_work": "冻结可部署模型与任务测试篮子、Agent预算、分数可知日；7条冲突不准入",
+      "source_families": [
+        "Epoch／官方SWE-bench版本仓库"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_supply",
+      "pillar": "throughput",
+      "original_side_weight": 0.25,
+      "candidate_metrics": [
+        "api_capacity_tps",
+        "effective_tokens_per_second"
+      ],
+      "acquired_samples": [],
+      "conditional_estimates": [],
+      "missing": [
+        "api_capacity_tps",
+        "effective_tokens_per_second"
+      ],
+      "tracking_evidence": "MLPerf两版461系统性能、InferenceX运行事件",
+      "next_required_work": "连接实际可访问端点与同配置性能；单系统性能不等于总API可供容量",
+      "source_families": [
+        "MLPerf/InferenceX/供应商原始披露"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_supply",
+      "pillar": "availability",
+      "original_side_weight": 0.15,
+      "candidate_metrics": [
+        "api_uptime_pct",
+        "rate_limit_tokens_per_min",
+        "p95_latency_ms"
+      ],
+      "acquired_samples": [
+        "api_uptime_pct",
+        "rate_limit_tokens_per_min"
+      ],
+      "conditional_estimates": [
+        "p95_latency_ms"
+      ],
+      "missing": [],
+      "tracking_evidence": "Claude5月官方组件；固定OpenRouter端点93日末样本，水平/变化数值验证通过",
+      "next_required_work": "前瞻来源采集历史可验证；补首发PIT和固定质量/置信权重，滚动窗口非日SLA，限流/延迟仍需历史",
+      "source_families": [
+        "Claude官方Statuspage；OpenRouter公共API第三方Git原始归档",
+        "Anthropic公开标准额度",
+        "InferenceX"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_supply",
+      "pillar": "accessible_supply",
+      "original_side_weight": 0.15,
+      "candidate_metrics": [
+        "open_weight_frontier_model_count",
+        "api_available_regions"
+      ],
+      "acquired_samples": [
+        "api_available_regions"
+      ],
+      "conditional_estimates": [
+        "open_weight_frontier_model_count"
+      ],
+      "missing": [],
+      "tracking_evidence": "AWS当前140模型/35区域矩阵，开放模型信息",
+      "next_required_work": "固定实际部署/访问条件和区域内/跨区路由口径；恢复生效版本，不用发布数代替供给",
+      "source_families": [
+        "Epoch事件/估计资料",
+        "AWS官方模型/区域矩阵"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    },
+    {
+      "side": "model_supply",
+      "pillar": "serving_efficiency",
+      "original_side_weight": 0.2,
+      "candidate_metrics": [
+        "quality_adjusted_serving_cost",
+        "serving_cost_usd_per_m_tokens"
+      ],
+      "acquired_samples": [],
+      "conditional_estimates": [
+        "quality_adjusted_serving_cost",
+        "serving_cost_usd_per_m_tokens"
+      ],
+      "missing": [],
+      "tracking_evidence": "免费TCO17配置，13条非clamped；性能有历史",
+      "next_required_work": "保留GPU小时成本版本及任务质量/精度；当前成本假设不得回填历史费用",
+      "source_families": [
+        "MLPerf/InferenceX/供应商原始披露"
+      ],
+      "formal_coverage_weight": null,
+      "history_admission_verified": false,
+      "admission_status": "unproven_not_a_zero_score"
+    }
+  ],
+  "warning": "49 engineering candidates summarize111 original candidates; do not make all49 or111 mandatory.",
+  "effective_side_coverage": {
+    "hardware_demand": null,
+    "hardware_supply": null,
+    "model_demand": null,
+    "model_supply": null
+  },
+  "why_coverage_null": "Within-pillar basket/weights and historical/effective-supply admission are not frozen; counts cannot compute valid coverage.",
+  "mandatory_constraints": [
+    "Training and inference separate",
+    "Token revenue proxy includes volume, not price alone",
+    "Effective hardware requires energized commissioned revenue-generating state",
+    "Model supply requires deployed accessible quality capacity and reliability",
+    "At least8 valid observations for expanding normalization; sparse levels do not automatically qualify",
+    "Each side must meet60% original structural effective weight coverage; report composition changes"
+  ],
+  "full_original_spec_support_verified": false
+}
